@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>FIRE KIDS WP投稿アップローダー</title>
+<style>
+:root {
+  --bg: #fafafa;
+  --card: #ffffff;
+  --accent: #1a1a1a;
+  --accent2: #5a5248;
+  --line: #e8e4de;
+  --line2: #c8c0b4;
+  --text: #1a1a1a;
+  --sub: #3a3a3a;
+  --good: #2d7a3e;
+  --bad: #b34040;
+  --soft: #f7f5f2;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  background: var(--bg); color: var(--text);
+  max-width: 920px; margin: 0 auto; padding: 32px 20px;
+  line-height: 1.7;
+}
+h1 { font-size: 24px; border-left: 4px solid var(--accent); padding-left: 14px; margin: 0 0 24px; }
+h2 { font-size: 18px; margin: 0 0 16px; color: var(--accent); }
+h3 { font-size: 15px; margin: 0; color: var(--accent2); }
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 4px;
+  padding: 24px; margin-bottom: 20px;
+}
+label { display: block; font-weight: 600; margin: 12px 0 5px; font-size: 13px; color: var(--accent2); }
+input[type="text"], input[type="datetime-local"], select, textarea {
+  width: 100%; padding: 9px 11px; border: 1px solid var(--line2);
+  border-radius: 3px; font-size: 13.5px; background: #fff; font-family: inherit;
+}
+input[type="file"] { padding: 8px 0; }
+button {
+  background: var(--accent); color: #fff; padding: 12px 28px;
+  border: 0; border-radius: 3px; cursor: pointer; font-weight: 700;
+  font-size: 14px; letter-spacing: 0.04em; margin-top: 16px;
+}
+button:hover { background: var(--accent2); }
+button:disabled { background: #aaa; cursor: not-allowed; }
+.hidden { display: none; }
+.muted { color: var(--sub); font-size: 12.5px; }
+
+.post-row {
+  background: var(--soft); border: 1px solid var(--line); border-radius: 3px;
+  padding: 16px 18px; margin: 12px 0;
+}
+.post-row .filename {
+  display: inline-block; background: var(--accent); color: #fff;
+  font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 2px;
+  margin-bottom: 10px; letter-spacing: 0.03em;
+}
+.post-row .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.post-row .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.post-row .grid-full { grid-column: 1 / -1; }
+
+.health {
+  font-size: 12px; color: var(--sub); margin-bottom: 16px;
+  padding: 8px 12px; background: #fff; border: 1px solid var(--line); border-radius: 3px;
+}
+.health.ok { color: var(--good); border-color: var(--good); }
+.health.ng { color: var(--bad); border-color: var(--bad); }
+
+#results { margin-top: 20px; }
+.result-item {
+  padding: 11px 14px; margin: 8px 0; border-radius: 3px; font-size: 13px;
+  border-left: 3px solid var(--line2);
+}
+.result-item.ok { background: #eaf5ec; border-left-color: var(--good); color: var(--good); }
+.result-item.ng { background: #f8eaea; border-left-color: var(--bad); color: var(--bad); white-space: pre-wrap; word-break: break-all; }
+.result-item .fname { font-weight: 700; margin-right: 8px; }
+
+.summary { font-size: 14px; font-weight: 700; margin: 16px 0 8px; padding: 10px 14px; border-radius: 3px; background: var(--soft); }
+.fixed-info { background: var(--soft); padding: 16px 20px; border-radius: 3px; margin: 16px 0; font-size: 13px; color: var(--sub); }
+.fixed-info strong { color: var(--accent); }
+
+.meta-row {
+  display: flex; gap: 16px; align-items: center; margin: 8px 0 4px;
+  font-size: 12.5px; color: var(--sub);
+}
+.thumb {
+  width: 60px; height: 60px; object-fit: cover; border-radius: 3px;
+  border: 1px solid var(--line2);
+}
+.brand-tag {
+  display: inline-block; background: #fff; border: 1px solid var(--line2);
+  padding: 2px 10px; border-radius: 12px; font-size: 12px;
+  color: var(--accent); font-weight: 600;
+}
+.cat-radios { display: flex; gap: 16px; margin-top: 4px; }
+.cat-radios label {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin: 0; padding: 6px 12px; background: #fff; border: 1px solid var(--line2);
+  border-radius: 3px; cursor: pointer; font-weight: 500;
+}
+.cat-radios input[type="radio"] { margin: 0; }
+
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid var(--line); }
+.tab {
+  padding: 10px 20px; background: var(--soft); border: 1px solid var(--line);
+  border-bottom: none; border-radius: 3px 3px 0 0; cursor: pointer;
+  font-weight: 600; font-size: 13px; color: var(--sub); margin-bottom: -2px;
+}
+.tab.active { background: #fff; color: var(--accent); border-bottom: 2px solid #fff; }
+
+.paste-row {
+  background: var(--soft); border: 1px solid var(--line);
+  padding: 12px 14px; margin: 10px 0; border-radius: 3px;
+}
+.paste-row .paste-label {
+  display: flex; justify-content: space-between; align-items: center;
+  font-weight: 600; font-size: 13px; color: var(--accent2); margin-bottom: 6px;
+}
+.paste-row textarea {
+  width: 100%; min-height: 100px; padding: 10px; border: 1px solid var(--line2);
+  border-radius: 3px; font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px; resize: vertical; box-sizing: border-box;
+}
+.paste-row .paste-name {
+  width: 200px; padding: 4px 8px; border: 1px solid var(--line2);
+  border-radius: 2px; font-size: 12px;
+}
+.btn-add, .btn-remove {
+  background: #fff; color: var(--accent); border: 1px solid var(--line2);
+  padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer;
+  border-radius: 3px; margin-top: 0;
+}
+.btn-add:hover, .btn-remove:hover { background: var(--soft); }
+.btn-remove { color: var(--bad); }
+</style>
+</head>
+<body>
+
+<h1>FIRE KIDS WP投稿アップローダー</h1>
+
+<div id="health" class="health">WP接続確認中…</div>
+
+<div class="fixed-info">
+  <strong>固定設定:</strong> 投稿者・ライター = ファイアーキッズ編集部 ／ タイトル末尾「｜FIRE KIDS Magazine」は自動削除 ／ ブランド・アイキャッチはHTMLから自動抽出
+</div>
+
+<!-- Step 1 -->
+<div class="card" id="step1">
+  <h2>1. HTML読み込み（最大{{ max_files }}件）</h2>
+  <div class="tabs">
+    <div class="tab active" data-tab="file" onclick="switchTab('file')">ファイル選択</div>
+    <div class="tab" data-tab="paste" onclick="switchTab('paste')">テキスト貼り付け</div>
+  </div>
+
+  <div id="tab-file" class="tab-content">
+    <input type="file" id="html_files" accept=".html,.htm" multiple>
+    <p class="muted">articles/{BRAND}/XXX_article_*.html を最大{{ max_files }}件まで同時選択できます。</p>
+    <button onclick="parseHtml()">読み込む</button>
+  </div>
+
+  <div id="tab-paste" class="tab-content hidden">
+    <p class="muted">HTML原文を貼り付け。「+追加」で最大{{ max_files }}件まで。</p>
+    <div id="paste-rows"></div>
+    <button class="btn-add" onclick="addPasteRow()" style="margin-top:8px;">+ HTMLを追加</button>
+    <br>
+    <button onclick="parsePastedText()">読み込む</button>
+  </div>
+</div>
+
+<!-- Step 2 -->
+<div class="card hidden" id="step2">
+  <h2>2. 各記事の設定</h2>
+  <div id="post-rows"></div>
+
+  <button id="submitBtn" onclick="publish()">一括投稿する</button>
+  <div id="results"></div>
+</div>
+
+<script>
+const MAX_FILES = {{ max_files }};
+let parsedFiles = [];
+
+async function checkHealth() {
+  const div = document.getElementById('health');
+  try {
+    const res = await fetch('/health');
+    const data = await res.json();
+    if (data.ok) {
+      div.className = 'health ok';
+      const writerStatus = data.writer_user_found
+        ? `／ ライター=${data.writer_user_id ? '編集部ユーザー検出 (ID:' + data.writer_user_id + ')' : '未検出'}`
+        : '／ ⚠️ 編集部ユーザー未検出（WP側に「編集部」を含む名前のユーザーがあるか確認）';
+      div.textContent = `✓ WP接続OK（ログイン: ${data.user}）${writerStatus}`;
+    } else {
+      div.className = 'health ng';
+      div.textContent = `✗ WP接続NG: ${data.error || JSON.stringify(data)}`;
+    }
+  } catch (e) {
+    div.className = 'health ng';
+    div.textContent = `✗ サーバーエラー: ${e.message}`;
+  }
+}
+
+async function parseHtml() {
+  const fileInput = document.getElementById('html_files');
+  if (!fileInput.files.length) {
+    alert('HTMLファイルを選択してください');
+    return;
+  }
+  if (fileInput.files.length > MAX_FILES) {
+    alert(`一度にアップロードできるのは${MAX_FILES}件までです`);
+    return;
+  }
+
+  const formData = new FormData();
+  for (const f of fileInput.files) {
+    formData.append('html_files', f);
+  }
+
+  const res = await fetch('/parse', { method: 'POST', body: formData });
+  const data = await res.json();
+  if (data.error) {
+    alert(data.error);
+    return;
+  }
+
+  parsedFiles = data.files;
+  renderPostRows();
+  document.getElementById('step2').classList.remove('hidden');
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.getElementById('tab-file').classList.toggle('hidden', name !== 'file');
+  document.getElementById('tab-paste').classList.toggle('hidden', name !== 'paste');
+  if (name === 'paste' && document.querySelectorAll('.paste-row').length === 0) {
+    addPasteRow();
+  }
+}
+
+function addPasteRow() {
+  const container = document.getElementById('paste-rows');
+  const idx = container.querySelectorAll('.paste-row').length;
+  if (idx >= MAX_FILES) {
+    alert(`${MAX_FILES}件までです`);
+    return;
+  }
+  const row = document.createElement('div');
+  row.className = 'paste-row';
+  row.innerHTML = `
+    <div class="paste-label">
+      <span>HTML #${idx + 1}</span>
+      <span>
+        <input type="text" class="paste-name" placeholder="ファイル名（任意・例: 188_article_xxx.html）">
+        <button class="btn-remove" onclick="this.closest('.paste-row').remove(); renumberPasteRows();">削除</button>
+      </span>
+    </div>
+    <textarea class="paste-content" placeholder="HTML原文をここに貼り付け（メタ情報コメント＋本文すべて）"></textarea>
+  `;
+  container.appendChild(row);
+}
+
+function renumberPasteRows() {
+  document.querySelectorAll('.paste-row .paste-label > span:first-child').forEach((el, i) => {
+    el.textContent = `HTML #${i + 1}`;
+  });
+}
+
+async function parsePastedText() {
+  const rows = document.querySelectorAll('.paste-row');
+  const htmls = [];
+  rows.forEach(row => {
+    const content = row.querySelector('.paste-content').value;
+    const filename = row.querySelector('.paste-name').value;
+    if (content.trim()) {
+      htmls.push({ content, filename });
+    }
+  });
+  if (!htmls.length) {
+    alert('HTML原文を1件以上入力してください');
+    return;
+  }
+  if (htmls.length > MAX_FILES) {
+    alert(`一度に処理できるのは${MAX_FILES}件までです`);
+    return;
+  }
+
+  const res = await fetch('/parse-text', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ htmls }),
+  });
+  const data = await res.json();
+  if (data.error) {
+    alert(data.error);
+    return;
+  }
+
+  parsedFiles = data.files;
+  renderPostRows();
+  document.getElementById('step2').classList.remove('hidden');
+}
+
+function renderPostRows() {
+  const container = document.getElementById('post-rows');
+  container.innerHTML = parsedFiles.map((f, i) => `
+    <div class="post-row" data-idx="${i}">
+      <span class="filename">${escapeHtml(f.filename)}</span>
+
+      <div class="meta-row">
+        ${f.featured_image_url ? `<img class="thumb" src="${escapeHtml(f.featured_image_url)}" alt="アイキャッチ">` : '<span class="muted">アイキャッチ未検出</span>'}
+        <div>
+          ブランド: ${f.brand ? `<span class="brand-tag">${escapeHtml(f.brand)}</span>` : '<span class="muted">未検出</span>'}
+          <div class="muted" style="margin-top:4px;">アイキャッチ: ${f.featured_image_url ? escapeHtml(f.featured_image_url.split('/').pop()) : '—'}</div>
+        </div>
+      </div>
+
+      <label>タイトル <span class="muted">（自動取得・「｜FIRE KIDS Magazine」自動削除済）</span></label>
+      <input type="text" class="row-title" value="${escapeHtml(f.title)}">
+
+      <label>カテゴリー</label>
+      <div class="cat-radios">
+        <label><input type="radio" name="cat-${i}" value="時計の基礎知識" checked> 時計の基礎知識</label>
+        <label><input type="radio" name="cat-${i}" value="コラム"> コラム</label>
+      </div>
+
+      <div class="grid">
+        <div>
+          <label>追加タグ <span class="muted">（カンマ区切り、ブランド名は自動付与）</span></label>
+          <input type="text" class="row-tags" placeholder="例: Cal.1030, ヴィンテージ">
+        </div>
+        <div>
+          <label>予約投稿日時 <span class="muted">（空欄=即時公開）</span></label>
+          <input type="datetime-local" class="row-schedule">
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+async function publish() {
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = '投稿中…（画像アップロード等で時間がかかります）';
+
+  const rows = document.querySelectorAll('.post-row');
+  const posts = Array.from(rows).map((row) => {
+    const idx = parseInt(row.dataset.idx);
+    const scheduleVal = row.querySelector('.row-schedule').value;
+    const catRadio = row.querySelector(`input[name="cat-${idx}"]:checked`);
+    return {
+      filename: parsedFiles[idx].filename,
+      title: row.querySelector('.row-title').value,
+      content: parsedFiles[idx].content,
+      tags: row.querySelector('.row-tags').value,
+      schedule: scheduleVal ? `${scheduleVal}:00` : null,
+      brand: parsedFiles[idx].brand,
+      featured_image_url: parsedFiles[idx].featured_image_url,
+      category: catRadio ? catRadio.value : null,
+    };
+  });
+
+  try {
+    const res = await fetch('/publish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ posts }),
+    });
+    const data = await res.json();
+    renderResults(data);
+  } catch (e) {
+    document.getElementById('results').innerHTML = `<div class="result-item ng">リクエスト失敗: ${escapeHtml(e.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '一括投稿する';
+  }
+}
+
+function renderResults(data) {
+  const container = document.getElementById('results');
+  if (data.error) {
+    container.innerHTML = `<div class="result-item ng">${escapeHtml(data.error)}</div>`;
+    return;
+  }
+  let html = `<div class="summary">投稿結果: 成功 ${data.success_count} / ${data.total} 件 ${data.writer_id ? '（ライター ID: ' + data.writer_id + '）' : ''}</div>`;
+  for (const r of data.results) {
+    if (r.success) {
+      const statusLabel = r.status === 'future' ? '予約投稿' : '公開';
+      const meta = [];
+      if (r.brand) meta.push(`ブランド: ${escapeHtml(r.brand)}`);
+      if (r.featured_media_id) meta.push(`画像ID: ${r.featured_media_id}`);
+      if (r.category_id) meta.push(`カテゴリID: ${r.category_id}`);
+      html += `<div class="result-item ok">
+        <span class="fname">${escapeHtml(r.filename)}</span>
+        ✓ ${statusLabel}完了（ID: ${r.id} / ${escapeHtml(r.date)}）${meta.length ? '<br><span class="muted">' + meta.join(' / ') + '</span>' : ''}<br>
+        <a href="${escapeHtml(r.link)}" target="_blank" rel="noopener">${escapeHtml(r.link)}</a>
+      </div>`;
+    } else {
+      const errMsg = typeof r.error === 'string' ? r.error : JSON.stringify(r.error, null, 2);
+      html += `<div class="result-item ng">
+        <span class="fname">${escapeHtml(r.filename)}</span>
+        ✗ 失敗: ${escapeHtml(errMsg)}
+      </div>`;
+    }
+  }
+  container.innerHTML = html;
+}
+
+checkHealth();
+</script>
+
+</body>
+</html>

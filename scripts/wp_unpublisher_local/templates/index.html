@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>WP 記事 非公開化ツール</title>
+<style>
+  body { font-family: -apple-system, "Hiragino Sans", sans-serif; background:#f5f5f0; margin:0; padding:24px; color:#222; }
+  h1 { font-size:18px; margin:0 0 4px; }
+  .sub { color:#777; font-size:13px; margin-bottom:18px; }
+  .panel { background:#fff; border:1px solid #ddd; border-radius:4px; padding:18px 20px; margin-bottom:16px; }
+  textarea { width:100%; min-height:240px; padding:10px; font-family:monospace; font-size:13px; border:1px solid #ccc; border-radius:3px; box-sizing:border-box; }
+  .row { display:flex; gap:12px; align-items:center; margin-top:12px; flex-wrap:wrap; }
+  label { font-size:13px; color:#555; }
+  select, button { font-size:14px; padding:8px 14px; border:1px solid #ccc; border-radius:3px; background:#fff; cursor:pointer; }
+  button.primary { background:#1a1a1a; color:#fff; border-color:#1a1a1a; }
+  button.primary:disabled { opacity:0.5; cursor:not-allowed; }
+  .status { font-size:13px; padding:8px 12px; border-radius:3px; display:inline-block; margin-left:8px; }
+  .status.ok { background:#e6f4ea; color:#0b6b2c; }
+  .status.ng { background:#fdecea; color:#8b1c12; }
+  table { width:100%; border-collapse:collapse; margin-top:12px; font-size:13px; }
+  th, td { border-bottom:1px solid #eee; padding:8px 6px; text-align:left; vertical-align:top; }
+  th { background:#fafafa; }
+  .ok-cell { color:#0b6b2c; }
+  .ng-cell { color:#8b1c12; }
+  .small { font-size:12px; color:#888; word-break:break-all; }
+  .pill { display:inline-block; padding:2px 8px; background:#eee; border-radius:10px; font-size:11px; margin-right:4px; }
+</style>
+</head>
+<body>
+<h1>WordPress 記事 非公開化ツール</h1>
+<div class="sub">URLを貼り付けて、private（非公開）または draft（下書き）に一括変更します。</div>
+
+<div class="panel">
+  <div class="row">
+    <button class="primary" onclick="checkHealth()">WP接続テスト</button>
+    <span id="health-status"></span>
+  </div>
+</div>
+
+<div class="panel">
+  <label><strong>対象URL（1行1件）</strong></label>
+  <textarea id="urls" placeholder="https://m.firekids.jp/.../article-slug/&#10;https://m.firekids.jp/.../another-slug/"></textarea>
+
+  <div class="row">
+    <label>変更先ステータス：</label>
+    <select id="status">
+      <option value="private">private（非公開：管理者のみ閲覧可）</option>
+      <option value="draft">draft（下書き：URL自体が無効に）</option>
+    </select>
+    <button class="primary" id="run" onclick="runUnpublish()">一括実行</button>
+    <span id="run-status"></span>
+  </div>
+</div>
+
+<div class="panel" id="result-panel" style="display:none;">
+  <strong>実行結果</strong>
+  <div id="summary" style="margin:8px 0;"></div>
+  <table id="result-table"><thead>
+    <tr><th>結果</th><th>タイトル / URL</th><th>ID</th><th>変更</th><th>備考</th></tr>
+  </thead><tbody></tbody></table>
+</div>
+
+<script>
+async function checkHealth() {
+  const el = document.getElementById('health-status');
+  el.innerHTML = '<span class="status">確認中...</span>';
+  try {
+    const res = await fetch('/health');
+    const j = await res.json();
+    if (j.ok) {
+      el.innerHTML = '<span class="status ok">OK · ' + j.site + ' · ' + (j.user || '') + '</span>';
+    } else {
+      el.innerHTML = '<span class="status ng">NG: ' + (j.error || '') + '</span>';
+    }
+  } catch (e) {
+    el.innerHTML = '<span class="status ng">NG: ' + e + '</span>';
+  }
+}
+
+async function runUnpublish() {
+  const urls = document.getElementById('urls').value.split('\n').map(s => s.trim()).filter(Boolean);
+  if (urls.length === 0) {
+    alert('URLが入力されていません');
+    return;
+  }
+  const status = document.getElementById('status').value;
+  if (!confirm(urls.length + '件を ' + status + ' に変更します。よろしいですか？')) return;
+
+  const btn = document.getElementById('run');
+  btn.disabled = true;
+  document.getElementById('run-status').innerHTML = '<span class="status">実行中... (' + urls.length + '件)</span>';
+
+  try {
+    const res = await fetch('/unpublish', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({urls, status})
+    });
+    const j = await res.json();
+    showResult(j.results || []);
+    document.getElementById('run-status').innerHTML = '<span class="status ok">完了</span>';
+  } catch (e) {
+    document.getElementById('run-status').innerHTML = '<span class="status ng">エラー: ' + e + '</span>';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function showResult(results) {
+  const okCount = results.filter(r => r.ok).length;
+  const ngCount = results.length - okCount;
+  document.getElementById('summary').innerHTML =
+    '成功 <strong style="color:#0b6b2c;">' + okCount + '</strong> 件 / 失敗 <strong style="color:#8b1c12;">' + ngCount + '</strong> 件';
+
+  const tbody = document.querySelector('#result-table tbody');
+  tbody.innerHTML = '';
+  results.forEach(r => {
+    const tr = document.createElement('tr');
+    const okHtml = r.ok ? '<span class="ok-cell">✓</span>' : '<span class="ng-cell">✗</span>';
+    const titleHtml = (r.title || '(取得失敗)') + '<div class="small">' + (r.url || '') + '</div>';
+    const idHtml = r.id ? '<span class="pill">ID: ' + r.id + '</span>' : '';
+    const transHtml = (r.before || '?') + ' → ' + (r.after || '?');
+    tr.innerHTML = '<td>' + okHtml + '</td><td>' + titleHtml + '</td><td>' + idHtml + '</td><td>' + transHtml + '</td><td>' + (r.message || '') + '</td>';
+    tbody.appendChild(tr);
+  });
+  document.getElementById('result-panel').style.display = '';
+}
+
+window.addEventListener('DOMContentLoaded', checkHealth);
+</script>
+</body>
+</html>

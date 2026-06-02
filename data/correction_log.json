@@ -1,0 +1,1231 @@
+{
+  "_comment": "人間チェックによる修正ログ。caliber_db.jsonの値と異なる場合、このファイルの値が正。記事生成時はcaliber_db.jsonよりもこのファイルを優先する。",
+  "_updated": "2026-04-08",
+  "_source": "FIRE KIDS商品部による実機確認・レビューフィードバック",
+
+  "caliber_corrections": {
+    "SEIKO": {
+      "430": {
+        "original": {"jewels": 25, "bph": 18000},
+        "corrected": {"jewels": 35, "bph": 19800},
+        "note": "57GS 2ndモデル。人間チェックにより石数・振動数修正"
+      },
+      "5722": {
+        "original": {"jewels": 25, "bph": 18000},
+        "corrected": {"jewels": 35, "bph": 19800},
+        "note": "57GS 2ndモデル。Cal.430と同様に修正"
+      },
+      "6245": {
+        "original": {"jewels": 25, "bph": 18000},
+        "corrected": {"jewels": 35, "bph": 19800},
+        "note": "62GS。石数・振動数ともに修正"
+      },
+      "4420": {
+        "original": {"jewels": 25, "bph": 36000},
+        "corrected": {"jewels": 27, "bph": 18000},
+        "note": "44GS。石数27石、振動数18,000に修正。36,000振動/時ではない"
+      },
+      "5645": {
+        "original": {"jewels": 25, "bph": 36000},
+        "corrected": {"jewels": 25, "bph": 28800},
+        "note": "56GS。振動数は28,800振動/時（36,000ではない）"
+      }
+    },
+    "OMEGA": {
+      "354": {
+        "original": {"year_introduced": 1948},
+        "corrected": {"year_introduced": 1952},
+        "note": "バンパー式。導入年を1952年に修正"
+      },
+      "501": {
+        "original": {"jewels": 17, "bph": 18000},
+        "corrected": {"jewels": 20, "bph": 19800},
+        "note": "ローター式自動巻き。石数20石、振動数19,800に修正"
+      },
+      "1012": {
+        "original": {"jewels": 17, "bph": 21600},
+        "corrected": {"jewels": 17, "bph": 28800},
+        "note": "ETA2783ベース。振動数は28,800振動/時（21,600ではない）。人間チェックにより修正"
+      },
+      "552": {
+        "original": {"jewels": 24, "bph": 19800},
+        "corrected": {"jewels": 24, "bph": 19800},
+        "note": "変更なし。確認済み"
+      }
+    }
+  },
+
+  "model_corrections": {
+    "5アクタス搭載Cal.": {
+      "original": "Cal.6119系",
+      "corrected": "Cal.6106系",
+      "note": "5アクタスの搭載キャリバーはCal.6106系が正しい"
+    },
+    "Ref.5513_Cal切替時期": {
+      "original": "1963〜1964年頃にCal.1520へ切替",
+      "corrected": "1964年頃にCal.1520へ切替",
+      "note": "1963年は不正確。1964年頃に修正"
+    },
+    "Ref.1601_ベゼル名称": {
+      "original": "エンジンターンドベゼル",
+      "corrected": "エングレーブドベゼル",
+      "note": "Ref.1603のベゼル名称"
+    },
+    "Ref.1601_製造期間": {
+      "original": "1960年頃から1981年頃",
+      "corrected": "1960年頃から1970年後半頃",
+      "note": "製造終了は1970年代後半"
+    },
+    "Ref.1601_ハック機能": {
+      "original": "ハック機能を備えており",
+      "corrected": "1970年代初頭からハック機能を備えており",
+      "note": "初期個体にはハック機能なし。1970年代初頭以降"
+    },
+    "シグマダイヤル": {
+      "original": "ゴールドのインデックスや針",
+      "corrected": "貴金属のインデックス（針は除外）",
+      "note": "シグマダイヤルのσマークはインデックスの貴金属使用を示す。針は対象外"
+    },
+    "Cal.6138": {
+      "original": "Cal.6138",
+      "corrected": "Cal.6138A",
+      "note": "正式にはCal.6138A。Aサフィックスが必要"
+    },
+    "エアキング_Cal": {
+      "original": "Cal.1520とCal.1560",
+      "corrected": "Cal.1520とCal.1530",
+      "note": "エアキングRef.5500の搭載Cal.はCal.1530であってCal.1560ではない"
+    },
+    "フライトマスター_リューズ配置": {
+      "original": "2時:クロノ, 3時:時刻, 4時:GMT",
+      "corrected": "3時:時刻合わせ, 10時:GMT針, 7時:内回転ベゼル",
+      "note": "リューズ配置が全面的に誤り。実機確認による修正"
+    },
+    "フライトマスター_Cal911": {
+      "original": "Cal.911は自動巻き",
+      "corrected": "Cal.911は手巻き",
+      "note": "Cal.910もCal.911もどちらも手巻き。自動巻きではない"
+    },
+    "フライトマスター_Cal910振動数": {
+      "original": "18,000振動/時",
+      "corrected": "21,600振動/時",
+      "note": "Cal.910の振動数は21,600。Cal.911と同じ"
+    },
+    "クロノストップ_ドライバーズウォッチ": {
+      "original": "文字盤を傾斜させたドライバーズウォッチ仕様、オブリークケース",
+      "corrected": "削除",
+      "note": "クロノストップにドライバーズウォッチ仕様は存在しない。真偽不明のため削除"
+    },
+    "チューダー薔薇サブ_デカバラ小バラ": {
+      "original": "サブマリーナにデカバラ/小バラの区分を適用",
+      "corrected": "削除",
+      "note": "サブマリーナにデカバラ/小バラの区分は存在しない。記事自体を削除"
+    },
+    "Cal.1575": {
+      "original": "Cal.1575はCal.1570ベースのGMTキャリバー",
+      "corrected": "削除",
+      "note": "Cal.1575は確認できない。商品部が見たことがないため削除"
+    },
+    "フライトマスター_Cal910ベース": {
+      "original": "Cal.910のベースはレマニア Cal.1041",
+      "corrected": "Cal.910のベースはCal.861",
+      "note": "人間チェック（228記事）により修正"
+    },
+    "フライトマスター_Cal910振動数": {
+      "original": "Cal.910は18,000振動/時",
+      "corrected": "Cal.910は21,600振動/時",
+      "note": "人間チェック（228記事）により修正"
+    },
+    "フライトマスター_Cal911巻き方式": {
+      "original": "Cal.911は自動巻き",
+      "corrected": "Cal.911は手巻き",
+      "note": "Cal.910もCal.911もどちらも手巻き。自動巻きではない"
+    },
+    "Ref.1675搭載キャリバー": {
+      "original": "Ref.1675にCal.1575搭載",
+      "corrected": "Ref.1675にCal.1570搭載",
+      "note": "Cal.1575は存在しない。Ref.1675の搭載キャリバーはCal.1570"
+    },
+    "Ref.1675前身キャリバー": {
+      "original": "Cal.1565",
+      "corrected": "Cal.1560",
+      "note": "前身キャリバーもCal.1560が正しい"
+    },
+    "Ref.1675製造期間": {
+      "original": "1959年から1980年まで約21年間",
+      "corrected": "1959年から1979年まで約20年間",
+      "note": "製造終了は1979年"
+    },
+    "コークベゼル_Ref.1675": {
+      "original": "Ref.1675にコークベゼルが存在する",
+      "corrected": "コークベゼルはRef.16760（1983年頃〜）から。Ref.1675には存在しない",
+      "note": "人間チェック（058記事）により修正"
+    },
+    "レイルマスター_Ref": {
+      "original": "Ref.CK2914-6",
+      "corrected": "Ref.CK2914",
+      "note": "人間チェック（215記事）により修正。-6サフィックス不要"
+    },
+    "Cal.A260_クロノメーター": {
+      "original": "Cal.A260はCOSC認定のクロノメーター仕様",
+      "corrected": "削除（クロノメーター認定の記述を削除）",
+      "note": "人間チェック（059記事）により修正。クロノメーター認定の裏付けなし"
+    },
+    "Cal.1030_クロノメーター": {
+      "original": "Cal.1030はクロノメーター認定を取得",
+      "corrected": "削除（クロノメーター認定の記述を削除）",
+      "note": "人間チェック（059記事）により修正"
+    },
+    "Ref.6536_製造年代": {
+      "original": "1956年から1958年頃",
+      "corrected": "1955年から1959年頃",
+      "note": "人間チェック（059記事）により修正"
+    },
+    "Ref.6536_ケース径": {
+      "original": "37mm",
+      "corrected": "37.5mm",
+      "note": "人間チェック（059記事）により修正"
+    },
+    "コンステレーション12角_構造": {
+      "original": "ケース側面が12の面で構成",
+      "corrected": "ダイヤルが12の面で構成",
+      "note": "人間チェック（235記事）により修正。12面体はケースではなくダイヤルの構造"
+    }
+  },
+
+  "title_corrections": [
+    {"original": "完全ガイド", "corrected": "解説", "note": "FIRE KIDSの商品データベース基準では「完全」とは言えない"},
+    {"original": "徹底解説", "corrected": "解説", "note": "同上"},
+    {"original": "徹底比較", "corrected": "比較", "note": "同上"}
+  ],
+
+  "deleted_articles": [
+    {
+      "file": "109_article_rose_sub.txt",
+      "reason": "サブマリーナにデカバラ/小バラの区分は存在しない。内容が事実と異なるため削除"
+    },
+    {
+      "file": "156_article_diver_3rd.txt",
+      "reason": "Cal.6306AもCal.6309Aもどちらも手巻き不可。手巻き有無を軸にした記事が成立しない"
+    },
+    {
+      "file": "269_article_caliber_list_60_70.txt",
+      "reason": "記事全体がRanfft DB等の外部サイトを主要ソースとしており、CLAUDE.mdルールに抵触。内部用語が記事の根幹を構成しているため修正不可"
+    },
+    {
+      "file": "292_article_cal1210_chrono.txt",
+      "reason": "Cal.1210の仕様が確認できず、記事全体が「DBに収録されていない」という免責で構成。記事として成立しない"
+    }
+  ],
+
+  "session_2026_04_08_corrections": {
+    "_description": "2026-04-08セッションでの全記事ルール準拠チェック・修正履歴",
+    "ai_knowledge_removal": [
+      {
+        "file": "442_article_gs_yametoke.txt",
+        "removed": "知名度・現行モデルの価格帯・リセールバリューへの不安・天文台コンクール・57GS価格示唆・Cal.3180スペック詳細",
+        "reason": "AI一般知識の混入（商品データに記載なし）。CLAUDE.md最重要ルール違反"
+      }
+    ],
+    "internal_terminology_removal": [
+      {
+        "file": "204_article_speedmaster_mark2.txt",
+        "removed": "（※Cal.1045は未登録）",
+        "reason": "内部用語禁止"
+      },
+      {
+        "file": "208_article_omega_constellation.txt",
+        "removed": "（※搭載キャリバーは未登録）",
+        "reason": "内部用語禁止"
+      },
+      {
+        "file": "295_article_ks_case_material.txt",
+        "removed": "GFバリエーションの記録は確認できませんでした",
+        "reason": "内部用語禁止（読者に内部事情を見せない）"
+      },
+      {
+        "file": "365_article_seiko_self_dater.txt",
+        "removed": "Cal.2020セクション全体（仕様記録を確認できなかった旨）、タイトルからCal.2020を削除",
+        "reason": "内部用語禁止＋裏付けなし情報の削除"
+      },
+      {
+        "file": "291_article_milgauss.txt",
+        "original": "目視では確認できませんが",
+        "corrected": "目視で確認するのが難しいですが",
+        "reason": "内部用語ニュアンス回避"
+      }
+    ],
+    "tone_corrections": [
+      {
+        "file": "413_article_rolex_dasai.txt",
+        "original": "ロレックスをつけてる男はダサい？本音で答える",
+        "corrected": "ロレックスをつけてる男はダサい？実際のところを考える",
+        "reason": "「本音で」禁止表現"
+      },
+      {
+        "file": "338_article_jlc_deep_sea.txt",
+        "original": "避けるべきです",
+        "corrected": "避けたほうが安心です",
+        "reason": "命令調「べき」禁止"
+      },
+      {
+        "file": "229_article_chronostop.txt",
+        "original": "確認すべきです",
+        "corrected": "確認しておきたいポイントです",
+        "reason": "命令調「べき」禁止"
+      },
+      {
+        "file": "306_article_cal1012.txt",
+        "original": "注目すべきです",
+        "corrected": "注目したいところです",
+        "reason": "命令調「べき」禁止"
+      },
+      {
+        "file": "102_article_tropical_dial.txt",
+        "original": "避けるべきです / 絶対に得られない",
+        "corrected": "避けたほうが安心です / なかなか得られない",
+        "reason": "命令調・過度な強調禁止"
+      },
+      {
+        "file": "254_article_lume_history.txt",
+        "original": "避けるべきです",
+        "corrected": "避けたほうが安心です",
+        "reason": "命令調「べき」禁止"
+      },
+      {
+        "file": "258_article_beginner_mistakes.txt",
+        "original": "慎重に判断すべきです",
+        "corrected": "慎重に判断したい部分です",
+        "reason": "命令調「べき」禁止"
+      },
+      {
+        "file": "361_article_resale_value.txt",
+        "original": "避けるべきです（2箇所）",
+        "corrected": "避けたほうが安心です",
+        "reason": "命令調「べき」禁止"
+      },
+      {
+        "file": "259_article_collection_start.txt",
+        "original": "避けるべきですか？（FAQ）",
+        "corrected": "避けたほうがいいですか？",
+        "reason": "命令調「べき」禁止"
+      },
+      {
+        "file": "432_article_dial_guide.txt",
+        "original": "避けるべきですか？（FAQ）",
+        "corrected": "避けたほうがいいですか？",
+        "reason": "命令調「べき」禁止"
+      },
+      {
+        "file": "208_article_omega_constellation.txt",
+        "original": "頼むべきですか？",
+        "corrected": "頼むのがよいですか？",
+        "reason": "命令調「べき」禁止"
+      }
+    ],
+    "added_recommendation_sections": {
+      "_description": "「こんな方におすすめしたい」セクションが未実装だった77記事に追加（記事本文の情報のみで構成、AI知識補完なし）",
+      "files": [
+        "001_article_conquest_vintage", "011_article_admiral", "012_article_diver", "013_article_gold_dress",
+        "068_article_chronomat_vintage", "069_article_top_time", "087_article_overhaul_guide",
+        "100_article_highbeat", "101_article_condition_guide", "114_article_tudor_cal_list",
+        "118_article_oyster_royal", "119_article_audemars_piguet_women", "151_article_pocket_watch",
+        "152_article_silver_wave", "153_article_skyliner_worldtime", "160_article_ks_first",
+        "166_article_pellaton_mechanism", "169_article_dirty_dozen", "170_article_geophysic",
+        "172_article_reverso", "173_article_futurematic", "174_article_gold_dress",
+        "175_article_chronomaster", "176_article_homer", "177_article_alarm_watch",
+        "178_article_crystal_seven", "179_article_ace_jet", "185_article_cristal_cal78",
+        "194_article_cougar", "195_article_royal_orient", "196_article_vintage_diver",
+        "239_article_constellation_chrono", "240_article_speedmaster_bracelet", "244_article_18k_gold",
+        "253_article_matte_vs_gloss_dial", "254_article_lume_history", "255_article_authenticity_check",
+        "258_article_beginner_mistakes", "259_article_collection_start", "264_article_speedmaster_tropical",
+        "271_article_gs_dial_all", "276_article_power_reserve", "277_article_lug_shape",
+        "278_article_bracelet_history", "284_article_hack_second", "286_article_dual_time_history",
+        "294_article_gs_vintage_year", "296_article_ks_kameido", "309_article_omega_antique",
+        "317_article_tudor_tropical", "323_article_omega_square_case", "326_article_tudor_sport_prince",
+        "327_article_tudor_bigee", "328_article_iwc_pilot", "330_article_iwc_spitfire",
+        "331_article_iwc_caliber_table", "333_article_longines_legend_diver", "339_article_jlc_power_reserve",
+        "341_article_jlc_bumper", "342_article_ug_tricompax", "345_article_quartz_shock_era",
+        "351_article_cartier_movement", "353_article_ug_caliber_table", "357_article_longines_vs_gs",
+        "358_article_breitling_slide_rule", "359_article_cartier_gold_case", "361_article_resale_value",
+        "392_article_polerouter", "397_article_master_mariner", "398_article_memovox_vintage",
+        "399_article_gs_61gs", "400_article_triple_calendar", "401_article_vc222",
+        "403_article_yacht_club", "404_article_seamaster_diver", "405_article_bumper_rotor_guide",
+        "406_article_portofino_vs_portugieser", "407_article_budget_guide"
+      ]
+    },
+    "added_summary_sections": [
+      "011_article_admiral", "012_article_diver", "013_article_gold_dress",
+      "194_article_cougar", "284_article_hack_second", "406_article_portofino_vs_portugieser"
+    ],
+    "added_cta": [
+      {
+        "file": "296_article_ks_kameido.txt",
+        "added": "FIRE KIDS セイコー商品一覧CTA（category_id=10、UTM付き）",
+        "reason": "CTA未実装"
+      },
+      {
+        "file": "445_article_tudor_popular.txt",
+        "added": "[CTA1]/[CTA2]プレースホルダーをチューダーカテゴリリンク（category_id=13）に置換",
+        "reason": "プレースホルダー残存"
+      }
+    ],
+    "seo_kw_optimization": {
+      "_description": "既存入門記事のタイトル・h2見出しを検索KWに最適化（本文は変更なし）",
+      "files": [
+        {
+          "file": "402_article_vc_vintage.txt",
+          "title_change": "ヴァシュロン・コンスタンタン ヴィンテージ解説 → ヴァシュロンコンスタンタンとは？ヴィンテージの魅力と代表モデル",
+          "h2_changes": 4
+        },
+        {
+          "file": "316_article_tudor_vintage_first.txt",
+          "title_change": "チューダー ヴィンテージ入門 → チューダーの時計とは？ヴィンテージの選び方とおすすめモデル",
+          "h2_changes": 3
+        },
+        {
+          "file": "189_article_vintage_beginner.txt",
+          "title_change": "カルティエ ヴィンテージ入門 → カルティエ ヴィンテージ時計とは？代表モデルと選び方",
+          "h2_changes": 2
+        },
+        {
+          "file": "334_article_longines_vintage_first.txt",
+          "title_change": "ロンジン ヴィンテージ入門 → ロンジンの時計とは？ヴィンテージの魅力と代表モデル",
+          "h2_changes": 3
+        }
+      ]
+    },
+    "x_post_corrections": {
+      "_description": "X投稿MDから絵文字・ダブルクオーテーションを削除（絵文字27件、DQ6件）+ 漏れ6件新規作成",
+      "emoji_removed": 27,
+      "double_quote_removed": 6,
+      "newly_created": ["438", "439", "440", "441", "442", "443"],
+      "ai_knowledge_removed": [
+        {
+          "file": "226_x_railmaster.md",
+          "removed": "耐磁御三家比較（ミルガウスRef.6541、インヂュニアRef.666）",
+          "reason": "記事本文に存在しない比較情報"
+        },
+        {
+          "file": "443_x_tudor_popular.md",
+          "removed": "ロレックスから独立した自社路線・デイトナとは異なる方向性",
+          "reason": "AI知識補完"
+        }
+      ]
+    },
+    "renumbering": [
+      {
+        "from": "443_article_tudor_popular",
+        "to": "445_article_tudor_popular",
+        "reason": "443番がTHEME機械式時計やめとけと重複していたため"
+      }
+    ],
+    "new_articles_created": {
+      "_description": "Search Console分析に基づく新規記事（438〜445）",
+      "files": [
+        {"file": "438_article_hamilton_embarrassing", "kw": "ハミルトン 恥ずかしい", "imp": 5512},
+        {"file": "439_article_tissot_embarrassing", "kw": "ティソ 恥ずかしい", "imp": 4316},
+        {"file": "440_article_baume_mercier_why_cheap", "kw": "ボーム&メルシエ なぜ安い", "imp": 316},
+        {"file": "441_article_tagheuer_embarrassing", "kw": "タグホイヤー 恥ずかしい", "imp": 3211},
+        {"file": "442_article_gs_yametoke", "kw": "グランドセイコー やめとけ", "imp": 13465},
+        {"file": "443_article_mechanical_yametoke", "kw": "機械式時計 やめとけ", "imp": 1592},
+        {"file": "444_article_cartier_popular", "kw": "カルティエ 人気モデル", "imp": 1998},
+        {"file": "445_article_tudor_popular", "kw": "チューダー 人気モデル", "imp": 2157}
+      ]
+    },
+    "human_checked_html_regenerated": [
+      {
+        "files": ["061_article_submariner_caliber", "300_article_const_tropical", "154_article_hand_wind_chrono", "273_article_oyster_case"],
+        "action": "TXT本文を一切変更せずHTMLを再生成",
+        "note": "人間チェック済みのため、TXTには手を入れていない"
+      },
+      {
+        "files": ["139_article_lord_matic", "059_article_submariner_early", "235_article_constellation_pie", "145_article_speed_timer"],
+        "action": "TXT→HTML再生成",
+        "note": "235のTXT誤字「持ちつのが」→「持つのが」のみ修正"
+      }
+    ]
+  },
+
+  "fact_corrections_2026_04_16": {
+    "_description": "2026-04-16に実施した事実・呼称・題材成立性に関する修正",
+    "articles": [
+      {
+        "file": "421_article_rolex_boys_size",
+        "type": "事実関係（呼称定義）",
+        "before": "ボーイズサイズ = 34〜36mm。代表モデルにエアキングRef.5500(34mm)、デイトジャストRef.1601(36mm)を列挙",
+        "after": "ボーイズサイズ = 30〜32mm（ミッドサイズとも）。代表モデルはスピードキングRef.6430/6431(~30mm)、OP31mm(Ref.67180/77080)、ミッドサイズデイトジャスト31mm(Ref.68273/68274)。34mm/36mmはメンズ標準サイズとして区別",
+        "reason": "34/36mmをボーイズサイズとして扱うのは誤り。本来のボーイズサイズは30〜32mm前後"
+      },
+      {
+        "file": "365_article_seiko_self_dater",
+        "type": "題材成立性",
+        "before": "Cal.2020を題材に据えた解説だが、Cal.2020の仕様記録が商品データ・caliber_dbで確認できずセクション全体がDB未確認の注記になっていた",
+        "after": "人間チェック済みTXTではCal.2020固有セクションを削除し、スーパーセルフデーター（Cal.970）/ クラウン / クロノス / マチックセルフデーター / GS 2ndモデル（Cal.430）/ 57GS（Cal.5722B）を中心に記述",
+        "reason": "裏付けの取れないCal.2020を記事題材の中心に据えていたのが誤り。書ける範囲で記述する方針に修正"
+      }
+    ],
+    "article_deleted": [
+      {
+        "file": "395_article_prince",
+        "reason": "題材不成立。ロレックス プリンス（1928-1940年代ドクターズウォッチ）はfirekids.jp在庫ゼロで商品データ裏付けが取れない。ユーザー提供の画像URL 7413はOMEGA 18Kピンクゴールド Ref.6218（プリンスと無関係）、12427は404で存在しない",
+        "replacement": "414_article_military_strongest（ミリタリーウォッチ普段使い）に差し替え",
+        "removed_assets": ["articles/ROLEX/395_article_prince.txt", "articles/ROLEX/395_article_prince.html", "x_posts/ROLEX/395_x_prince.md", "x_posts/ROLEX/395_x_prince.jpg"]
+      }
+    ],
+
+    "tone_cleanup": [
+      {
+        "files": ["428_article_cartier_mens", "413_article_rolex_dasai", "419_article_tank_vintage_now", "417_article_omega_naze_yasui", "415_article_breitling_image", "427_article_vintage_watch_definition", "435_article_gs_popular", "418_article_cellini_unpopular", "421_article_rolex_boys_size"],
+        "action": "店員視点（お客さんから聞かれる／見てきました／店頭で／お問い合わせが多い等）を中立的な編集視点へ書き換え",
+        "note": "SEO担当=編集部の立場であり店頭接客視点は整合しないため。X投稿も同様に修正"
+      },
+      {
+        "files": ["28記事 (TUDOR/OMEGA/SEIKO/LONGINES/IWC/CARTIER/JLC/THEME 系)"],
+        "action": "「データベース」「DB」「caliber_db」「Ranfft」「未登録」「確認できていない」等の内部用語を削除",
+        "note": "読者に見せるべきでない内部注記。CLAUDE.mdルール違反の一括解消。365のみ題材不成立のため別途修正（上記articles参照）"
+      }
+    ],
+
+    "human_checked_txt_received_2026_04_17": {
+      "_description": "人間チェック済みTXT受領。旧TXT上書き前の差分取得が不完全（旧版をcp前にバックアップしなかった反省点あり）",
+      "files": [
+        {"file": "438_article_hamilton_embarrassing", "note": "トーン調整のみ確認。スペック・事実関係の変更は検出されず"},
+        {"file": "443_article_mechanical_yametoke", "note": "トーン調整のみ確認。スペック・事実関係の変更は検出されず"},
+        {"file": "439_article_tissot_embarrassing", "note": "トーン調整のみ確認。スペック・事実関係の変更は検出されず"},
+        {"file": "423_article_constellation_history", "note": "新規人間チェック済みTXT。導入文に「よく聞きます」の店員視点表現あり（TXT不変ルールにより未修正）"}
+      ],
+      "process_improvement": "次回以降、cp前に旧TXTを$TMPDIRにバックアップしdiffを取ること"
+    },
+
+    "fact_corrections_2026_04_17_batch2": {
+      "_description": "2026-04-17 第二バッチ（412/444/413/419）。$TMPDIRにバックアップした旧TXTとの差分から検出",
+      "critical_fact_corrections": [
+        {
+          "file": "412_article_ks_yametoke",
+          "type": "キャリバー仕様の事実訂正",
+          "before": "44KS（Ref.4402-8000）は**ハイビート**手巻き",
+          "after": "44KS（Ref.4402-8000）は**ロービート**手巻き",
+          "reason": "44KS（Cal.4420系）はロービート（18,000振動/時）が正。AI生成時のハイビート誤認を人間チェックで修正。本文2箇所に反映",
+          "caliber_db_action": "Cal.4420/4402系の振動数設定を要確認（18,000振動/時が正）"
+        }
+      ],
+      "title_changes": [
+        {
+          "file": "444_article_cartier_popular",
+          "before": "カルティエ ヴィンテージ 人気モデル｜FIRE KIDSの販売実績から見るタンク・サントス・パシャ",
+          "after": "カルティエ ヴィンテージ 人気モデルのご紹介！",
+          "reason": "副題「〜販売実績から見る〜」を削除してシンプル化"
+        }
+      ],
+      "content_expansions": [
+        {
+          "file": "444_article_cartier_popular",
+          "lines_before": 130,
+          "lines_after": 192,
+          "note": "タンクアメリカン MMサイズ（18金無垢/2002年ギャランティー/自動巻）、タンクフランセーズLM（18金無垢ホワイトゴールド/自動巻 + SS LM自動巻）、ステップドタンク（1970年代/手巻/ブルーローマン）、サントスデュモン SMサイズ（18金無垢/手巻/PARISダイヤル）、サントス LMサイズ コンビ（1980年代/自動巻/ホワイトローマン）、サントス Ref.0902 SMサイズ コンビ ゴドロンブレス、サントスオクタゴン LMサイズ 1980年代、パシャ クロノグラフ Ref.2113（コンビ/裏スケ/1990年代）、パシャC（1980年代/ホワイトダイヤル）など具体モデル詳細が追加"
+        },
+        {
+          "file": "412_article_ks_yametoke",
+          "lines_before": 103,
+          "lines_after": 149,
+          "note": "56KS（Ref.5626-7000 自動巻デイデイトワンピース）、裏蓋メダリオン/45KSクロノメーター刻印などディテール追加"
+        },
+        {
+          "file": "413_article_rolex_dasai",
+          "lines_before": 97,
+          "lines_after": 143,
+          "note": "Ref.5513、Ref.1680（40mm）、Ref.1601/1603などのRef詳細追加。事実訂正なし"
+        },
+        {
+          "file": "419_article_tank_vintage_now",
+          "lines_before": 101,
+          "lines_after": 149,
+          "note": "マストタンク（1970〜80年代/シルバー925ベルメイユ）、タンクルイ（1970年代/18金無垢/手巻）の年代・素材詳細追加。事実訂正なし"
+        }
+      ]
+    },
+
+    "fact_corrections_2026_04_17_batch3": {
+      "_description": "2026-04-17 第三バッチ（417/420/422/418）。$TMPDIRバックアップ→diff確認で実施",
+      "critical_fact_corrections": [],
+      "title_changes": [],
+      "content_expansions": [
+        {
+          "file": "417_article_omega_naze_yasui",
+          "lines_before": 105,
+          "lines_after": 155,
+          "note": "Cal.550/560番台の自社設計言及、デヴィル/コンステレーションC/ジュネーブなどの記述拡充。事実訂正なし"
+        },
+        {
+          "file": "420_article_rolex_affordable",
+          "lines_before": 107,
+          "lines_after": 158,
+          "note": "エアキング/オイスターデイトRef.6694/プレシジョンなどのRef詳細と説明拡充。事実訂正なし"
+        },
+        {
+          "file": "422_article_cartier_ladies",
+          "lines_before": 106,
+          "lines_after": 143,
+          "note": "マストタンク/サントスなど女性向けカルティエモデル詳細追加。事実訂正なし"
+        },
+        {
+          "file": "418_article_cellini_unpopular",
+          "lines_before": 101,
+          "lines_after": 149,
+          "note": "Ref.3833/3805/3807/3758の詳細、ギャラクシーダイヤル等の記述拡充。FAQ Q1の防水記述が「生活防水程度」→「非防水」に微修正（事実訂正に準じる）",
+          "minor_fact_correction": "チェリーニFAQ Q1: 『生活防水程度』→『非防水』に表現変更（ドレスウォッチ非防水仕様の明確化）"
+        }
+      ]
+    },
+
+    "fact_corrections_2026_04_22_batch4": {
+      "_description": "2026-04-22 第四バッチ（421/436/425/416）。$TMPDIRバックアップ→diff確認で実施",
+      "critical_fact_corrections": [
+        {
+          "file": "425_article_cartier_overhaul",
+          "type": "仕様（ラグ幅）の訂正",
+          "before": "マストタンクLMのラグ幅: 約18mm",
+          "after": "マストタンクLMのラグ幅: 約17mm",
+          "reason": "マストタンクLMの正しいラグ幅は17mm。AI生成時の18mm記載を人間チェックで訂正"
+        }
+      ],
+      "file_type_error": [
+        {
+          "file": "421_article_rolex_boys_size",
+          "issue": "ユーザー提供の新TXTファイル内容がX投稿フォーマット（X長文投稿：〜）だったため、記事TXTとして使用不可。$TMPDIRのバックアップ（旧article版）から復元してHTML再生成",
+          "lesson": "新TXT受領時は先頭行が『# 記事タイトル｜FIRE KIDS Magazine』形式であることを確認すべき"
+        }
+      ],
+      "content_expansions": [
+        {
+          "file": "436_article_speedmaster_affordable",
+          "lines_before": 121,
+          "lines_after": 178,
+          "note": "Ref.145.014（マークII 1969-1972 Cal.861）、Ref.178.0002（125周年）、Ref.ST145.012（4th世代）、西ドイツ市場向け限定モデル等の詳細追加。事実訂正なし（既存記述を空行分割で拡充）"
+        },
+        {
+          "file": "416_article_seiko_antique_osusume",
+          "lines_before": 125,
+          "lines_after": 182,
+          "note": "Ref.5626-7000/5626-7110（56KS定番）、ロードマチックスペシャル/ロードマーベル/スピードタイマー等のモデル詳細追加。事実訂正なし（既存記述の空行分割）"
+        },
+        {
+          "file": "425_article_cartier_overhaul",
+          "lines_before": 108,
+          "lines_after": 160,
+          "note": "Cal.78-1（マストタンク手巻）、Cal.2000系（タンクフランセーズ自動巻）、Cal.2612（タンクディヴァン）等のキャリバー詳細と、ベルト交換時のラグ幅情報追加。上記ラグ幅訂正を含む"
+        }
+      ]
+    },
+
+    "fact_corrections_2026_04_23_batch5": {
+      "_description": "2026-04-23 第五バッチ（424/427/429/430）。$TMPDIRバックアップ→diff確認で実施。GEO最適化（/geo-optimize）を初適用した初回バッチ",
+      "critical_fact_corrections": [],
+      "geo_optimization_applied": [
+        {
+          "file": "424_article_vintage_rolex_caution",
+          "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"],
+          "about_entities": 5,
+          "defined_terms": ["リダン", "巻きブレス", "シグマダイヤル", "赤黒カレンダー", "デベソ"]
+        },
+        {
+          "file": "427_article_vintage_watch_definition",
+          "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"],
+          "about_entities": 5,
+          "defined_terms": ["アンティーク", "ヴィンテージ", "機械式時計", "文字盤の経年変化"]
+        },
+        {
+          "file": "429_article_bezel_guide",
+          "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"],
+          "about_entities": 5,
+          "defined_terms": ["フルーテッドベゼル", "スムースベゼル", "エングレーブドベゼル", "ダイバーズベゼル", "GMTベゼル"]
+        },
+        {
+          "file": "430_article_lug_guide",
+          "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"],
+          "about_entities": 5,
+          "defined_terms": ["ラグ", "ラグ幅", "ストレートラグ", "ツイストラグ", "ティアドロップラグ", "ヒドゥンラグ"]
+        }
+      ],
+      "content_expansions": [
+        {
+          "file": "424_article_vintage_rolex_caution",
+          "lines_before": 122,
+          "lines_after": 181,
+          "note": "Ref.1601/1600のシグマダイヤル、Ref.6494の赤黒カレンダー、オーバーホール判断基準の詳細追加。事実訂正なし"
+        },
+        {
+          "file": "427_article_vintage_watch_definition",
+          "lines_before": 122,
+          "lines_after": 180,
+          "note": "34〜36mm前後のヴィンテージサイズ感、FAQ拡充。事実訂正なし"
+        },
+        {
+          "file": "429_article_bezel_guide",
+          "lines_before": 88,
+          "lines_after": 123,
+          "note": "ベゼル種類の説明と比較拡充。事実訂正なし"
+        },
+        {
+          "file": "430_article_lug_guide",
+          "lines_before": 86,
+          "lines_after": 126,
+          "note": "ラグ幅測定方法（18/19/20mm）・ベルト選び・FAQ拡充。事実訂正なし"
+        }
+      ]
+    },
+
+    "fact_corrections_2026_04_24_batch6": {
+      "_description": "2026-04-24 第六バッチ（431/428/003/002）。$TMPDIRバックアップ→diff確認で実施。GEO最適化継続適用",
+      "critical_fact_corrections": [],
+      "geo_optimization_applied": [
+        {
+          "file": "431_article_index_guide",
+          "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"],
+          "about_entities": 5,
+          "defined_terms": ["インデックス", "バーインデックス", "アラビアインデックス", "ローマンインデックス", "クサビ（ウェッジ）インデックス", "ドットインデックス", "夜光インデックス"]
+        },
+        {
+          "file": "428_article_cartier_mens",
+          "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"],
+          "about_entities": 5,
+          "defined_terms": ["サントス オクタゴン", "タンク ルイ", "マストタンク", "パシャC", "ベルメイユ"]
+        },
+        {
+          "file": "003_article_ultrachron",
+          "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"],
+          "about_entities": 5,
+          "defined_terms": ["Cal.431", "Cal.6651", "チューラーダブルネーム", "クロノメーター認定モデル"]
+        },
+        {
+          "file": "002_article_flagship_cal30l",
+          "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"],
+          "about_entities": 5,
+          "defined_terms": ["Cal.30L", "Cal.30LS", "Cal.6922", "Cal.428", "アーカイブ"]
+        }
+      ],
+      "content_expansions": [
+        {
+          "file": "431_article_index_guide",
+          "lines_before": 78,
+          "lines_after": 114,
+          "note": "インデックスの種類解説拡充。事実訂正なし"
+        },
+        {
+          "file": "428_article_cartier_mens",
+          "lines_before": 108,
+          "lines_after": 159,
+          "note": "サントスオクタゴンLM約29mm、マストタンクLM約23mm/Cal.78-1、パシャC 35mm、シータイマー/メリディアン派生モデル、FAQ新規追加。事実訂正なし（人間チェックで仕様数値を精緻化）"
+        },
+        {
+          "file": "003_article_ultrachron",
+          "lines_before": 155,
+          "lines_after": 215,
+          "note": "Cal.431/Cal.6651の搭載経緯、チューラーダブルネーム、文字盤バリエーション詳細追加。事実訂正なし"
+        },
+        {
+          "file": "002_article_flagship_cal30l",
+          "lines_before": 109,
+          "lines_after": 155,
+          "note": "Cal.30L/Cal.30LS/Cal.6922/Cal.428の世代別解説、アーカイブ証明書、テーブル2種追加。事実訂正なし"
+        }
+      ]
+    },
+
+    "fact_corrections_2026_04_27_batch7": {
+      "_description": "2026-04-27 第七バッチ（432/433/006/434）。GEO最適化適用。434は画像URL未提供のためfirekids.jpクローリングで選定",
+      "critical_fact_corrections": [],
+      "geo_optimization_applied": [
+        {
+          "file": "432_article_dial_guide",
+          "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"],
+          "about_entities": 5,
+          "defined_terms": ["サンバースト", "マット", "ギルト", "リネン", "ギョーシェ"]
+        },
+        {
+          "file": "433_article_case_guide",
+          "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"],
+          "about_entities": 5,
+          "defined_terms": ["ステンレス（SS）", "金無垢（18KYG/18KWG等）", "金張り", "ラウンド", "レクタンギュラー", "トノー", "クッション"]
+        },
+        {
+          "file": "006_article_cal_30l_30z",
+          "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"],
+          "about_entities": 5,
+          "defined_terms": ["Cal.30L", "Cal.30LS", "Cal.12.68Z", "Cal.12.68N"]
+        },
+        {
+          "file": "434_article_movement_guide",
+          "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"],
+          "about_entities": 5,
+          "defined_terms": ["ムーブメント", "手巻き", "自動巻き", "クォーツ", "ローター", "ゼンマイ", "リューズ"],
+          "image_sourcing": "ユーザー提供URL未指定のためfirekids.jp商品検索でクローリング選定。手巻き=ロードマーベル(13749)/自動巻き=シーマスター(13801)+デイトジャスト(13714)。クォーツ単独個体は現在在庫ゼロのためデイトジャストで補完"
+        }
+      ],
+      "content_expansions": [
+        {
+          "file": "432_article_dial_guide",
+          "note": "ダイヤル種類（サンバースト/マット/ギルト/リネン/ギョーシェ）詳細整理。事実訂正なし"
+        },
+        {
+          "file": "433_article_case_guide",
+          "note": "ケース素材・形状（SS/金無垢/金張り/ラウンド/レクタンギュラー/トノー/クッション）詳細整理。事実訂正なし"
+        },
+        {
+          "file": "006_article_cal_30l_30z",
+          "note": "Cal.30L/30LS/12.68Z/12.68Nの世代比較・搭載モデル詳細追加。事実訂正なし"
+        },
+        {
+          "file": "434_article_movement_guide",
+          "note": "新規HTML生成（旧HTMLなし、TXTのみ存在）。手巻き/自動巻き/クォーツ3方式の解説をGutenbergブロックに変換"
+        }
+      ]
+    },
+
+    "fact_corrections_2026_04_27_batch8": {
+      "_description": "2026-04-27 第八バッチ（001/415/435/440）。GEO最適化継続適用",
+      "critical_fact_corrections": [],
+      "geo_optimization_applied": [
+        {
+          "file": "001_article_conquest_vintage",
+          "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"],
+          "about_entities": 5,
+          "defined_terms": ["Cal.291", "ツイストラグ", "パイパン文字盤", "CAPゴールド", "裏蓋メダリオン"]
+        },
+        {
+          "file": "415_article_breitling_image",
+          "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"],
+          "about_entities": 5,
+          "defined_terms": ["ナビタイマー Ref.806", "コスモノート Ref.809", "トップタイム", "クロノマット", "回転計算尺"]
+        },
+        {
+          "file": "435_article_gs_popular",
+          "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"],
+          "about_entities": 5,
+          "defined_terms": ["初代グランドセイコー", "44GS", "45GS", "61GS", "56GS", "57GS（セカンドモデル）", "セイコースタイル"]
+        },
+        {
+          "file": "440_article_baume_mercier_why_cheap",
+          "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"],
+          "about_entities": 5,
+          "defined_terms": ["Cal.BM17001", "ケープランド クロノグラフ", "Ref.1718"]
+        }
+      ],
+      "content_expansions": [
+        {
+          "file": "001_article_conquest_vintage",
+          "lines_before": 185,
+          "lines_after": 232,
+          "note": "Cal.291専用ムーブメントの詳細、ローター芯ルビー仕様、1990年代復刻モデル等を追加。事実訂正なし"
+        },
+        {
+          "file": "415_article_breitling_image",
+          "lines_before": 111,
+          "lines_after": 164,
+          "note": "Ref.806/809/トップタイム/クロノマットの詳細追加。事実訂正なし"
+        },
+        {
+          "file": "435_article_gs_popular",
+          "lines_before": 123,
+          "lines_after": 181,
+          "note": "Ref.J14070/Ref.4420-9000/Ref.4522-8000/8010/Ref.6146-8000/Ref.5646-7000/7005/Ref.5722-9011等のRef詳細とセイコースタイル解説追加。事実訂正なし"
+        },
+        {
+          "file": "440_article_baume_mercier_why_cheap",
+          "lines_before": 125,
+          "lines_after": 185,
+          "note": "Ref.1718スクエアケース、Cal.BM17001自社キャリバー、ヘキサゴンケース、ケープランド等の詳細追加。事実訂正なし"
+        }
+      ]
+    },
+
+    "fact_corrections_2026_04_28": {
+      "_description": "2026-04-28 458記事（ロレックス Cal.3000）の系譜記述を内部ソースで再検証して訂正",
+      "critical_fact_corrections": [
+        {
+          "file": "458_article_rolex_cal3000",
+          "issue": "Cal.3000の系譜を「Cal.1500番台 → Cal.3000 → Cal.3135」と記述していたが、Cal.3135はデイト機構を備えたデイトジャスト系（Ref.16234等）に搭載される別系譜のキャリバーであり、Cal.3000の直接の後継ではない",
+          "internal_source_verification": {
+            "data_source": "data/FK記事作成用.xlsx Bodyフィールド",
+            "findings": [
+              "Cal.3000搭載個体（59件）: Ref.14270／Ref.14060／Ref.14000／Ref.14010／Ref.14203（1991〜2000年代初頭、A番／U番／X番／P番などトリチウム世代）",
+              "Cal.3130搭載個体（13件）: Ref.14000M／Ref.14010M／Ref.114270／Ref.14060M（2000〜2004年製の「M付き」後継リファレンス）",
+              "Cal.3135搭載個体（116件）: デイトジャスト系（Ref.16234等）が中心で、ノンデイト系スポーツモデルとは系譜が別"
+            ],
+            "conclusion": "ノンデイト系スポーツモデルにおける後継はCal.3130。Cal.3135はデイト系の別系譜として位置づけるのが正しい"
+          },
+          "corrections_applied": [
+            "TXT/X投稿の冒頭：「Ref.16710やRef.16610で見かけるCal.3135ほど〜」を「後継のCal.3130や、デイトジャストなどに搭載されたCal.3135ほど〜」に修正",
+            "TXT「Cal.3000の基本的な位置づけ」段落：Cal.3135との比較ではなく、Cal.1500番台→Cal.3000→Cal.3130（M付き後継）の流れに修正",
+            "TXT見出し「Cal.1500番台、Cal.3000、Cal.3135 ── 並べて見る」を「Cal.1500番台、Cal.3000、Cal.3130 ── ノンデイト系の流れで並べて見る」に変更し、比較テーブルのCal.3135行をCal.3130行（Ref.14000M／Ref.14010M／Ref.114270／Ref.14060M）に置き換え。Cal.3135は別系譜である旨の補足段落を追加",
+            "FAQ：「Cal.3000の後継キャリバーは何ですか？（→Cal.3130）」を新設。「Cal.3000とCal.3135の違い」では搭載モデル系統が異なる別系譜である旨を明示",
+            "まとめ：Cal.3135単独の言及を「後継のCal.3130やデイトジャスト系のCal.3135」に修正",
+            "X投稿の系譜セクションも同様にCal.3130中心に修正"
+          ],
+          "files_modified": [
+            "articles/ROLEX/458_article_rolex_cal3000.txt",
+            "x_posts/ROLEX/458_x_rolex_cal3000.md"
+          ],
+          "rule_for_future_articles": "ロレックスのキャリバー系譜を扱う際、ノンデイト系（エクスプローラーI／サブマリーナノンデイト／エアキング／OP）とデイト系（デイトジャスト等）でムーブメントの系譜が分かれる点に注意。ノンデイト系：Cal.1520/1530/1570 → Cal.3000 → Cal.3130。デイト系：Cal.1570 → Cal.3035 → Cal.3135。両者を混同しない"
+        }
+      ]
+    },
+
+    "fact_corrections_2026_04_29": {
+      "_description": "2026-04-29 人間チェック済TXT 4本反映（055/056/064/066）。HTML+GEO+X投稿生成。事実関係の変更なし、トーン調整・構造再編が中心",
+      "geo_optimization_applied": [
+        {"file": "055_article_1940s_50s", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"], "defined_terms": ["バブルバック", "セミバブルバック", "オイスターパーペチュアル", "ハニカムダイヤル", "プレシジョン"]},
+        {"file": "056_article_oysterdate_vs_op", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"], "defined_terms": ["Perpetual", "ハック機能", "赤黒カレンダー", "エンジンターンドベゼル", "トロピカルダイヤル"]},
+        {"file": "064_article_navitimer_806", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"], "defined_terms": ["AOPA", "Cal.Venus178", "ペンシルハンド", "回転計算尺"]},
+        {"file": "066_article_cosmonaute_809", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"], "defined_terms": ["24時間表示", "コスモノート", "Cal.Venus178", "ナビゲーションクロノグラフ"]}
+      ],
+      "content_changes_summary": [
+        {"file": "055_article_1940s_50s", "note": "旧X投稿の擬似エピソード『アンティークウォッチの王様』『80年以上経った今も〜正常稼働』『1968年製Ref.1500クロノメーター認定』等の特定個体エピソードを削除。商品データ確認可能な範囲に整理。事実訂正なし"},
+        {"file": "056_article_oysterdate_vs_op", "note": "Cal.1210（初期）→Cal.1215（中期）→Cal.1225（後期）の世代変遷、赤黒カレンダー（奇数日が赤・偶数日が黒のルーレット）を明記。事実訂正なし"},
+        {"file": "064_article_navitimer_806", "note": "AOPAマーク世代解説の整理、セカンドモデル初期型『AOPAロゴがアップライト』希少仕様を明記。事実訂正なし"},
+        {"file": "066_article_cosmonaute_809", "note": "24時間表示と宇宙開発時代の文脈を独立セクションで再構成。Ref.806との比較テーブル新設。ステンレス／金張り2系統のバリエーション明示。事実訂正なし"}
+      ]
+    },
+
+    "fact_corrections_2026_04_30": {
+      "_description": "2026-04-30 人間チェック済TXT 4本反映（062/063/007/068）。HTML+GEO+X投稿生成。一部事実関係の追加情報あり",
+      "critical_fact_corrections": [
+        {
+          "file": "062_article_gmt_6542",
+          "additions_from_human_check": [
+            "GMTマスター商標登録日：1955年4月21日",
+            "米国原子力委員会リコール詳細：605本／1959年",
+            "ベゼル素材変更時期：1956年頃",
+            "Cal.1065→Cal.1066 呼称変更の補足",
+            "18KYGモデルはブラウンダイヤル＋ブラウンベークライトの組み合わせ"
+          ],
+          "caliber_db_update_candidates": {
+            "Cal.1036/1065/1066": {
+              "type": "automatic",
+              "jewels": 25,
+              "frequency_vph": 18000,
+              "chronometer": true,
+              "power_reserve_hours": 38,
+              "rotor": "バタフライローター"
+            }
+          },
+          "rule_for_future_articles": "GMTマスター Ref.6542のキャリバーは初期Cal.1036、後期Cal.1065/1066（同一機の呼称変更）。バタフライローター・クロノメーター認定の自動巻き"
+        },
+        {
+          "file": "063_article_explorer_early",
+          "additions_from_human_check": [
+            "Ref.6098の裏蓋形状：ドーム型（オヴェットーネ）",
+            "Ref.6150の文字盤表記：『Precision』、クロノメーター非認定",
+            "Ref.6350のハニカムダイヤル詳細",
+            "Cal.A296→Cal.1030（Ref.6610）移行：『世界初の両方向巻き上げ式ローター』"
+          ],
+          "caliber_db_update_candidates": {
+            "Cal.A296": {
+              "type": "automatic",
+              "搭載モデル": "Ref.6098, Ref.6150, Ref.6350"
+            },
+            "Cal.1030": {
+              "type": "automatic",
+              "feature": "世界初の両方向巻き上げ式ローター",
+              "搭載モデル": "Ref.6610"
+            }
+          },
+          "rule_for_future_articles": "プレ・エクスプローラー世代（Ref.6098/6150/6350）はCal.A296、Ref.6610以降がCal.1030。Cal.1030は世界初の両方向巻き上げ式ローターという特筆点を含めること"
+        }
+      ],
+      "geo_optimization_applied": [
+        {"file": "062_article_gmt_6542", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"], "defined_terms": ["ベークライトベゼル", "ペプシベゼル", "Cal.1036", "バタフライローター", "ギルトダイヤル"]},
+        {"file": "063_article_explorer_early", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"], "defined_terms": ["オヴェットーネ", "プレ・エクスプローラー", "エベレストダイヤル", "Cal.A296", "ハニカムダイヤル", "Cal.1030"]},
+        {"file": "007_article_weems_lindbergh", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"]},
+        {"file": "068_article_chronomat_vintage", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"]}
+      ],
+      "content_changes_summary": [
+        {"file": "007_article_weems_lindbergh", "note": "タイトル『航空時計の原点を読み解く』に統一。比較テーブルを3列構造化。事実訂正なし"},
+        {"file": "068_article_chronomat_vintage", "note": "TOC・リード文ボックス・まとめハイライトボックス追加。TXT本文・FAQ・見出しは保持。事実訂正なし"}
+      ]
+    },
+
+    "fact_corrections_2026_05_01": {
+      "_description": "2026-05-01 人間チェック済TXT 4本反映（008/011/067/069）。HTML+GEO+X投稿生成。caliber_db.json更新候補あり",
+      "critical_fact_corrections": [
+        {
+          "file": "067_article_cal1030",
+          "additions_from_human_check": [
+            "Cal.1030：双方向巻き上げ機構（バタフライローター式）",
+            "薄型化への貢献：ダブルホイール＆ピニオン方式",
+            "系譜：Cal.A260 → Cal.1030 → Cal.1530／1560／1570",
+            "オーバーホール時のチェックポイント詳細"
+          ],
+          "caliber_db_update_candidates": {
+            "Cal.1030": {
+              "type": "automatic",
+              "jewels": 25,
+              "frequency_vph": 18000,
+              "power_reserve_hours": 38,
+              "diameter_mm": 28.5,
+              "thickness_mm": 5.85,
+              "production_period": "1950頃〜1960年代前半",
+              "winding": "双方向巻き上げ（バタフライローター）",
+              "搭載モデル": "サブマリーナ Ref.6536/6538、エクスプローラー Ref.6610、GMTマスター Ref.6542（Cal.1036派生）、オイスターパーペチュアル Ref.6564〜6581、Ref.6534（デイト付）"
+            }
+          },
+          "rule_for_future_articles": "Cal.1030は双方向巻き上げ（バタフライローター）の自動巻きで、Cal.A260の後継・Cal.1530/1560/1570の前世代。薄型化はダブルホイール＆ピニオン方式によるもの"
+        },
+        {
+          "file": "069_article_top_time",
+          "additions_from_human_check": [
+            "Ref.810のレジスター配置：2レジスター代表＋3レジスターも確認",
+            "Cal.Valjoux 72への置き換え（後年）",
+            "Cal.Venus 178：手巻きクロノグラフ／コラムホイール式"
+          ],
+          "caliber_db_update_candidates": {
+            "Cal.Venus 178": {
+              "type": "manual_chronograph",
+              "control": "コラムホイール式",
+              "搭載モデル": "ブライトリング ナビタイマー Ref.806、トップタイム Ref.810"
+            }
+          },
+          "rule_for_future_articles": "ブライトリング Ref.810トップタイムの初期はCal.Venus 178、後年Cal.Valjoux 72に置き換わり。Venus 178はコラムホイール式手巻きクロノ"
+        },
+        {
+          "file": "008_article_vintage_caliber_list",
+          "additions_from_human_check": [
+            "Cal.12.68Z／12.68N／291／431／6651／13ZN の世代別位置づけ"
+          ],
+          "rule_for_future_articles": "ロンジン キャリバー一覧記事ではCal.13ZN（フライバック手巻きクロノ）／Cal.12.68（汎用手巻き）／Cal.291（コンクエスト用自動巻き）／Cal.431（ハイビート自動巻き）／Cal.6651（70年代自動巻き）の系譜を意識して記述すること"
+        },
+        {
+          "file": "011_article_admiral",
+          "additions_from_human_check": [
+            "Cal.505：Cal.290系をベースとした発展型／19,800振動／時／17石／パワーリザーブ約42時間／片方向回転ローター",
+            "Cal.506：Cal.505にデイト早送りを追加",
+            "上位キャリバーとして Cal.360（ハイビート）／Cal.340（クロノメーター仕様）に言及"
+          ],
+          "caliber_db_update_candidates": {
+            "Cal.505": {
+              "type": "automatic",
+              "jewels": 17,
+              "frequency_vph": 19800,
+              "power_reserve_hours": 42,
+              "rotor": "片方向回転ローター",
+              "base": "Cal.290系の発展型"
+            },
+            "Cal.506": {
+              "type": "automatic",
+              "base": "Cal.505",
+              "addition": "デイト早送り機構"
+            }
+          },
+          "rule_for_future_articles": "ロンジン アドミラル系のCal.505はCal.290系発展型・19,800振動・17石・PR42h・片方向ローター。Cal.506はCal.505にデイト早送り追加。アドミラル文脈では上位機としてCal.360（ハイビート）／Cal.340（クロノメーター）にも触れること"
+        }
+      ],
+      "geo_optimization_applied": [
+        {"file": "067_article_cal1030", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"]},
+        {"file": "069_article_top_time", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"]},
+        {"file": "008_article_vintage_caliber_list", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"], "defined_terms": ["Cal.12.68Z", "Cal.12.68N", "Cal.291", "Cal.431", "Cal.6651", "Cal.13ZN"]},
+        {"file": "011_article_admiral", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"], "defined_terms": ["アドミラル", "Cal.505", "Cal.506"]}
+      ],
+      "content_changes_summary": [
+        {"file": "067_article_cal1030", "note": "旧HTMLは大幅に省略されていた。新版で双方向巻き上げ機構・ダブルホイール＆ピニオン・系譜の前後関係・オーバーホール詳細を拡充"},
+        {"file": "069_article_top_time", "note": "旧HTMLでCTAリンク欠落＋メタ情報バグ（『meta_description: 生成日: …』）を修正、完全再構築"},
+        {"file": "008_article_vintage_caliber_list", "note": "X投稿のトーンをm.firekids.jp調に揃え、こんな方におすすめ追加"},
+        {"file": "011_article_admiral", "note": "X投稿が崩壊状態（見出し繰り返し）だったため完全書き直し"}
+      ]
+    },
+
+    "fact_corrections_2026_05_03": {
+      "_description": "2026-05-03 人間チェック済TXT 10本反映（070/012/013/072/087/088/100/161/166/179）。HTML+GEO+X投稿生成、TXT本文不変ルール準拠",
+      "geo_optimization_applied": [
+        {"file": "070_article_rolex_vs_tudor", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"], "defined_terms": ["ディフュージョンブランド", "ORIGINAL OYSTER CASE BY ROLEX GENEVA", "ミッドサブ Ref.75090", "デカバラ Ref.7962", "オイスターアスリート小薔薇"], "x_post": "不要（指示によりHTML+画像のみ）"},
+        {"file": "012_article_diver", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"]},
+        {"file": "013_article_gold_dress", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"]},
+        {"file": "072_article_antique_guide", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"]},
+        {"file": "087_article_overhaul_guide", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"]},
+        {"file": "088_article_original_vs_relumed", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"]},
+        {"file": "100_article_highbeat", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"]},
+        {"file": "161_article_cal_k1071", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"]},
+        {"file": "166_article_pellaton_mechanism", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"]},
+        {"file": "179_article_ace_jet", "structured_data": ["Article", "BreadcrumbList", "FAQPage", "DefinedTermSet"], "defined_terms": ["ジェットローター", "さざ波ローター", "パラウォーター", "セコンドセッティング機能", "レコードダイヤル", "スーパージェット"]}
+      ],
+      "content_changes_summary": [
+        {"file": "070_article_rolex_vs_tudor", "note": "比較記事ルール準拠でCTA配置3箇所、チューダー補助リンク本文中に挿入。caliber_db.json更新候補: Cal.1272（オイスターアスリート小薔薇搭載）"},
+        {"file": "087_article_overhaul_guide", "note": "旧版のFIRE KIDS特有のポリシー表現を削除、汎用ヴィンテージ時計の解説に再構成。事実訂正なし"},
+        {"file": "088_article_original_vs_relumed", "note": "個別商品説明文の直接引用を削除、対照表「FIRE KIDSの表現例」→「特徴」へ変更。事実訂正なし"},
+        {"file": "100_article_highbeat", "note": "大幅拡張：旧版『GS 61GS単独解説』→『GS・ロンジン・ゼニス三大ハイビート1960年代競争史』へ拡張、Cal.431ウルトラクロン/Cal.3019エル・プリメロ/クロノメーターコンクール追加"},
+        {"file": "012_article_diver", "note": "TXT準拠でHTML再構築、X投稿リライト。事実訂正なし"},
+        {"file": "013_article_gold_dress", "note": "同上。事実訂正なし"},
+        {"file": "072_article_antique_guide", "note": "同上。事実訂正なし"},
+        {"file": "161_article_cal_k1071", "note": "同上。JLC Cal.K1071解説。事実訂正なし"},
+        {"file": "166_article_pellaton_mechanism", "note": "ペラトン機構解説。事実訂正なし"},
+        {"file": "179_article_ace_jet", "note": "シチズン エースジェット。DefinedTermSet 6用語（ジェットローター/さざ波ローター/パラウォーター/セコンドセッティング機能/レコードダイヤル/スーパージェット）"}
+      ]
+    },
+
+    "fact_corrections_2026_05_13": {
+      "_description": "2026-05-13 人間チェック済TXT 12本（170/173/182/189/190/192/195/196/230/231/232/242）の旧TXT(バックアップ)と新TXTの差分分析。事実関係・呼称・構成変更を記録",
+      "170_article_geophysic": {
+        "modifications": [
+          {"category": "no_fact_change", "before": "—", "after": "—", "reason": "本文は空行追加のみ。仕様（Cal.478手巻き／35mm前後／軟鉄インナーケース）・年代（1958年IGY）・関連モデル（IWCインヂュニア1955年／ロレックス・ミルガウス1956年）の事実関係変更なし"}
+        ]
+      },
+      "173_article_futurematic": {
+        "modifications": [
+          {"category": "model_name", "before": "フューチャマチック（Futurematic）", "after": "フューチャーマチック（Futurematic）", "reason": "モデル呼称のカタカナ表記を「フューチャマチック」→「フューチャーマチック」に統一。タイトル・本文・FAQ・まとめ全箇所で修正"},
+          {"category": "section_removed", "before": "「フューチャーマチックの系譜と関連モデル」h2セクション全体（Cal.497搭載バリエーション説明＋メモボックスとの比較表：リューズ配置／自動巻き方式／製造年代）", "after": "セクションごと削除", "reason": "Cal.497バリエーション言及とメモボックス比較表（Cal.K815/K825搭載・2リューズ配置等）の裏付けが内部ソースで取りきれないため削除。残るバリエーション言及はCal.817単独に集約"},
+          {"category": "section_removed", "before": "「こんな方におすすめしたい」セクション（4パターンのh3：外装デザインの大胆な実験／バンパー式自動巻き感触／パワーリザーブ表示の機能美／LeCoultreブランド表記の北米仕様）", "after": "セクション全体を削除", "reason": "属性紐付け提案を整理し、FAQ＋確認ポイント中心の構成に統一"}
+        ]
+      },
+      "182_article_santos_octagon": {
+        "modifications": [
+          {"category": "no_fact_change", "before": "—", "after": "—", "reason": "本文は空行追加のみ。Ref.2966/2965/0907/0906、LM約29mm／SM約24〜26mm、コンビ／SS／18KYG、ホワイトローマン／ボルドー／ガーネット／ゴーストダイヤル等の事実関係変更なし"}
+        ]
+      },
+      "189_article_vintage_beginner": {
+        "modifications": [
+          {"category": "title", "before": "カルティエ ヴィンテージ時計とは？代表モデルと選び方", "after": "カルティエ ヴィンテージ入門｜初めてのスクエアウォッチ選び", "reason": "タイトルを入門ガイドであることが分かる表現に変更"},
+          {"category": "structure", "before": "h2「カルティエ ヴィンテージにはどんなモデルがある？」／h2「カルティエ ヴィンテージの選び方で重要なポイントは？」", "after": "h2「カルティエ ヴィンテージの3大モデル」／h2「初めてのカルティエ ヴィンテージ——選び方のポイント」", "reason": "見出し文言を質問形から名詞句に変更し、入門記事らしい構成に整理"},
+          {"category": "spec_dial", "before": "マストタンク文字盤バリエーション：「一番人気はホワイトローマンダイヤルですが、ブラック、金の粒がきらめくラピスブルー、…」", "after": "「一番人気はローマンダイヤルですが、ブラック、金の粒がきらめくラピスブルー、…」", "reason": "マストタンクの一番人気はホワイトに限定されないため「ホワイトローマンダイヤル」→「ローマンダイヤル」に修正（190記事ではアイボリーローマンを一番人気としており整合）"},
+          {"category": "spec_movement", "before": "サントス比較表のムーブメント欄：「自動巻き」", "after": "「自動巻き / クォーツ」", "reason": "サントスにはクォーツモデルも存在するため、ムーブメント欄に「クォーツ」を追記"}
+        ]
+      },
+      "190_article_dial_variation": {
+        "modifications": [
+          {"category": "spec_dial", "before": "「マストタンクには様々な文字盤のバリエーションがありますが、一番人気はホワイトローマンダイヤルです。」", "after": "「マストタンクには様々な文字盤のバリエーションがあります。」（一番人気の断定文を削除）", "reason": "FAQ含め一番人気はアイボリーローマンとする整合性を取るため、ホワイトを一番人気と断定する一文を削除"},
+          {"category": "spec_dial", "before": "アイボリーローマン：「ホワイトとはまた違った上品な印象を持ち、ローマンインデックスにレイルウェイトラック…」", "after": "「ローマンインデックスにレイルウェイトラックを組み合わせた構成が標準です。」（「ホワイトとはまた違った上品な印象」を削除）", "reason": "ホワイトとの優劣比較表現を削除"},
+          {"category": "spec_dial", "before": "ブラックローマン：「ブラックダイヤルにホワイトレターの組み合わせで、ホワイトローマンとはまた違ったシックな印象」", "after": "「ブラックダイヤルにシルバーレターの組み合わせでアイボリーローマンとはまた違ったシックな印象」", "reason": "ブラックローマンの文字色を「ホワイトレター」→「シルバーレター」に訂正、比較対象も「ホワイトローマン」→「アイボリーローマン」に変更"},
+          {"category": "spec_dial", "before": "ブラックローマン2段落目：「ブラックローマンの中には、ルーペで確認できる程度の薄いクラックが入っていてもオリジナル文字盤である個体もあり、オリジナル性を重視するかコンディションを重視するかで選び方が分かれるポイントです。」", "after": "「ブラックローマンも経年により文字盤がひび割れしている個体も多いのが実情です。ノンクラックで綺麗な状態を保っている個体は、コンディション面で高く評価されます。」", "reason": "オリジナル性の評価表現を削除し、ひび割れ事実とノンクラック評価という客観表現に統一"},
+          {"category": "spec_dial", "before": "ボルドーダイヤル：「ラッカー仕上げのボルドーはローマンダイヤルに比べてクラック（ひび割れ）が発生しにくい傾向があり、劣化の少ない綺麗な状態の個体が多く見られます」", "after": "「ラッカー仕上げのボルドーも、経年により文字盤がひび割れしている個体が見受けられます。ノンクラックで綺麗な状態を保っている個体は、コンディション面で高く評価されます」", "reason": "ボルドーは劣化しにくいという断定を訂正。ラッカー仕上げのボルドーにもひび割れが発生する事実に修正"},
+          {"category": "spec_dial", "before": "ブラウンマーブル：「大理石のような模様が特徴的なダイヤル」", "after": "「ブラウンベースで大理石のような模様が特徴的なダイヤル」", "reason": "ブラウンベースであることを明示"},
+          {"category": "spec_year", "before": "トリニティダイヤル：「1970年代から1990年代にかけて製造」（本文・FAQ）", "after": "「1970年代から1980年代にかけて製造」", "reason": "トリニティダイヤルの製造年代を1990年代までではなく1980年代までに訂正。本文とFAQの両方で修正"},
+          {"category": "spec_dial_table", "before": "ダイヤルバリエーション一覧表：「ホワイトローマン｜マストタンク SM｜最もオーソドックスな定番」", "after": "「ホワイトローマン｜タンクルイ LM / SM｜上級モデルの定番」", "reason": "ホワイトローマンダイヤルの主な搭載モデルをマストタンクSM→タンクルイLM/SMに訂正。位置づけも「最もオーソドックスな定番」→「上級モデルの定番」に変更"},
+          {"category": "section_content", "before": "クラックの有無セクション：「ラピスブルーでは文字盤にスパイダー状のクラックが入るケースも見られるため、天然石ダイヤルは特に確認が必要です。」", "after": "該当文削除", "reason": "ラピスブルーの天然石起因のクラック説明は別段落でも触れられているため重複削除"},
+          {"category": "faq_wording", "before": "FAQ「一番人気のバリエーションは？」回答：「ホワイトとはまた違った上品な印象を持つ定番のバリエーションです。ホワイトローマンダイヤルも定番として根強い支持があります。」", "after": "「上品な印象を持つ定番のバリエーションです。」", "reason": "ホワイトとの比較表現を削除し、ホワイトローマンに関する追加言及を削除"},
+          {"category": "faq_wording", "before": "FAQ「ラピスブルーの特徴」回答：「天然石特有の質感があり、LM・SMの両サイズに存在しますが、…」", "after": "「LM・SMの両サイズに存在しますが、…」（「天然石特有の質感があり、」を削除）", "reason": "天然石起因の質感説明を削除"}
+        ]
+      },
+      "192_article_santos_galbe": {
+        "modifications": [
+          {"category": "no_fact_change", "before": "—", "after": "—", "reason": "本文は空行追加のみ。1987年発売、ETA 2671（SM）／ETA 2892-A2系（LM）、ケース幅約24mm（SM）／約29mm（LM）、ブルーカボションリューズ等の事実関係変更なし"}
+        ]
+      },
+      "195_article_royal_orient": {
+        "modifications": [
+          {"category": "section_removed", "before": "「こんな方におすすめしたい」セクション（4パターンのh3：オリエント最高峰／文字盤装飾／薄型手巻きの装着感／純正パーツ揃いの希少個体）", "after": "セクション全体を削除", "reason": "属性紐付け提案を整理し、FAQ＋選び方ポイント中心の構成に統一。本文の事実情報（Ref.T92420／Ref.HI14530／薄型ムーブメントN型／17〜21石／耐震装置付き／34〜36mm／18〜21mmラグ幅／金張りO.G.F・GF／ステンレス）は変更なし"}
+        ]
+      },
+      "196_article_vintage_diver": {
+        "modifications": [
+          {"category": "section_removed", "before": "「こんな方におすすめしたい」セクション（4パターンのh3：大型ケースのヴィンテージダイバーズ／複雑な操作系／ベビーパネライ・クッションケース／国産初のダイバーモデル・本格防水）", "after": "セクション全体を削除", "reason": "属性紐付け提案を整理し、FAQ＋選び方ポイント中心の構成に統一。本文の事実情報（キングダイバー42mm・Cal.660／キングダイバー1000の37mm・27石／スキンダイバー300M・37mm／21ダイバー1964年・Cal.670・40mm／フロートミニッツ仕様等）は変更なし"}
+        ]
+      },
+      "230_article_memomatic": {
+        "modifications": [
+          {"category": "no_fact_change", "before": "—", "after": "—", "reason": "本文は空行追加のみ。1969年発売、Cal.980（自動巻き／20石／19,800振動／約44時間PR）、200m防水、3時位置（時刻）・4時位置（アラーム）リューズ配置、ケース径約40mm、JLCメモボックス ポラリス（1965年／Cal.916／200m／約42mm）との比較等の事実関係変更なし"}
+        ]
+      },
+      "231_article_seamaster_prebond": {
+        "modifications": [
+          {"category": "spec_movement", "before": "FAQ「プレボンドのオーバーホール」回答：「搭載キャリバーはCal.1109やCal.1111など、オメガの汎用自動巻きキャリバーが多く、メンテナンス対応が可能です」", "after": "「Cal.1109やCal.1111など、ETAベースの汎用自動巻きキャリバーが多く、メンテナンス対応が可能です」", "reason": "Cal.1109/Cal.1111はETA2892ベース系の自社改良キャリバーであることを明示。「オメガの汎用」→「ETAベースの汎用」に修正"}
+        ]
+      },
+      "232_article_speedmaster_early": {
+        "modifications": [
+          {"category": "wording", "before": "導入文：「各世代における外装デザインの変遷と搭載キャリバーの違いを、確認できた情報をもとに解説します」", "after": "「キャリバーデータベースに基づいて解説します」", "reason": "情報ソースを明示する表現に修正"},
+          {"category": "section_removed", "before": "「こんな方におすすめしたい」セクション（3パターンのh3：Cal.321搭載／世代ごとの違い／リューズガードなしの左右対称ケース）", "after": "セクション全体を削除", "reason": "属性紐付け提案を整理し、FAQ＋見分け方まとめ中心の構成に統一。CK2915（1957-59）・CK2998（1959-62）・ST105.003（1963-66）・ST145.012（1966-68）と全Cal.321共通、ブレス幅19mm→20mm、Professional表記の追加等の事実関係は変更なし"}
+        ]
+      },
+      "242_article_pellaton": {
+        "modifications": [
+          {"category": "no_fact_change", "before": "—", "after": "—", "reason": "本文は空行追加のみ。Cal.8531（ノンデイト）／Cal.8541・Cal.8541B（デイト付き）／Cal.852（1955年18KYGツイストラグ）／Cal.853（1961年18KYGラウンド）、ヨットクラブ・インヂュニア・ラウンドケースドレスウォッチ等の搭載モデル、35〜36.5mmケース、お魚リューズ等の事実関係変更なし"}
+        ]
+      },
+      "174_article_gold_dress": {
+        "modifications": [
+          {"category": "section_removed", "before": "「こんな方におすすめしたい」セクション（5パターンのh3：Cal.K480の手巻き所作／Cal.K818自動巻きの利便性／Cal.P812薄型シャツカフス／18金ピンクゴールドの色調／1983年150周年記念メモボックスCal.K911）", "after": "セクション全体を削除", "reason": "ゴールドケース・ドレスウォッチに対する属性紐付け提案（手巻き所作楽しみ／自動巻き利便性／シャツカフス薄型／ピンクゴールド色調／コレクター向け150周年記念）を整理し、選び方セクション＋FAQ中心の構成に統一。本文の事実情報（Cal.K480/K818/P812／Cal.478系発展型／18KYG・18KPG・10KGF／750ホールマーク／33〜35mmケース径／1983年創立150周年記念メモボックスCal.K911・サンドブラスト文字盤・JLロゴ裏蓋）は変更なし"}
+        ]
+      },
+      "summary": {
+        "fact_spec_corrections": 9,
+        "model_name_corrections": 1,
+        "title_changes": 1,
+        "structure_changes": 1,
+        "section_removals": 7,
+        "faq_changes": 2,
+        "wording_changes": 1,
+        "no_change_articles": 5,
+        "key_findings": [
+          "173_article_futurematic: モデル呼称「フューチャマチック」→「フューチャーマチック」に統一（タイトル・本文・FAQ全箇所）。Cal.497バリエーション言及とメモボックス比較表セクションを削除",
+          "190_article_dial_variation: ブラックローマンの文字色「ホワイトレター」→「シルバーレター」、比較対象「ホワイトローマン」→「アイボリーローマン」に訂正。ホワイトローマンの搭載モデル「マストタンクSM」→「タンクルイLM/SM」、位置づけ「定番」→「上級モデルの定番」に変更",
+          "190_article_dial_variation: トリニティダイヤルの製造年代「1970年代〜1990年代」→「1970年代〜1980年代」に訂正（本文・FAQの両方）",
+          "190_article_dial_variation: ボルドーダイヤルは「ひび割れが発生しにくい」と書いていたが、ラッカー仕上げでも経年でひび割れが発生する事実に訂正",
+          "231_article_seamaster_prebond: プレボンドの搭載キャリバーCal.1109/1111を「オメガの汎用自動巻き」→「ETAベースの汎用自動巻き」に修正（系譜の正確化）",
+          "195/196/232/173/174: 「こんな方におすすめしたい」セクションを5本一斉削除（属性紐付け提案を避け、FAQ＋選び方ポイント中心の構成へ統一）"
+        ]
+      }
+    },
+
+    "fact_corrections_2026_05_11": {
+      "_description": "2026-05-11 人間チェック済TXT 8本（153/158/159/168/169/176/177/181）の旧TXT(バックアップ)と新TXTの差分分析。事実関係・構成変更を記録",
+      "153_article_skyliner_worldtime": {
+        "modifications": [
+          {"category": "section_removed", "before": "「こんな方におすすめしたい」セクション（4パターンのh3：手巻き入門／ワールドタイム機能／サンビームダイヤル／18金無垢モデル）が含まれていた", "after": "セクション全体を削除。FAQへ直接遷移する構成に変更", "reason": "ヴィンテージ実用機（中級）に対する具体的Ref／属性紐付けの提案を整理。FAQで読者の疑問に直接答える構成に統一"}
+        ]
+      },
+      "158_article_gs_44gs": {
+        "modifications": [
+          {"category": "spec", "before": "Cal.4420は25石・36,000振動/時（10振動）のハイビート手巻きキャリバー", "after": "Cal.4420は25石・18,000振動/時（5振動）のロービート手巻きキャリバー", "reason": "44GS搭載Cal.4420はロービート（18,000振動/時）が正。correction_log既存のSEIKO 4420振動数訂正（18,000）と整合。本文導入部とCal.4420バリエーション節の2箇所で修正"},
+          {"category": "section_removed", "before": "「44GS・45GS キャリバー比較」表（Cal.4420/4520/4522の振動数を全て36,000振動/時として並列）と、その下の「Cal.4420にはロービート仕様のCal.4420Bが存在」という注記", "after": "比較表ごと削除", "reason": "Cal.4420がロービートに訂正されたため、表の振動数記載が誤ったまま残るのを防ぐ。Cal.4420Bの言及も含めて削除"},
+          {"category": "faq_removed", "before": "Q: Cal.4420のハイビート版とロービート版（Cal.4420B）の違いは？（ハイビート前提のQA）", "after": "FAQ項目ごと削除", "reason": "Cal.4420自体がロービートであるため、ハイビート版という前提のFAQが成り立たない"}
+        ]
+      },
+      "159_article_gs_56gs": {
+        "modifications": [
+          {"category": "no_fact_change", "before": "—", "after": "—", "reason": "本文は空行追加のみ。仕様・呼称・系譜の事実関係変更なし"}
+        ]
+      },
+      "168_article_vintage_beginner": {
+        "modifications": [
+          {"category": "spec_material", "before": "ボーグ（VOGUE）は銀無垢ケースにベゼルのエングレーブが施された手の込んだ造り", "after": "ボーグ（VOGUE）は金、または銀無垢ケースにベゼルのエングレーブが施された手の込んだ造り", "reason": "ボーグには金無垢ケースのバリエーションも存在するため、ケース素材を「金、または銀無垢」に修正"},
+          {"category": "spec_material", "before": "ケース素材選び解説：「銀無垢ケースのボーグは経年変化も楽しめる独自の魅力」", "after": "「金、銀無垢ケースのボーグは経年変化も楽しめる独自の魅力」", "reason": "上記と同様の素材修正を選び方セクションにも反映"}
+        ]
+      },
+      "169_article_dirty_dozen": {
+        "modifications": [
+          {"category": "section_removed", "before": "「W.W.W.規格の概要」h3セクション（W.W.W.=Water-proof Wrist Watch の説明と、映画『The Dirty Dozen』に由来する命名経緯を2段落で記述）", "after": "h3セクションごと削除。導入文の中で「12社が映画名と紐づけられて『ダーティダース』と呼ばれるようになった」と要約", "reason": "W.W.W.の説明とDirty Dozen命名経緯が記事冒頭・h3・JLCセクション内で重複していたため、冒頭1箇所に集約"},
+          {"category": "section_removed", "before": "「こんな方におすすめしたい」セクション（4パターンのh3：マニュファクチュール軍用時計／ブロードアロー刻印／12社個性比較／経年変化）", "after": "セクション全体を削除", "reason": "JLCダーティダースという希少なミリタリー個体に対し、属性紐付け提案を削除し、FAQと選び方のチェックポイント中心の構成に整理"},
+          {"category": "structure", "before": "導入文→「ダーティダースとは」h2→W.W.W.規格の概要 h3→12社一覧 h3 の順序", "after": "「ダーティダースとは」h2の直下に導入文を配置→12社一覧 h3 へ直結", "reason": "h2見出しと導入文の階層を整理。映画由来の命名経緯を導入文に統合"},
+          {"category": "faq_wording", "before": "Q1回答「イギリス国防省が定めた規格W.W.W.モデルを納めた12の時計メーカーと…」", "after": "「イギリス国防省が定めた規格に沿って納めた12の時計メーカーと…」", "reason": "W.W.W.の語が記事内で何度も繰り返されることを避け、表現を簡素化"}
+        ]
+      },
+      "176_article_homer": {
+        "modifications": [
+          {"category": "section_removed", "before": "「こんな方におすすめしたい」セクション（4パターンのh3：管轄局刻印／パラショック・フィノックス／パンジー・グッピー／Cちゃん限定）", "after": "セクション全体を削除", "reason": "国鉄時計という固有性の強い題材で、属性ベースの推奨ではなくFAQと選び方ポイントを中心とした構成に統一"}
+        ]
+      },
+      "177_article_alarm_watch": {
+        "modifications": [
+          {"category": "section_removed", "before": "「こんな方におすすめしたい」セクション（4パターンのh3：JLCフェイス初期型／4Hアラーム ローレットベゼル／アラームデイトダイバー／ジリリリ音色）", "after": "セクション全体を削除", "reason": "アラームウォッチという機能特化モデルで、属性紐付け提案を削除し、選び方ポイント＋FAQ中心の構成に統一"}
+        ]
+      },
+      "181_article_tank_louis_vintage": {
+        "modifications": [
+          {"category": "no_fact_change", "before": "—", "after": "—", "reason": "本文は空行追加のみ。仕様（Cal.78-1／Cal.21／Cal.2000／Cal.2612、サイズ23mm／20-21mm／28mm／38mm、PLAQUE OR G 20M）・モデル呼称・年代の事実関係変更なし"}
+        ]
+      },
+      "summary": {
+        "fact_spec_corrections": 1,
+        "section_removals": 7,
+        "structural_changes": 1,
+        "faq_changes": 2,
+        "no_change_articles": 2,
+        "key_findings": [
+          "158_article_gs_44gs: Cal.4420をハイビート(36,000振動)→ロービート(18,000振動)に訂正。比較表・FAQ含めて関連記述を整理",
+          "168_article_vintage_beginner: JLCボーグのケース素材を「銀無垢」→「金、または銀無垢」に修正",
+          "169_article_dirty_dozen: W.W.W.規格説明セクションを削除し導入文に統合（重複解消）",
+          "153/169/176/177: 「こんな方におすすめしたい」セクションを4本一斉削除（属性紐付け提案を避け、FAQ中心の構成へ）"
+        ]
+      }
+    }
+  }
+}

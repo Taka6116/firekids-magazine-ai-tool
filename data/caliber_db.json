@@ -1,0 +1,181 @@
+{
+  "_comment": "FIRE KIDS SEO記事作成用 Cal.番号・Ref.番号データベース。ソース：The Seiko Guy / Ranfft DB / セイコーミュージアム",
+  "_updated": "2026-02-25",
+
+  "SEIKO": {
+    "calibers": {
+      "3180": {"type": "manual", "jewels": 25, "bph": 18000, "year_introduced": 1960, "family": "57GS（1stモデル）", "accuracy": "+12/-3秒/日", "note": "後にCal.5720に改称"},
+      "430":  {"type": "manual", "jewels": 25, "bph": 18000, "year_introduced": 1964, "family": "57GS（2ndモデル）"},
+      "4420": {"type": "manual", "jewels": 25, "bph": 36000, "year_introduced": 1967, "family": "44GS", "note": "ハイビート手巻き"},
+      "4520": {"type": "manual", "jewels": 25, "bph": 36000, "year_introduced": 1968, "family": "45GS", "accuracy": "±2秒/日", "note": "ハイビート手巻き・ノンデイト"},
+      "4522": {"type": "manual", "jewels": 25, "bph": 36000, "year_introduced": 1968, "family": "45GS", "accuracy": "±2秒/日", "note": "ハイビート手巻き・クロノメーター"},
+      "6245": {"type": "automatic", "jewels": 25, "bph": 18000, "year_introduced": 1967, "family": "62GS", "note": "グランドセイコー初の自動巻き・ロービート"},
+      "6246": {"type": "automatic", "jewels": 25, "bph": 18000, "year_introduced": 1967, "family": "62GS", "note": "デイデイト付き"},
+      "6145": {"type": "automatic", "jewels": 25, "bph": 36000, "year_introduced": 1968, "family": "61GS", "note": "ハイビート自動巻き・デイト付き"},
+      "6146": {"type": "automatic", "jewels": 25, "bph": 36000, "year_introduced": 1968, "family": "61GS", "note": "ハイビート自動巻き・デイデイト付き"},
+      "5641": {"type": "automatic", "jewels": 25, "bph": 36000, "year_introduced": 1970, "family": "56GS"},
+      "5645": {"type": "automatic", "jewels": 25, "bph": 36000, "year_introduced": 1970, "family": "56GS", "note": "ハイビート自動巻き・デイト付き"},
+      "5646": {"type": "automatic", "jewels": 25, "bph": 36000, "year_introduced": 1970, "family": "56GS", "note": "ハイビート自動巻き・デイデイト付き"},
+      "5722": {"type": "manual", "jewels": 25, "bph": 18000, "year_introduced": 1964, "family": "57GS（2ndモデル）", "note": "2ndモデル搭載"}
+    },
+    "models": {
+      "grand_seiko_1st": {
+        "name": "グランドセイコー 1stモデル",
+        "refs": ["J14070"],
+        "calibers": ["3180"],
+        "production_years": "1960-1963",
+        "case_material": ["14KGF（14金張り）"],
+        "case_size": "34-35mm",
+        "features": ["彫り文字盤（初期型）", "SDダイヤル", "ライオンメダリオン（後期型）"]
+      },
+      "grand_seiko_2nd": {
+        "name": "グランドセイコー 2ndモデル（57GS）",
+        "refs": ["5722-9991", "5722-9011"],
+        "calibers": ["5722"],
+        "production_years": "1964-1967",
+        "case_material": ["ステンレス", "キャップゴールド"],
+        "case_size": "36-36.5mm",
+        "features": ["スクリューバック", "カレンダー機能追加"]
+      },
+      "62gs": {
+        "name": "62GS",
+        "refs": ["6245-9000", "6246-9001"],
+        "calibers": ["6245", "6246"],
+        "production_years": "1966-1967",
+        "case_material": ["ステンレス"],
+        "features": ["GS初の自動巻き", "4時位置リューズ", "デイデイト（6246）"]
+      },
+      "44gs_45gs": {
+        "name": "44GS・45GS",
+        "refs": ["4420-9000", "4522-8000", "4520-8000"],
+        "calibers": ["4420", "4522", "4520"],
+        "production_years": "1967-1968",
+        "case_material": ["ステンレス", "18KYG"],
+        "case_size": "36mm",
+        "features": ["セイコースタイル確立", "GS規格±2秒達成（45GS）"]
+      },
+      "61gs": {
+        "name": "61GS",
+        "refs": ["6145-8000", "6146-8000"],
+        "calibers": ["6145", "6146"],
+        "production_years": "1968-1969",
+        "case_material": ["ステンレス"],
+        "case_size": "36mm",
+        "features": ["ハイビート自動巻き", "クロスライン文字盤"]
+      },
+      "56gs": {
+        "name": "56GS",
+        "refs": ["5645-7010", "5646-7010", "5641-7000"],
+        "calibers": ["5645", "5646", "5641"],
+        "production_years": "1971-1972",
+        "case_material": ["ステンレス"],
+        "case_size": "35-36mm",
+        "features": ["実用性の頂点", "文字盤バリエーション豊富"]
+      },
+      "king_seiko": {
+        "name": "キングセイコー",
+        "refs": ["4402-8000", "5625-7000", "5626-7000"],
+        "calibers": ["4402", "5625", "5626"],
+        "production_years": "1961-1975",
+        "features": ["諏訪精工舎 vs 第二精工舎の社内競争"]
+      }
+    }
+  },
+
+  "OMEGA": {
+    "calibers": {
+      "354":  {"type": "automatic_bumper", "jewels": 17, "bph": 18000, "year_introduced": 1948, "note": "バンパー式自動巻き"},
+      "501":  {"type": "automatic", "jewels": 17, "bph": 18000, "year_introduced": 1952, "note": "ローター式自動巻き"},
+      "552":  {"type": "automatic", "jewels": 24, "bph": 19800, "year_introduced": 1961, "note": "コンステレーション搭載"},
+      "561":  {"type": "automatic", "jewels": 24, "bph": 19800, "year_introduced": 1961, "note": "シーマスター搭載"},
+      "564":  {"type": "automatic", "jewels": 24, "bph": 19800, "year_introduced": 1961, "note": "クロノメーター認定・デイト付き"},
+      "565":  {"type": "automatic", "jewels": 24, "bph": 19800, "year_introduced": 1961, "note": "クロノメーター認定・デイデイト付き"},
+      "1012": {"type": "automatic", "jewels": 17, "bph": 21600, "year_introduced": 1975, "note": "ETA2783ベース"},
+      "321":  {"type": "manual_chrono", "jewels": 17, "bph": 18000, "year_introduced": 1946, "note": "スピードマスター初期搭載"},
+      "861":  {"type": "manual_chrono", "jewels": 17, "bph": 21600, "year_introduced": 1968, "note": "スピードマスタープロフェッショナル搭載"}
+    },
+    "models": {
+      "constellation": {
+        "name": "コンステレーション",
+        "refs": ["168.005", "168.017", "168.042"],
+        "calibers": ["552", "564", "565"],
+        "production_years": "1952-",
+        "features": ["Cライン（1969-）", "パイ盤ダイヤル", "天文台マーク"]
+      },
+      "seamaster": {
+        "name": "シーマスター",
+        "refs": ["166.010", "166.032"],
+        "calibers": ["501", "552", "561", "565"],
+        "production_years": "1948-",
+        "features": ["防水性能", "シーホースメダリオン"]
+      },
+      "speedmaster_pro": {
+        "name": "スピードマスター プロフェッショナル",
+        "refs": ["145.012", "145.022"],
+        "calibers": ["321", "861"],
+        "production_years": "1957-",
+        "features": ["ムーンウォッチ", "手巻きクロノグラフ"]
+      }
+    }
+  },
+
+  "ROLEX": {
+    "calibers": {
+      "1520": {"type": "automatic", "jewels": 26, "bph": 18000, "year_introduced": 1965, "note": "デイトジャスト・オイスターデイト搭載"},
+      "1530": {"type": "automatic", "jewels": 26, "bph": 18000, "year_introduced": 1965, "note": "デイデイト搭載"},
+      "1560": {"type": "automatic", "jewels": 26, "bph": 18000, "year_introduced": 1960, "note": "ノンデイト"},
+      "1570": {"type": "automatic", "jewels": 26, "bph": 18000, "year_introduced": 1966, "note": "サブマリーナ・GMTマスター搭載"},
+      "1575": {"type": "automatic", "jewels": 26, "bph": 18000, "year_introduced": 1966, "note": "GMTマスター搭載"},
+      "3135": {"type": "automatic", "jewels": 31, "bph": 28800, "year_introduced": 1988, "note": "現行デイトジャスト搭載"}
+    },
+    "models": {
+      "datejust": {
+        "name": "デイトジャスト",
+        "refs": ["1601", "1603", "16014", "16234"],
+        "calibers": ["1520", "3135"],
+        "production_years": "1945-",
+        "features": ["デイトジャスト機構", "サイクロップレンズ", "ジュビリーブレス"]
+      },
+      "submariner": {
+        "name": "サブマリーナ",
+        "refs": ["5513", "1680", "16800"],
+        "calibers": ["1520", "1570"],
+        "production_years": "1953-",
+        "features": ["回転ベゼル", "ダイバーズ200m防水"]
+      },
+      "gmt_master": {
+        "name": "GMTマスター",
+        "refs": ["1675", "16750"],
+        "calibers": ["1570", "1575"],
+        "production_years": "1955-",
+        "features": ["2タイムゾーン", "回転ベゼル", "ペプシベゼル"]
+      },
+      "air_king": {
+        "name": "エアキング",
+        "refs": ["5500", "14000"],
+        "calibers": ["1520", "1560"],
+        "production_years": "1958-",
+        "features": ["34mmケース", "シンプルデザイン", "ノンデイト"]
+      }
+    }
+  },
+
+  "_gs_standard": {
+    "note": "GS規格（Grand Seiko Standard）は世代ごとに厳格化",
+    "cal_3180_accuracy": "+12/-3秒/日（1960年・1stモデル）",
+    "cal_4522_accuracy": "±2秒/日（1968年・45GS・最終形）",
+    "cosc_accuracy": "-4/+6秒/日（COSCクロノメーター規格）"
+  },
+
+  "_factcheck_sources": {
+    "primary": [
+      {"name": "caliber_db.json（本ファイル）", "usage": "Cal.番号・振動数・石数・Ref.番号の一次照合"},
+      {"name": "FK記事作成用.xlsx", "usage": "実際の商品スペック・製造年代の照合"}
+    ],
+    "secondary": [
+      {"name": "Ranfft Movements DB", "url": "https://www.ranfft.de/", "usage": "Cal.番号の詳細仕様確認（ローカルDBに未登録の場合）"},
+      {"name": "セイコーミュージアム", "url": "https://museum.seiko.co.jp/", "usage": "セイコー歴史的事実の確認"},
+      {"name": "The Seiko Guy", "url": "https://www.theseikoguy.com/", "usage": "グランドセイコー・キングセイコーの詳細情報"}
+    ]
+  }
+}

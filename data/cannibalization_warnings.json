@@ -1,0 +1,68 @@
+{
+  "_meta": {
+    "purpose": "AI記事生成時に既存ライター記事との重複を回避するためのリスト",
+    "generated_at": "2026-05-21",
+    "warning_count": 3
+  },
+  "warnings": [
+    {
+      "ai_article": "258_article_beginner_mistakes",
+      "writer_article": "✅初心者でも失敗しないロレックス選び方完全ガイド.txt",
+      "writer_title": "初心者でも失敗しないロレックス選び方完全ガイド",
+      "matched_kw": [
+        "初心者",
+        "失敗"
+      ],
+      "severity": "medium",
+      "recommendation": "切り口を明確に分離するか、AI記事の角度を変える"
+    },
+    {
+      "ai_article": "459_article_rolex_solid_gold_dasai",
+      "writer_article": "✅金無垢ロレックスは本当にダサい？大人が選ぶヴィンテージの魅力_ _ _.txt",
+      "writer_title": "金無垢ロレックスは本当にダサい？大人が選ぶヴィンテージの魅力_ _ _",
+      "matched_kw": [
+        "金無垢",
+        "ロレックス"
+      ],
+      "severity": "medium",
+      "recommendation": "切り口を明確に分離するか、AI記事の角度を変える"
+    },
+    {
+      "ai_article": "461_article_rolex_naze_takai_alt",
+      "writer_article": "【ロレックス】ミルガウス廃盤で価格はどうなった？今後の価値も解説.txt",
+      "writer_title": "【ロレックス】ミルガウス廃盤で価格はどうなった？今後の価値も解説",
+      "matched_kw": [
+        "ロレックス",
+        "価格"
+      ],
+      "severity": "medium",
+      "recommendation": "切り口を明確に分離するか、AI記事の角度を変える"
+    }
+  ],
+  "ai_articles_indexed": [
+    "459_article_rolex_solid_gold_dasai",
+    "260_article_sub_nodate_vs_date",
+    "262_article_sub_dial_variants",
+    "295_article_ks_case_material",
+    "271_article_gs_dial_all",
+    "491_article_seiko_top_models",
+    "488_article_seiko5_embarrassing",
+    "461_article_rolex_naze_takai",
+    "461_article_rolex_naze_takai_alt",
+    "237_article_deville_vintage",
+    "238_article_constellation_cline",
+    "239_article_constellation_chrono",
+    "240_article_speedmaster_bracelet",
+    "244_article_18k_gold",
+    "245_article_round_case",
+    "246_article_cal89",
+    "247_article_da_vinci",
+    "248_article_ocean2000",
+    "250_article_aquatimer",
+    "252_article_gilt_dial_guide",
+    "254_article_lume_history",
+    "258_article_beginner_mistakes",
+    "233_article_speedmaster_4th",
+    "234_article_seamaster_300"
+  ]
+}

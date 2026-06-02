@@ -1,0 +1,259 @@
+<!--
+  FIRE KIDS SEO記事 HTMLテンプレート（WordPress Gutenbergブロック形式）
+  WordPressのHTMLエディタにそのまま貼り付けて使用。
+  [　] の部分をCLINEが記事内容に応じて自動生成する。
+
+  ■ 構成：
+  1. SEOメタ構文ブロック（WordPressプラグイン転記用 + JSON-LD構造化データ）
+  2. 記事本文（WordPress Block Editor形式）
+
+  ■ 画像：cdn.firekids.jp を使用
+  ■ CTAボタン：wp:button ブロックを使用
+-->
+
+<!-- ============================================
+  SEOメタ構文（記事内容から自動生成）
+  Yoast SEO / All in One SEO 等のプラグインに転記して使用
+============================================= -->
+
+<!--
+■ 基本メタ情報
+title: [記事タイトル]｜FIRE KIDS Magazine
+meta_description: [記事の導入文から120文字以内で要約。検索ユーザーの意図に応える内容にする]
+meta_keywords: [メインキーワード], [関連KW1], [関連KW2], [関連KW3], ヴィンテージ時計, FIRE KIDS
+canonical_url: https://m.firekids.jp/[記事スラッグ]
+
+■ Open Graph（SNSシェア用）
+og:title: [記事タイトル]｜FIRE KIDS Magazine
+og:description: [50〜80文字のSNS向け要約]
+og:type: article
+og:url: https://m.firekids.jp/[記事スラッグ]
+og:image: https://cdn.firekids.jp/[記事メイン画像パス]
+og:site_name: FIRE KIDS Magazine
+og:locale: ja_JP
+
+■ Twitter Card
+twitter:card: summary_large_image
+twitter:title: [記事タイトル]
+twitter:description: [og:descriptionと同じ]
+twitter:image: https://cdn.firekids.jp/[記事メイン画像パス]
+-->
+
+<!-- ============================================
+  構造化データ（JSON-LD）
+  このscriptタグはWordPressの「カスタムHTML」ブロックとして挿入
+============================================= -->
+
+<!-- wp:html -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "[記事タイトル]",
+  "description": "[meta_description]",
+  "image": "https://cdn.firekids.jp/[記事メイン画像パス]",
+  "author": {
+    "@type": "Organization",
+    "name": "FIRE KIDS",
+    "url": "https://firekids.jp/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "FIRE KIDS Magazine",
+    "url": "https://m.firekids.jp/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://m.firekids.jp/logo.png"
+    }
+  },
+  "datePublished": "[YYYY-MM-DD]",
+  "dateModified": "[YYYY-MM-DD]",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://m.firekids.jp/[記事スラッグ]"
+  },
+  "keywords": ["[メインKW]", "[関連KW1]", "[関連KW2]", "ヴィンテージ時計", "FIRE KIDS"],
+  "articleSection": "[カテゴリ名]",
+  "inLanguage": "ja"
+}
+</script>
+<!-- /wp:html -->
+
+<!-- ============================================
+  FAQ構造化データ（よくある質問セクションから自動生成）
+  Google検索結果にFAQリッチリザルトとして表示
+============================================= -->
+
+<!-- wp:html -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "[Q1の質問文]",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "[Q1の回答文]"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "[Q2の質問文]",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "[Q2の回答文]"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "[Q3の質問文]",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "[Q3の回答文]"
+      }
+    }
+  ]
+}
+</script>
+<!-- /wp:html -->
+
+<!-- ============================================
+  記事本文（WordPress Block Editor形式）
+  以下をWordPressのHTMLエディタに貼り付け
+============================================= -->
+
+<!-- wp:paragraph -->
+<p>[導入文：記事テーマの概要。読者の疑問に答える形で書き出す。]</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>[導入文の続き。記事で解説する内容の概要を伝える。]</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading -->
+<h2 class="wp-block-heading">[セクション1：歴史・概要]</h2>
+<!-- /wp:heading -->
+
+<!-- wp:image {"width":"480px","sizeSlug":"large"} -->
+<figure class="wp-block-image size-large is-resized"><img src="https://cdn.firekids.jp/[画像パス]" alt="[alt テキスト]" style="width:480px"/></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>[セクション1の本文。2〜3段落。]</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading -->
+<h2 class="wp-block-heading">[セクション2：モデル別・世代別解説]</h2>
+<!-- /wp:heading -->
+
+<!-- wp:heading {"level":3} -->
+<h3 class="wp-block-heading">[モデル名1]</h3>
+<!-- /wp:heading -->
+
+<!-- wp:image {"width":"480px","sizeSlug":"large"} -->
+<figure class="wp-block-image size-large is-resized"><img src="https://cdn.firekids.jp/[画像パス]" alt="[モデル名1]" style="width:480px"/></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>[モデル1の特徴・歴史。1〜2段落。]</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading {"level":3} -->
+<h3 class="wp-block-heading">[モデル名2]</h3>
+<!-- /wp:heading -->
+
+<!-- wp:image {"width":"480px","sizeSlug":"large"} -->
+<figure class="wp-block-image size-large is-resized"><img src="https://cdn.firekids.jp/[画像パス]" alt="[モデル名2]" style="width:480px"/></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>[モデル2の特徴・歴史。1〜2段落。]</p>
+<!-- /wp:paragraph -->
+
+<!-- 必要に応じてh3+image+paragraphセクションを追加 -->
+
+<!-- wp:buttons -->
+<div class="wp-block-buttons"><!-- wp:button -->
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="https://firekids.jp/products/list?category_id=[ブランドID]&utm_source=firekids_magazine&utm_medium=seo&utm_campaign=organic">[ブランド名]の商品一覧を見る</a></div>
+<!-- /wp:button --></div>
+<!-- /wp:buttons -->
+
+<!-- wp:heading -->
+<h2 class="wp-block-heading">[セクション3：選び方・ポイント]</h2>
+<!-- /wp:heading -->
+
+<!-- wp:image {"width":"480px","sizeSlug":"large"} -->
+<figure class="wp-block-image size-large is-resized"><img src="https://cdn.firekids.jp/[画像パス]" alt="[セクション3のalt]" style="width:480px"/></figure>
+<!-- /wp:image -->
+
+<!-- wp:heading {"level":3} -->
+<h3 class="wp-block-heading">[ポイント1]</h3>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>[ポイント1の解説。]</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading {"level":3} -->
+<h3 class="wp-block-heading">[ポイント2]</h3>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>[ポイント2の解説。]</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:table -->
+<figure class="wp-block-table"><table class="has-fixed-layout"><tbody>
+<tr><td>[列1ヘッダー]</td><td>[列2ヘッダー]</td><td>[列3ヘッダー]</td></tr>
+<tr><td>[データ1]</td><td>[データ2]</td><td>[データ3]</td></tr>
+<tr><td>[データ4]</td><td>[データ5]</td><td>[データ6]</td></tr>
+</tbody></table></figure>
+<!-- /wp:table -->
+
+<!-- wp:heading -->
+<h2 class="wp-block-heading">[よくある質問]</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>[FAQ導入文]</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading {"level":3} -->
+<h3 class="wp-block-heading">Q: [質問文1]</h3>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>A: [回答文1]</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading {"level":3} -->
+<h3 class="wp-block-heading">Q: [質問文2]</h3>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>A: [回答文2]</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading {"level":3} -->
+<h3 class="wp-block-heading">Q: [質問文3]</h3>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>A: [回答文3]</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading -->
+<h2 class="wp-block-heading">まとめ</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>[まとめ文。記事全体の要約と読者へのメッセージ。]</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:buttons -->
+<div class="wp-block-buttons"><!-- wp:button -->
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="https://firekids.jp/products/list?category_id=[ブランドID]&utm_source=firekids_magazine&utm_medium=seo&utm_campaign=organic">FIRE KIDS [ブランド名]の商品一覧はこちら</a></div>
+<!-- /wp:button --></div>
+<!-- /wp:buttons -->
