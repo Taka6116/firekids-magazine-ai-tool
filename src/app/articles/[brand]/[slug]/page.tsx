@@ -33,11 +33,11 @@ export default function ArticlePreviewPage({ params }: Props) {
         >
           ← {BRAND_LABELS[brand]}
         </Link>
-        <h1 className="text-lg font-bold text-[#1a1a1a]">
+        <h1 className="text-xl font-bold text-gradient tracking-tight">
           {number} — {slug}
         </h1>
         {content.meta.isPosted && (
-          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+          <span className="text-xs bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full">
             投稿済み
           </span>
         )}
@@ -73,12 +73,12 @@ function ValidationSummaryBar({
   const ok = errorCount === 0 && warningCount === 0;
   return (
     <div
-      className={`border rounded p-3 flex items-center gap-4 text-sm ${
+      className={`border rounded-2xl p-3.5 flex items-center gap-4 text-sm ${
         ok
-          ? "border-green-300 bg-green-50"
+          ? "border-green-300 bg-green-50/70"
           : errorCount > 0
-          ? "border-red-300 bg-red-50"
-          : "border-yellow-300 bg-yellow-50"
+          ? "border-red-300 bg-red-50/70"
+          : "border-yellow-300 bg-yellow-50/70"
       }`}
     >
       {ok ? (
@@ -120,11 +120,11 @@ function PreviewTabs({ content }: { content: { txt?: string; html?: string; xPos
       {content.txt && (
         <div className="mb-6">
           <h2 className="text-sm font-bold text-[#1a1a1a] mb-2 flex items-center gap-2">
-            <span className="bg-green-600 text-white text-xs px-2 py-0.5 rounded">
+            <span className="bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
               TXT マスター
             </span>
           </h2>
-          <pre className="bg-white border border-[#e8e4de] rounded p-4 text-xs overflow-auto max-h-96 whitespace-pre-wrap font-mono leading-relaxed">
+          <pre className="glass p-4 text-xs overflow-auto max-h-96 whitespace-pre-wrap font-mono leading-relaxed">
             {content.txt}
           </pre>
         </div>
@@ -139,11 +139,11 @@ function PreviewTabs({ content }: { content: { txt?: string; html?: string; xPos
       {content.html && (
         <div className="mb-6">
           <h2 className="text-sm font-bold text-[#1a1a1a] mb-2 flex items-center gap-2">
-            <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded">
+            <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
               HTML 派生
             </span>
           </h2>
-          <pre className="bg-white border border-[#e8e4de] rounded p-4 text-xs overflow-auto max-h-96 whitespace-pre-wrap font-mono leading-relaxed">
+          <pre className="glass p-4 text-xs overflow-auto max-h-96 whitespace-pre-wrap font-mono leading-relaxed">
             {content.html}
           </pre>
         </div>
@@ -158,11 +158,11 @@ function PreviewTabs({ content }: { content: { txt?: string; html?: string; xPos
       {content.xPost && (
         <div className="mb-6">
           <h2 className="text-sm font-bold text-[#1a1a1a] mb-2 flex items-center gap-2">
-            <span className="bg-purple-600 text-white text-xs px-2 py-0.5 rounded">
+            <span className="bg-purple-600 text-white text-xs px-2 py-0.5 rounded-full">
               X投稿 派生
             </span>
           </h2>
-          <pre className="bg-white border border-[#e8e4de] rounded p-4 text-xs overflow-auto max-h-96 whitespace-pre-wrap font-mono leading-relaxed">
+          <pre className="glass p-4 text-xs overflow-auto max-h-96 whitespace-pre-wrap font-mono leading-relaxed">
             {content.xPost}
           </pre>
         </div>

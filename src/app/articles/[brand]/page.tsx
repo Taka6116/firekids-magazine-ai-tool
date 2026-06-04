@@ -23,7 +23,7 @@ export default function BrandArticlesPage({ params }: Props) {
         <Link href="/articles" className="text-sm text-[#5a5248] hover:underline">
           ← 記事一覧
         </Link>
-        <h1 className="text-xl font-bold text-[#1a1a1a]">
+        <h1 className="text-2xl font-bold text-gradient tracking-tight">
           {BRAND_LABELS[brand]}
           <span className="ml-2 text-sm font-normal text-gray-400">
             ({articles.length}件)
@@ -31,24 +31,26 @@ export default function BrandArticlesPage({ params }: Props) {
         </h1>
       </div>
 
-      <div className="border border-[#e8e4de] rounded overflow-hidden">
+      <div className="glass-strong overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-[#1a1a1a] text-white">
+          <thead className="fk-thead">
             <tr>
-              <th className="text-left px-4 py-2 w-16">No.</th>
-              <th className="text-left px-4 py-2">スラッグ</th>
-              <th className="text-center px-3 py-2 w-14">TXT</th>
-              <th className="text-center px-3 py-2 w-14">HTML</th>
-              <th className="text-center px-3 py-2 w-14">X投稿</th>
-              <th className="text-center px-3 py-2 w-14">X画像</th>
-              <th className="px-4 py-2 w-24"></th>
+              <th className="text-left px-4 py-3 w-16">No.</th>
+              <th className="text-left px-4 py-3">スラッグ</th>
+              <th className="text-center px-3 py-3 w-14">TXT</th>
+              <th className="text-center px-3 py-3 w-14">HTML</th>
+              <th className="text-center px-3 py-3 w-14">X投稿</th>
+              <th className="text-center px-3 py-3 w-14">X画像</th>
+              <th className="px-4 py-3 w-24"></th>
             </tr>
           </thead>
           <tbody>
             {articles.map((article, i) => (
               <tr
                 key={article.filename}
-                className={i % 2 === 0 ? "bg-white" : "bg-[#faf6ee]"}
+                className={`transition hover:bg-[#e67e22]/5 ${
+                  i % 2 === 0 ? "bg-white/40" : "bg-white/20"
+                }`}
               >
                 <td className="px-4 py-2 text-gray-500 font-mono text-xs">
                   {article.number}

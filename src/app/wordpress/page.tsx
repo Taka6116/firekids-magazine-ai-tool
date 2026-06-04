@@ -35,14 +35,14 @@ export default function WordPressDryRunPage({ searchParams }: Props) {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-[#1a1a1a]">WordPress dry-run</h1>
+        <h1 className="text-2xl font-bold text-gradient tracking-tight">WordPress dry-run</h1>
         <p className="text-sm text-[#5a5248] mt-1">
           投稿する記事を選択して内容を確認してください。本番投稿はdry-run確認後のみ行います。
         </p>
       </div>
 
       <div
-        className="mb-4 p-3 border border-yellow-300 bg-yellow-50 rounded text-sm text-yellow-800"
+        className="mb-4 p-3.5 border border-yellow-300 bg-yellow-50/70 rounded-2xl text-sm text-yellow-800"
       >
         ⚠ このページは dry-run（内容確認）専用です。「本番投稿」ボタンは現在未実装です。
         WordPress投稿は確認後に別途実施してください。
@@ -75,22 +75,24 @@ export default function WordPressDryRunPage({ searchParams }: Props) {
         ))}
       </div>
 
-      <div className="border border-[#e8e4de] rounded overflow-hidden">
+      <div className="glass-strong overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-[#1a1a1a] text-white">
+          <thead className="fk-thead">
             <tr>
-              <th className="text-left px-4 py-2">ブランド</th>
-              <th className="text-left px-4 py-2">スラッグ</th>
-              <th className="text-center px-3 py-2 w-14">TXT</th>
-              <th className="text-center px-3 py-2 w-14">HTML</th>
-              <th className="px-4 py-2 w-32"></th>
+              <th className="text-left px-4 py-3">ブランド</th>
+              <th className="text-left px-4 py-3">スラッグ</th>
+              <th className="text-center px-3 py-3 w-14">TXT</th>
+              <th className="text-center px-3 py-3 w-14">HTML</th>
+              <th className="px-4 py-3 w-32"></th>
             </tr>
           </thead>
           <tbody>
             {articles.map((article, i) => (
               <tr
                 key={article.filename}
-                className={i % 2 === 0 ? "bg-white" : "bg-[#faf6ee]"}
+                className={`transition hover:bg-[#e67e22]/5 ${
+                  i % 2 === 0 ? "bg-white/40" : "bg-white/20"
+                }`}
               >
                 <td className="px-4 py-2 text-xs text-gray-500">
                   {BRAND_LABELS[article.brand]}
@@ -190,7 +192,7 @@ function DryRunDetail({
         </h1>
       </div>
 
-      <div className="mb-4 p-3 border border-yellow-300 bg-yellow-50 rounded text-sm text-yellow-800">
+      <div className="mb-4 p-3.5 border border-yellow-300 bg-yellow-50/70 rounded-2xl text-sm text-yellow-800">
         ⚠ これはdry-runです。WordPressへの実際の投稿は行われません。
       </div>
 
@@ -203,7 +205,7 @@ function DryRunDetail({
       </div>
 
       {metaDesc && (
-        <div className="mb-4 border border-[#e8e4de] rounded p-3 bg-white">
+        <div className="mb-4 glass p-4">
           <div className="text-xs font-bold text-[#5a5248] mb-1">
             meta_description
           </div>
@@ -216,7 +218,7 @@ function DryRunDetail({
       <h2 className="text-sm font-bold mb-2 text-[#1a1a1a]">
         投稿前チェックリスト
       </h2>
-      <div className="border border-[#e8e4de] rounded overflow-hidden mb-6">
+      <div className="glass-strong overflow-hidden mb-6">
         {[
           { label: "HTMLファイルが存在する", ok: content.meta.hasHtml },
           { label: "TXTマスターが存在する", ok: content.meta.hasTxt },
@@ -228,7 +230,7 @@ function DryRunDetail({
         ].map(({ label, ok }) => (
           <div
             key={label}
-            className="flex items-center gap-3 px-4 py-2 border-b border-[#e8e4de] last:border-0 bg-white text-sm"
+            className="flex items-center gap-3 px-4 py-2.5 border-b border-white/40 last:border-0 text-sm"
           >
             <span
               className={`font-bold ${ok ? "text-green-600" : "text-gray-300"}`}
@@ -246,7 +248,7 @@ function DryRunDetail({
       <h2 className="text-sm font-bold mb-2 text-[#1a1a1a]">
         HTML本文プレビュー（先頭2000字）
       </h2>
-      <pre className="bg-white border border-[#e8e4de] rounded p-4 text-xs overflow-auto max-h-80 whitespace-pre-wrap font-mono leading-relaxed">
+      <pre className="glass p-4 text-xs overflow-auto max-h-80 whitespace-pre-wrap font-mono leading-relaxed">
         {htmlPreview.slice(0, 2000)}
         {htmlPreview.length > 2000 && "\n\n... (以下省略)"}
       </pre>
@@ -264,7 +266,7 @@ function InfoCard({
   mono?: boolean;
 }) {
   return (
-    <div className="border border-[#e8e4de] rounded p-3 bg-white">
+    <div className="glass p-4">
       <div className="text-xs text-[#5a5248] mb-1">{label}</div>
       <div className={`text-sm text-[#1a1a1a] break-all ${mono ? "font-mono" : ""}`}>
         {value}

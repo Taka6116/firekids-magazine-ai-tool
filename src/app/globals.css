@@ -11,7 +11,79 @@
   --fk-border: #e8e4de;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background-color: var(--fk-bg);
   color: var(--fk-dark);
+  background:
+    radial-gradient(1100px 560px at 8% -12%, rgba(230, 126, 34, 0.1), transparent 60%),
+    radial-gradient(960px 520px at 96% -4%, rgba(139, 111, 71, 0.13), transparent 55%),
+    radial-gradient(900px 700px at 50% 120%, rgba(90, 82, 72, 0.1), transparent 60%),
+    linear-gradient(180deg, #fdfbf6 0%, #f6f0e5 55%, #f1e9da 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+@layer components {
+  /* ガラスモーフィズム基本カード */
+  .glass {
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 8px 30px rgba(90, 82, 72, 0.1);
+    border-radius: 16px;
+  }
+
+  /* 濃いめ（テーブルなど） */
+  .glass-strong {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    box-shadow: 0 10px 34px rgba(90, 82, 72, 0.12);
+    border-radius: 16px;
+  }
+
+  /* ホバーで浮き上がるカード */
+  .glass-hover {
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  }
+  .glass-hover:hover {
+    transform: translateY(-3px);
+    border-color: rgba(230, 126, 34, 0.5);
+    box-shadow: 0 16px 40px rgba(230, 126, 34, 0.16);
+  }
+
+  /* ヘッダー/フッター用のすりガラス */
+  .glass-nav {
+    background: rgba(26, 26, 26, 0.82);
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  /* グラデーションのテーブルヘッダー */
+  .fk-thead {
+    background: linear-gradient(100deg, #1a1a1a 0%, #2c2620 55%, #3a3128 100%);
+    color: #fff;
+  }
+
+  /* アクセントのグラデーション文字 */
+  .text-gradient {
+    background: linear-gradient(100deg, #1a1a1a 0%, #8b6f47 60%, #e67e22 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* 数値などの強調バッジ */
+  .stat-accent {
+    background: linear-gradient(120deg, #e67e22 0%, #c4621a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 }

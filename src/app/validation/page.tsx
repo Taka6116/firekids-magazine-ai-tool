@@ -50,15 +50,15 @@ export default function ValidationPage({ searchParams }: Props) {
   return (
     <div>
       <div className="mb-6 flex items-center gap-4">
-        <h1 className="text-xl font-bold text-[#1a1a1a]">ルール検証</h1>
+        <h1 className="text-2xl font-bold text-gradient tracking-tight">ルール検証</h1>
         <div className="flex gap-3 ml-auto">
-          <span className="text-sm text-red-700 bg-red-50 border border-red-200 px-3 py-1 rounded">
+          <span className="text-sm text-red-700 bg-red-50/70 border border-red-200 px-3 py-1 rounded-full">
             エラー {totalErrors}件
           </span>
-          <span className="text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 px-3 py-1 rounded">
+          <span className="text-sm text-yellow-700 bg-yellow-50/70 border border-yellow-200 px-3 py-1 rounded-full">
             警告 {totalWarnings}件
           </span>
-          <span className="text-sm text-green-700 bg-green-50 border border-green-200 px-3 py-1 rounded">
+          <span className="text-sm text-green-700 bg-green-50/70 border border-green-200 px-3 py-1 rounded-full">
             クリーン {cleanCount}件
           </span>
         </div>
@@ -94,15 +94,15 @@ export default function ValidationPage({ searchParams }: Props) {
         ))}
       </div>
 
-      <div className="border border-[#e8e4de] rounded overflow-hidden">
+      <div className="glass-strong overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-[#1a1a1a] text-white">
+          <thead className="fk-thead">
             <tr>
-              <th className="text-left px-4 py-2">ブランド</th>
-              <th className="text-left px-4 py-2">スラッグ</th>
-              <th className="text-center px-3 py-2 w-20">エラー</th>
-              <th className="text-center px-3 py-2 w-20">警告</th>
-              <th className="px-4 py-2 w-24"></th>
+              <th className="text-left px-4 py-3">ブランド</th>
+              <th className="text-left px-4 py-3">スラッグ</th>
+              <th className="text-center px-3 py-3 w-20">エラー</th>
+              <th className="text-center px-3 py-3 w-20">警告</th>
+              <th className="px-4 py-3 w-24"></th>
             </tr>
           </thead>
           <tbody>
@@ -113,7 +113,9 @@ export default function ValidationPage({ searchParams }: Props) {
               return (
                 <tr
                   key={`${articleMeta.brand}_${articleMeta.filename}`}
-                  className={i % 2 === 0 ? "bg-white" : "bg-[#faf6ee]"}
+                  className={`transition hover:bg-[#e67e22]/5 ${
+                    i % 2 === 0 ? "bg-white/40" : "bg-white/20"
+                  }`}
                 >
                   <td className="px-4 py-2 text-xs text-gray-500">
                     {BRAND_LABELS[articleMeta.brand]}
@@ -218,8 +220,8 @@ function DetailValidation({
       ) : (
         <div className="space-y-4">
           {Object.entries(issuesByType).map(([type, issues]) => (
-            <div key={type} className="border border-[#e8e4de] rounded overflow-hidden">
-              <div className="bg-[#1a1a1a] text-white px-4 py-2 text-sm font-medium flex items-center gap-2">
+            <div key={type} className="glass-strong overflow-hidden">
+              <div className="fk-thead px-4 py-2.5 text-sm font-medium flex items-center gap-2">
                 {TYPE_LABELS[type] ?? type}
                 <span className="ml-auto text-xs">
                   {issues.filter((i) => i.severity === "error").length > 0 && (
