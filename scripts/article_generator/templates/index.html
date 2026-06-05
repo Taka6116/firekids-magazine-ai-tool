@@ -197,6 +197,16 @@ select:focus, .inv-search:focus {
   box-shadow: 0 0 0 3px rgba(230,126,34,0.14);
 }
 
+.auto-note {
+  display: flex; gap: 10px; align-items: flex-start;
+  margin-top: 14px; padding: 12px 14px;
+  background: linear-gradient(180deg, #fff8f0, #fdf3e7);
+  border: 1px solid #f3dcc0; border-radius: var(--r);
+  font-size: 12.5px; line-height: 1.7; color: var(--text-sub);
+}
+.auto-note b { color: var(--text); font-weight: 700; }
+.auto-note-icon { font-size: 15px; line-height: 1.5; flex-shrink: 0; }
+
 /* ────────────────────── Button ────────────────────── */
 .btn-main {
   width: 100%; margin-top: 22px; padding: 13px 20px;
@@ -386,23 +396,20 @@ select:focus, .inv-search:focus {
 
       <!-- ブランド指定 -->
       <div id="panel-brand">
-        <div class="grid2">
-          <div class="field">
-            <label>ブランド</label>
-            <select id="brand">
-              {% for key, val in brands.items() %}
-              <option value="{{ key }}">{{ val.jp }}（{{ key }}）</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="field">
-            <label>トーン・記事タイプ</label>
-            <select id="tone">
-              <option value="guide">ガイド系（○○とは・解説）</option>
-              <option value="verify">検証系（本当に○○？・やめとけ）</option>
-              <option value="comparison">比較系（AとBの違い）</option>
-              <option value="ranking">ランキング系（TOP10・10選）</option>
-            </select>
+        <div class="field">
+          <label>ブランド</label>
+          <select id="brand">
+            {% for key, val in brands.items() %}
+            <option value="{{ key }}">{{ val.jp }}（{{ key }}）</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="auto-note">
+          <span class="auto-note-icon">✨</span>
+          <div>
+            <b>ブランドを選ぶだけ。</b>
+            記事タイプ・タイトル・テーマ・キーワードは、過去記事の文体を学習した AI が自動で決定します。
+            過去記事と<b>口調は揃え、内容は被らない</b>記事を執筆します。
           </div>
         </div>
       </div>
@@ -436,14 +443,9 @@ select:focus, .inv-search:focus {
         </label>
         <input type="file" id="inv-file" accept=".csv" onchange="uploadInventory(this)">
 
-        <div class="field">
-          <label>トーン・記事タイプ</label>
-          <select id="tone-inv">
-            <option value="guide">ガイド系（○○とは・解説）</option>
-            <option value="verify">検証系（本当に○○？・やめとけ）</option>
-            <option value="comparison">比較系（AとBの違い）</option>
-            <option value="ranking">ランキング系（TOP10・10選）</option>
-          </select>
+        <div class="auto-note">
+          <span class="auto-note-icon">✨</span>
+          <div>選んだ在庫商品を主役にしつつ、記事タイプ・タイトル・構成は AI が自動で決定し、過去記事と被らない記事を執筆します。</div>
         </div>
       </div>
 
@@ -622,9 +624,9 @@ async function generate() {
   if (currentMode === 'inv') {
     if (!selectedFkId) { alert('在庫から商品を 1 点選択してください'); return; }
     const item = allInventory.find(i => i.fk_id === selectedFkId);
-    payload = { brand: item?.brand_key || 'OTHER', tone: document.getElementById('tone-inv').value, fk_id: selectedFkId };
+    payload = { brand: item?.brand_key || 'OTHER', tone: 'auto', fk_id: selectedFkId };
   } else {
-    payload = { brand: document.getElementById('brand').value, tone: document.getElementById('tone').value };
+    payload = { brand: document.getElementById('brand').value, tone: 'auto' };
   }
   btn.disabled = true;
   startLoad();

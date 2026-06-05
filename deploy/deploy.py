@@ -4,6 +4,7 @@ import json
 import subprocess
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -11,6 +12,9 @@ REGION = "us-east-1"
 SERVICE_NAME = "firekids-magazine-tool"
 REPO_NAME = "firekids-magazine-tool"
 ROLE_NAME = "AppRunnerECRAccessRole-FK"
+# App Runner が latest タグだと古いイメージを使い続けることがあるため
+# デプロイ毎にユニークなタグを付け、それを ImageIdentifier に使う
+IMAGE_TAG = datetime.now().strftime("%Y%m%d-%H%M%S")
 
 
 def load_env_files() -> dict:
@@ -64,9 +68,12 @@ def main():
         ["docker", "login", "--username", "AWS", "--password-stdin", f"{account}.dkr.ecr.{REGION}.amazonaws.com"],
         input=login.stdout, text=True, check=True,
     )
-    subprocess.run(["docker", "build", "-t", f"{REPO_NAME}:latest", str(ROOT)], check=True)
+    subprocess.run(["docker", "build", "--no-cache", "-t", f"{REPO_NAME}:latest", str(ROOT)], check=True)
+    subprocess.run(["docker", "tag", f"{REPO_NAME}:latest", f"{ecr_uri}:{IMAGE_TAG}"], check=True)
     subprocess.run(["docker", "tag", f"{REPO_NAME}:latest", f"{ecr_uri}:latest"], check=True)
+    subprocess.run(["docker", "push", f"{ecr_uri}:{IMAGE_TAG}"], check=True)
     subprocess.run(["docker", "push", f"{ecr_uri}:latest"], check=True)
+    print(f"Pushed image tag: {IMAGE_TAG}")
 
     # IAM role for App Runner ECR access
     role_arn = f"arn:aws:iam::{account}:role/{ROLE_NAME}"
@@ -94,7 +101,7 @@ def main():
 
     source_config = {
         "ImageRepository": {
-            "ImageIdentifier": f"{ecr_uri}:latest",
+            "ImageIdentifier": f"{ecr_uri}:{IMAGE_TAG}",
             "ImageRepositoryType": "ECR",
             "ImageConfiguration": {
                 "Port": "8080",
@@ -115,14 +122,11 @@ def main():
         svc_arn = existing["ServiceArn"]
         cfg_file = ROOT / "deploy" / "_source-config.json"
         cfg_file.write_text(json.dumps(source_config), encoding="utf-8")
+        # ImageIdentifier に毎回ユニークなタグを指定するため
+        # update-service だけで確実に新しいイメージのデプロイが走る
         run(["aws", "apprunner", "update-service", "--region", REGION,
              "--service-arn", svc_arn,
              "--source-configuration", file_uri(cfg_file)])
-        # latest タグで update-service しても App Runner がイメージを再取得しない場合があるため
-        # start-deployment で強制的に最新イメージを pull させる
-        time.sleep(3)
-        run(["aws", "apprunner", "start-deployment", "--region", REGION,
-             "--service-arn", svc_arn])
     else:
         print(f"Creating App Runner service: {SERVICE_NAME}")
         create_input = {
