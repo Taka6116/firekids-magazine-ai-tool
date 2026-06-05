@@ -2,261 +2,645 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>FIRE KIDS 記事生成ツール（AWS Bedrock）</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>記事生成 — FIRE KIDS Magazine</title>
 <style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
 :root {
-  --bg: #fafafa; --card: #fff; --accent: #1a1a1a; --accent2: #5a5248;
-  --line: #e8e4de; --line2: #c8c0b4; --text: #1a1a1a; --sub: #3a3a3a;
-  --soft: #f7f5f2; --good: #2d7a3e; --bad: #b34040; --warn: #b07800;
+  --bg:         #f7f6f3;
+  --bg-card:    #ffffff;
+  --text:       #0f0f0f;
+  --text-sub:   #525252;
+  --text-muted: #a3a3a3;
+  --accent:     #e67e22;
+  --accent-d:   #c4621a;
+  --border:     #e5e5e5;
+  --border-hov: #d4d4d4;
+  --success:    #16a34a;
+  --danger:     #dc2626;
+  --sidebar-w:  196px;
+  --r:          10px;
 }
-* { box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
-  background: var(--bg); color: var(--text); max-width: 1000px; margin: 0 auto; padding: 32px 20px; line-height: 1.7; }
-h1 { font-size: 22px; border-left: 4px solid var(--accent); padding-left: 14px; margin: 0 0 8px; }
-h2 { font-size: 16px; color: var(--accent); margin: 0 0 14px; }
-.sub { font-size: 12px; color: var(--sub); margin: 0 0 24px; }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 4px; padding: 24px; margin-bottom: 20px; }
-label { display: block; font-weight: 600; margin: 12px 0 5px; font-size: 13px; color: var(--accent2); }
-input[type="text"], select, textarea {
-  width: 100%; padding: 9px 11px; border: 1px solid var(--line2);
-  border-radius: 3px; font-size: 13.5px; background: #fff; font-family: inherit; }
-textarea { resize: vertical; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+
+/* ────────────────────── Header ────────────────────── */
+.top-bar {
+  background: rgba(12,12,12,0.94);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  height: 52px;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  position: sticky; top: 0; z-index: 100;
+  flex-shrink: 0;
+  gap: 8px;
+}
+.brand-link {
+  display: flex; align-items: center; gap: 9px;
+  text-decoration: none; flex-shrink: 0;
+}
+.brand-icon {
+  width: 26px; height: 26px; border-radius: 6px;
+  background: linear-gradient(140deg, var(--accent) 0%, var(--accent-d) 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 900; color: #fff; letter-spacing: -0.3px;
+  flex-shrink: 0;
+}
+.brand-name { font-size: 13.5px; font-weight: 700; color: #fff; }
+.brand-sep  { color: rgba(255,255,255,0.18); font-size: 15px; }
+.brand-page { font-size: 13px; color: rgba(255,255,255,0.42); }
+.top-nav { margin-left: auto; display: flex; align-items: center; gap: 2px; }
+.top-nav a {
+  font-size: 13px; color: rgba(255,255,255,0.5); text-decoration: none;
+  padding: 5px 11px; border-radius: 6px;
+  transition: background 0.1s, color 0.1s;
+}
+.top-nav a:hover { color: #fff; background: rgba(255,255,255,0.08); }
+.top-nav a.cta {
+  margin-left: 6px; color: #fff; font-weight: 600;
+  background: rgba(230,126,34,0.9);
+}
+.top-nav a.cta:hover { background: var(--accent); }
+
+/* ────────────────────── Shell ────────────────────── */
+.shell { display: flex; flex: 1; min-height: 0; }
+
+/* ────────────────────── Sidebar ────────────────────── */
+.sidebar {
+  width: var(--sidebar-w); flex-shrink: 0;
+  padding: 10px 6px 16px;
+  display: flex; flex-direction: column; gap: 0;
+  border-right: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.nav-section { margin-bottom: 6px; }
+.nav-label {
+  font-size: 10px; font-weight: 600; color: var(--text-muted);
+  padding: 10px 10px 5px; letter-spacing: 0.08em; text-transform: uppercase;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; font-size: 13px; color: var(--text-sub);
+  text-decoration: none; border-radius: 6px;
+  transition: background 0.1s, color 0.1s;
+}
+.nav-item:hover { background: #f5f5f5; color: var(--text); }
+.nav-item.active {
+  background: #fff4eb; color: var(--accent-d); font-weight: 600;
+}
+.nav-icon { width: 15px; text-align: center; font-size: 12px; opacity: 0.65; flex-shrink: 0; }
+.nav-item.active .nav-icon { opacity: 1; }
+.sidebar-gap { flex: 1; }
+.sidebar-foot {
+  padding: 10px 10px 0; font-size: 10.5px; color: var(--text-muted);
+  border-top: 1px solid var(--border); line-height: 1.7;
+}
+
+/* ────────────────────── Main ────────────────────── */
+.main {
+  flex: 1; padding: 36px 40px;
+  max-width: 700px; min-width: 0;
+}
+.page-title { font-size: 21px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 5px; }
+.page-desc  { font-size: 13px; color: var(--text-sub); margin-bottom: 22px; }
+
+/* 被り防止ステータス */
+.status-strip {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 22px; flex-wrap: wrap;
+}
+.badge-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11.5px; font-weight: 500;
+  border-radius: 999px; padding: 3px 10px;
+}
+.badge-pill.green {
+  background: #f0fdf4; color: #166534;
+  border: 1px solid #bbf7d0;
+}
+.badge-pill .pulse {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--success);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; } 50% { opacity: 0.4; }
+}
+#dedup-info { font-size: 12px; color: var(--text-muted); }
+
+/* ────────────────────── Card ────────────────────── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 26px 28px;
+  margin-bottom: 14px;
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.04),
+    0 2px 6px rgba(0,0,0,0.03);
+}
+.card-head { margin-bottom: 20px; }
+.card-head h2 { font-size: 14.5px; font-weight: 600; margin-bottom: 3px; }
+.card-head p  { font-size: 12.5px; color: var(--text-sub); }
+
+/* ────────────────────── Seg control ────────────────────── */
+.seg {
+  display: inline-flex;
+  background: #f2f2f0; border: 1px solid var(--border);
+  border-radius: 8px; padding: 3px; margin-bottom: 22px;
+}
+.seg-btn {
+  padding: 6px 18px; border: none; background: transparent;
+  border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--text-muted);
+  cursor: pointer; transition: all 0.12s; white-space: nowrap;
+}
+.seg-btn.active {
+  background: #fff; color: var(--text); font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 0 0 0.5px rgba(0,0,0,0.05);
+}
+.seg-btn:not(.active):hover { color: var(--text-sub); }
+
+/* ────────────────────── Form ────────────────────── */
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-button.primary {
-  background: var(--accent); color: #fff; padding: 12px 28px;
-  border: 0; border-radius: 3px; cursor: pointer; font-weight: 700;
-  font-size: 14px; letter-spacing: 0.04em; margin-top: 16px; }
-button.primary:hover { background: var(--accent2); }
-button.primary:disabled { background: #aaa; cursor: not-allowed; }
-button.secondary {
-  background: #fff; color: var(--accent); padding: 10px 22px;
-  border: 1px solid var(--line2); border-radius: 3px; cursor: pointer;
-  font-weight: 600; font-size: 13px; margin-top: 8px; }
-button.secondary:hover { background: var(--soft); }
-.status { font-size: 12px; padding: 8px 12px; border-radius: 3px; margin-bottom: 16px; border: 1px solid var(--line); }
-.status.ok  { color: var(--good); border-color: var(--good); background: #eaf5ec; }
-.status.ng  { color: var(--bad);  border-color: var(--bad);  background: #f8eaea; }
-.status.warn{ color: var(--warn); border-color: #e6b800; background: #fffbea; }
-.hidden { display: none; }
-#spinner { display: none; font-size: 13px; color: var(--sub); margin-top: 12px; }
-#spinner.active { display: block; }
-.progress-bar { width: 100%; height: 4px; background: var(--line); border-radius: 2px; margin-top: 8px; overflow: hidden; }
-.progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; border-radius: 2px; }
-#article-out { min-height: 400px; font-family: ui-monospace, "SF Mono", monospace; font-size: 12.5px; line-height: 1.8; }
-.badge { display: inline-block; background: var(--accent); color: #fff; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 2px; letter-spacing: 0.04em; }
-.muted { color: var(--sub); font-size: 12px; }
-.save-result { margin-top: 8px; font-size: 13px; padding: 8px 12px; border-radius: 3px; }
-.save-result.ok { background: #eaf5ec; color: var(--good); }
-.save-result.ng { background: #f8eaea; color: var(--bad); }
+@media (max-width: 560px) { .grid2 { grid-template-columns: 1fr; } }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 11.5px; font-weight: 600; color: var(--text-sub); letter-spacing: 0.02em; }
+select, .inv-search {
+  width: 100%; padding: 9px 12px;
+  border: 1px solid var(--border); border-radius: var(--r);
+  font-size: 13.5px; font-family: inherit; color: var(--text);
+  background: #fff; outline: none;
+  transition: border-color 0.12s, box-shadow 0.12s;
+  appearance: none; -webkit-appearance: none;
+}
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23a3a3a3' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+  padding-right: 32px; cursor: pointer;
+}
+select:focus, .inv-search:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(230,126,34,0.14);
+}
+
+/* ────────────────────── Button ────────────────────── */
+.btn-main {
+  width: 100%; margin-top: 22px; padding: 13px 20px;
+  background: var(--text); border: none; border-radius: 10px;
+  color: #fff; font-size: 14px; font-weight: 600;
+  cursor: pointer; letter-spacing: 0.01em;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  position: relative; overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.08);
+  transition: background 0.1s, transform 0.07s, box-shadow 0.1s;
+}
+.btn-main::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, transparent 55%);
+  pointer-events: none;
+}
+.btn-main:hover:not(:disabled) {
+  background: #1c1c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.18), 0 6px 16px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.btn-main:active:not(:disabled) { transform: translateY(0); }
+.btn-main:disabled { background: #c4c4c4; box-shadow: none; cursor: not-allowed; }
+.btn-arrow { font-size: 16px; transition: transform 0.12s; }
+.btn-main:hover:not(:disabled) .btn-arrow { transform: translateX(4px); }
+
+/* ────────────────────── Loading ────────────────────── */
+.loading-wrap { display: none; margin-top: 14px; }
+.loading-wrap.active { display: block; }
+.loading-box {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border); border-radius: 10px;
+  background: #fafafa;
+}
+.spinner {
+  width: 18px; height: 18px; flex-shrink: 0;
+  border: 2px solid #e5e5e5; border-top-color: var(--accent);
+  border-radius: 50%; animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { flex: 1; }
+.loading-msg { font-size: 13px; font-weight: 500; }
+.loading-hint { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+.prog-bar { height: 2px; background: #e5e5e5; border-radius: 1px; margin-top: 10px; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-d)); width: 0%; transition: width 0.4s ease; }
+
+/* ────────────────────── Inventory panel ────────────────────── */
+.inv-panel { display: none; }
+.inv-panel.show { display: block; }
+
+.inv-toolbar { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+.inv-toolbar select { width: 130px; flex-shrink: 0; }
+.inv-search { flex: 1; }
+.inv-count { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+
+.inv-list {
+  border: 1px solid var(--border); border-radius: 10px;
+  overflow: hidden; max-height: 228px; overflow-y: auto;
+  background: #fff; margin-bottom: 10px;
+}
+.inv-list::-webkit-scrollbar { width: 4px; }
+.inv-list::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 2px; }
+
+.inv-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; cursor: pointer;
+  border-bottom: 1px solid #f4f4f4;
+  transition: background 0.08s;
+}
+.inv-row:last-child { border-bottom: none; }
+.inv-row:hover { background: #fafafa; }
+.inv-row.selected { background: #fff8f2; }
+
+.inv-dot {
+  width: 15px; height: 15px; border-radius: 50%; flex-shrink: 0;
+  border: 1.5px solid var(--border-hov);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.1s;
+}
+.inv-row.selected .inv-dot { border-color: var(--accent); background: var(--accent); }
+.inv-row.selected .inv-dot::after {
+  content: ''; width: 5px; height: 5px; border-radius: 50%; background: #fff;
+}
+.inv-row-body { flex: 1; min-width: 0; }
+.inv-row-name {
+  font-size: 13px; font-weight: 500; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.inv-row-meta { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.inv-listed-tag {
+  font-size: 10px; padding: 2px 7px; border-radius: 999px; white-space: nowrap; flex-shrink: 0;
+  background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;
+}
+.inv-empty {
+  padding: 28px 16px; text-align: center; font-size: 13px; color: var(--text-muted);
+}
+
+.inv-sel-card {
+  display: none; padding: 11px 14px; margin-bottom: 14px;
+  border: 1px solid #fed7aa; border-radius: var(--r); background: #fff8f2;
+}
+.inv-sel-card.show { display: block; }
+.inv-sel-label { font-size: 10px; font-weight: 700; color: var(--accent-d); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 4px; }
+.inv-sel-name  { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+.inv-sel-spec  { font-size: 11.5px; color: var(--text-sub); line-height: 1.6; }
+
+.inv-upload {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px; margin-bottom: 14px;
+  border: 1px dashed var(--border-hov); border-radius: var(--r);
+  font-size: 12px; color: var(--text-muted); cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+.inv-upload:hover { border-color: var(--accent); color: var(--accent-d); }
+#inv-file { display: none; }
+
+/* ────────────────────── Note ────────────────────── */
+.note-card {
+  border: 1px solid #fde68a; border-radius: var(--r);
+  padding: 14px 18px; background: #fffbeb;
+}
+.note-head { font-size: 11.5px; font-weight: 700; color: #92400e; margin-bottom: 7px; }
+.note-card ul { padding-left: 16px; font-size: 12px; color: #92400e; line-height: 2.1; }
 </style>
 </head>
 <body>
 
-<h1>FIRE KIDS 記事生成ツール</h1>
-<p class="sub">AWS Bedrock（Claude）で記事を生成し、TXTとして保存します。</p>
+<!-- ─── Header ─────────────────────────────────────────── -->
+<header class="top-bar">
+  <a class="brand-link" href="/">
+    <div class="brand-icon">FK</div>
+    <span class="brand-name">FIRE KIDS Magazine</span>
+    <span class="brand-sep">/</span>
+    <span class="brand-page">記事生成</span>
+  </a>
+  <nav class="top-nav">
+    <a href="/">ダッシュボード</a>
+    <a href="../upload/">WP投稿</a>
+    <a href="." class="cta">＋ 新規作成</a>
+  </nav>
+</header>
 
-<div id="aws-status" class="status">AWS接続確認中…</div>
+<div class="shell">
 
-<!-- Step 1: 記事情報入力 -->
-<div class="card">
-  <h2>1. 記事情報を入力</h2>
-
-  <div class="grid2">
-    <div>
-      <label>ブランド</label>
-      <select id="brand">
-        {% for key, val in brands.items() %}
-        <option value="{{ key }}">{{ val.jp }}（{{ key }}）</option>
-        {% endfor %}
-      </select>
+  <!-- ─── Sidebar ─────────────────────────────────────── -->
+  <nav class="sidebar">
+    <div class="nav-section">
+      <div class="nav-label">記事</div>
+      <a class="nav-item active" href="."><span class="nav-icon">✎</span>記事を作成</a>
+      <a class="nav-item" href="#"><span class="nav-icon">☰</span>保存済み一覧</a>
+      <a class="nav-item" href="#"><span class="nav-icon">⊘</span>投稿済み一覧</a>
     </div>
-    <div>
-      <label>トーン・記事タイプ</label>
-      <select id="tone">
-        <option value="guide">ガイド系（○○とは・解説）</option>
-        <option value="verify">検証系（本当に○○？・やめとけ）</option>
-        <option value="comparison">比較系（AとBの違い）</option>
-        <option value="ranking">ランキング系（TOP10・10選）</option>
-      </select>
+    <div class="nav-section">
+      <div class="nav-label">ツール</div>
+      <a class="nav-item" href="#"><span class="nav-icon">◷</span>スケジュール</a>
+      <a class="nav-item" href="#"><span class="nav-icon">⊞</span>プロンプト</a>
+      <a class="nav-item" href="../upload/"><span class="nav-icon">⇪</span>WP 投稿</a>
     </div>
-  </div>
+    <div class="sidebar-gap"></div>
+    <div class="sidebar-foot">FIRE KIDS Magazine<br>内部使用限定</div>
+  </nav>
 
-  <label>記事タイトル <span class="muted">（「｜FIRE KIDS Magazine」は自動付与）</span></label>
-  <input type="text" id="title" placeholder="例: IWC ポルトフィーノ ヴィンテージ｜1960〜70年代モデル解説">
+  <!-- ─── Main ─────────────────────────────────────────── -->
+  <main class="main">
+    <div class="page-title">記事を生成する</div>
+    <div class="page-desc">ブランド指定または在庫商品を選ぶだけ。AI が被りなしのタイトル・本文を自動執筆します。</div>
 
-  <label>テーマ・内容の詳細 <span class="muted">（どんな内容を書くか具体的に）</span></label>
-  <textarea id="theme" rows="3" placeholder="例: 1960〜70年代のIWC ポルトフィーノ（ラウンドケース・ドレスウォッチ）について、搭載キャリバー（Cal.89・Cal.8541系）の違い、素材バリエーション（SS・18KYG）、選び方のポイントを解説する記事"></textarea>
+    <!-- 被り防止ステータス -->
+    <div class="status-strip">
+      <span class="badge-pill green"><span class="pulse"></span>被り防止 ON</span>
+      <span id="dedup-info">過去記事キャッシュ確認中…</span>
+    </div>
 
-  <label>メインキーワード <span class="muted">（カンマ区切り）</span></label>
-  <input type="text" id="keywords" placeholder="例: IWC ポルトフィーノ, ヴィンテージ IWC, オールドインター">
+    <!-- ─── 生成カード ────────────────────────────────── -->
+    <div class="card">
+      <div class="card-head">
+        <h2>一次執筆</h2>
+        <p>「記事を作成」をクリックすると、過去記事を自動照合して構成案を生成・本文まで執筆します。</p>
+      </div>
 
-  <label>追加指示・特記事項 <span class="muted">（省略可）</span></label>
-  <textarea id="notes" rows="2" placeholder="例: Cal.8541BとCal.89の比較表を必ず入れる。お魚リューズについて詳しく書く。"></textarea>
+      <!-- モード切替 -->
+      <div class="seg">
+        <button class="seg-btn active" id="tab-brand" onclick="setMode('brand')">ブランド指定</button>
+        <button class="seg-btn" id="tab-inv" onclick="setMode('inv')">在庫から選ぶ</button>
+      </div>
 
-  <button class="primary" onclick="generate()" id="gen-btn">生成する（AWS Bedrock）</button>
+      <!-- ブランド指定 -->
+      <div id="panel-brand">
+        <div class="grid2">
+          <div class="field">
+            <label>ブランド</label>
+            <select id="brand">
+              {% for key, val in brands.items() %}
+              <option value="{{ key }}">{{ val.jp }}（{{ key }}）</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label>トーン・記事タイプ</label>
+            <select id="tone">
+              <option value="guide">ガイド系（○○とは・解説）</option>
+              <option value="verify">検証系（本当に○○？・やめとけ）</option>
+              <option value="comparison">比較系（AとBの違い）</option>
+              <option value="ranking">ランキング系（TOP10・10選）</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
-  <div id="spinner">
-    <p>⏳ Claudeが記事を生成中です… 通常30〜60秒かかります</p>
-    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
-  </div>
-</div>
+      <!-- 在庫から選ぶ -->
+      <div id="panel-inv" class="inv-panel">
+        <div class="inv-count" id="inv-count-msg">在庫データを読み込み中…</div>
+        <div class="inv-toolbar">
+          <select id="inv-brand-filter" onchange="filterInventory()">
+            <option value="">全ブランド</option>
+            {% for key, val in brands.items() %}
+            <option value="{{ key }}">{{ val.jp }}</option>
+            {% endfor %}
+          </select>
+          <input class="inv-search" id="inv-search" type="text"
+                 placeholder="モデル名・Ref・FK番号で検索…" oninput="filterInventory()">
+        </div>
 
-<!-- Step 2: 生成結果 -->
-<div class="card hidden" id="result-card">
-  <h2>2. 生成された記事（編集可能）</h2>
-  <div style="display:flex; gap:12px; margin-bottom:8px; align-items:center; flex-wrap:wrap;">
-    <span class="badge" id="result-brand">BRAND</span>
-    <span class="muted" id="result-chars"></span>
-  </div>
-  <div style="background:var(--soft); border:1px solid var(--line); border-radius:3px; padding:9px 14px; margin-bottom:12px; font-size:12.5px; color:var(--sub);">
-    保存ファイル名（自動）: <strong id="result-filename" style="color:var(--accent); font-family:monospace;"></strong>
-  </div>
-  <textarea id="article-out" rows="30"></textarea>
+        <div class="inv-list" id="inv-list">
+          <div class="inv-empty">在庫データを読み込み中…</div>
+        </div>
 
-  <div style="margin-top:16px; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
-    <button class="primary" onclick="saveArticle()">TXTとして保存（articles/BRAND/）</button>
-    <button class="secondary" onclick="copyArticle()">クリップボードにコピー</button>
-    <button class="secondary" onclick="resetForm()">最初からやり直す</button>
-  </div>
-  <div id="save-result"></div>
-</div>
+        <div class="inv-sel-card" id="inv-selected">
+          <div class="inv-sel-label">選択中の商品</div>
+          <div class="inv-sel-name"  id="inv-sel-name"></div>
+          <div class="inv-sel-spec"  id="inv-sel-spec"></div>
+        </div>
 
-<!-- 注意書き -->
-<div class="card" style="background:var(--soft); border-color: var(--line2);">
-  <h2>⚠️ 使用上の注意</h2>
-  <ul style="margin:0; padding-left:20px; font-size:13px; color:var(--sub); line-height:2;">
-    <li>生成された記事は<strong>必ず人間が確認</strong>してから保存・投稿してください</li>
-    <li>Cal.番号・Ref.番号・振動数などの仕様は<strong>caliber_db.json / correction_log.json</strong>と照合してください</li>
-    <li>AIが一般知識で補完した可能性のある箇所は削除・修正してください</li>
-    <li>TXT保存後、HTML化はWP投稿アップローダー（localhost:8000）で行います</li>
-  </ul>
+        <label class="inv-upload" for="inv-file">
+          <span>↑</span>在庫 CSV を更新する（仕入れデータ.csv）
+        </label>
+        <input type="file" id="inv-file" accept=".csv" onchange="uploadInventory(this)">
+
+        <div class="field">
+          <label>トーン・記事タイプ</label>
+          <select id="tone-inv">
+            <option value="guide">ガイド系（○○とは・解説）</option>
+            <option value="verify">検証系（本当に○○？・やめとけ）</option>
+            <option value="comparison">比較系（AとBの違い）</option>
+            <option value="ranking">ランキング系（TOP10・10選）</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <button class="btn-main" id="gen-btn" onclick="generate()">
+        記事を作成する <span class="btn-arrow">→</span>
+      </button>
+
+      <div class="loading-wrap" id="loading">
+        <div class="loading-box">
+          <div class="spinner"></div>
+          <div class="loading-text">
+            <div class="loading-msg" id="loading-msg">過去記事を照合しています…</div>
+            <div class="loading-hint">通常 1〜3 分かかります</div>
+          </div>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" id="progress"></div></div>
+      </div>
+    </div>
+
+    <!-- 注意事項 -->
+    <div class="note-card">
+      <div class="note-head">⚠ 使用上の注意</div>
+      <ul>
+        <li>生成後は必ず人間が確認してから保存・投稿してください</li>
+        <li>Cal.番号・Ref.番号などの仕様は caliber_db.json / correction_log.json と照合してください</li>
+        <li>AI が補完した可能性のある箇所は削除・修正してください</li>
+      </ul>
+    </div>
+  </main>
 </div>
 
 <script>
-async function checkAws() {
-  const el = document.getElementById('aws-status');
+const MSGS = [
+  '過去記事を照合しています…',
+  '被らないテーマを選定中…',
+  '構成案を作成中…',
+  '本文を執筆中（しばらくお待ちください）…',
+  '品質チェック中…',
+];
+
+let currentMode   = 'brand';
+let allInventory  = [];
+let selectedFkId  = '';
+let progTimer     = null;
+
+/* ── モード ─────────────────────────────────────────── */
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('tab-brand').classList.toggle('active', mode === 'brand');
+  document.getElementById('tab-inv').classList.toggle('active',   mode === 'inv');
+  document.getElementById('panel-brand').style.display = mode === 'brand' ? '' : 'none';
+  document.getElementById('panel-inv').classList.toggle('show',  mode === 'inv');
+  if (mode === 'inv' && allInventory.length === 0) loadInventory();
+}
+
+/* ── 被り防止ステータス ──────────────────────────────── */
+async function checkDedup() {
+  const el = document.getElementById('dedup-info');
   try {
-    const r = await fetch('ping');
-    const d = await r.json();
-    if (d.aws_key_set) {
-      el.className = 'status ok';
-      el.textContent = `✓ AWS接続設定済み（キー: ${d.aws_key_prefix} / モデル: ${d.bedrock_model} / リージョン: ${d.region}）`;
+    const d = await fetch('scan-status').then(r => r.json());
+    if (d.exists) {
+      const dt  = (d.scanned_at || '').slice(0, 10);
+      const hdg = d.with_heading_embeddings || 0;
+      el.textContent = `過去記事 ${d.count} 件 · H2埋め込み ${hdg} 件 · 更新 ${dt}`;
     } else {
-      el.className = 'status warn';
-      el.textContent = '⚠ AWS認証キーが未設定です。scripts/article_generator/.env に AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / AWS_REGION を設定してください。';
+      el.textContent = '初回生成時に自動スキャンされます';
     }
   } catch(e) {
-    el.className = 'status ng';
-    el.textContent = `✗ サーバーエラー: ${e.message}`;
+    el.textContent = '生成時に自動照合';
   }
 }
 
-let progressTimer = null;
-
-function startProgress() {
-  const bar = document.getElementById('progress');
-  let pct = 0;
-  bar.style.width = '0%';
-  progressTimer = setInterval(() => {
-    pct = Math.min(pct + (100 - pct) * 0.04, 90);
-    bar.style.width = pct + '%';
-  }, 500);
+/* ── 在庫読み込み ────────────────────────────────────── */
+async function loadInventory() {
+  const msg = document.getElementById('inv-count-msg');
+  msg.textContent = '読み込み中…';
+  try {
+    const d   = await fetch('inventory-items').then(r => r.json());
+    allInventory = d.items || [];
+    const s  = d.summary || {};
+    msg.textContent = allInventory.length
+      ? `在庫 ${s.total || allInventory.length} 件（HP掲載中 ${s.listed || 0} 件）`
+      : '在庫データがありません。下の CSV アップロードから追加してください。';
+    renderList(allInventory);
+  } catch(e) {
+    msg.textContent = '在庫データの読み込みに失敗しました';
+    renderList([]);
+  }
 }
 
-function stopProgress() {
-  clearInterval(progressTimer);
-  document.getElementById('progress').style.width = '100%';
-  setTimeout(() => { document.getElementById('progress').style.width = '0%'; }, 800);
+function filterInventory() {
+  const brand = document.getElementById('inv-brand-filter').value;
+  const q     = document.getElementById('inv-search').value.toLowerCase();
+  renderList(allInventory.filter(i => {
+    return (!brand || i.brand_key === brand)
+        && (!q    || [i.fk_id, i.brand_raw, i.model, i.ref, i.cal, i.era].join(' ').toLowerCase().includes(q));
+  }));
 }
 
-let currentSlug = '';
-
-async function generate() {
-  const btn = document.getElementById('gen-btn');
-  const spinner = document.getElementById('spinner');
-
-  const brand    = document.getElementById('brand').value;
-  const title    = document.getElementById('title').value.trim();
-  const theme    = document.getElementById('theme').value.trim();
-  const tone     = document.getElementById('tone').value;
-  const keywords = document.getElementById('keywords').value.trim();
-  const notes    = document.getElementById('notes').value.trim();
-
-  if (!title || !theme) {
-    alert('タイトルとテーマは必須です');
+function renderList(items) {
+  const el = document.getElementById('inv-list');
+  if (!items.length) {
+    el.innerHTML = '<div class="inv-empty">該当する在庫がありません</div>';
     return;
   }
+  el.innerHTML = items.slice(0, 200).map(item => {
+    const meta  = [item.era, item.ref ? `Ref.${item.ref}` : '', item.cal ? `Cal.${item.cal}` : ''].filter(Boolean).join(' · ');
+    const badge = item.is_listed ? '<span class="inv-listed-tag">HP掲載中</span>' : '';
+    const sel   = item.fk_id === selectedFkId ? ' selected' : '';
+    return `<div class="inv-row${sel}" onclick="selectItem('${item.fk_id}')">
+      <div class="inv-dot"></div>
+      <div class="inv-row-body">
+        <div class="inv-row-name">${item.brand_raw} ${item.model}</div>
+        <div class="inv-row-meta">${item.fk_id}${meta ? '  ·  ' + meta : ''}</div>
+      </div>
+      ${badge}
+    </div>`;
+  }).join('');
+}
 
-  btn.disabled = true;
-  spinner.className = 'active';
-  startProgress();
+function selectItem(fkId) {
+  selectedFkId = selectedFkId === fkId ? '' : fkId;
+  filterInventory();
+  const card   = document.getElementById('inv-selected');
+  const nameEl = document.getElementById('inv-sel-name');
+  const specEl = document.getElementById('inv-sel-spec');
+  if (!selectedFkId) { card.classList.remove('show'); return; }
+  const item = allInventory.find(i => i.fk_id === selectedFkId);
+  if (!item) return;
+  nameEl.textContent = `${item.brand_raw} ${item.model}`;
+  specEl.textContent = [item.fk_id, item.era,
+    item.ref  ? `Ref.${item.ref}`  : '',
+    item.cal  ? `Cal.${item.cal}`  : '',
+    item.notes ? item.notes.slice(0, 80) : '',
+  ].filter(Boolean).join('  ·  ');
+  card.classList.add('show');
+}
 
+async function uploadInventory(input) {
+  if (!input.files[0]) return;
+  const msg = document.getElementById('inv-count-msg');
+  msg.textContent = 'アップロード中…';
+  const fd = new FormData();
+  fd.append('file', input.files[0]);
   try {
-    const res = await fetch('generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ brand, title, theme, tone, keywords, notes }),
-    });
-    const data = await res.json();
-    stopProgress();
-
-    if (data.ok) {
-      currentSlug = data.slug;
-      const today = new Date().toISOString().slice(0, 10);
-      const filename = `${today}_${data.slug}.txt`;
-
-      document.getElementById('article-out').value = data.article;
-      document.getElementById('result-brand').textContent = brand;
-      document.getElementById('result-chars').textContent = `${data.article.length.toLocaleString()}字`;
-      document.getElementById('result-filename').textContent = `articles/${brand}/${filename}`;
-      document.getElementById('result-card').classList.remove('hidden');
-      document.getElementById('result-card').scrollIntoView({ behavior: 'smooth' });
-    } else {
-      alert('生成失敗: ' + data.error);
-    }
-  } catch(e) {
-    stopProgress();
-    alert('エラー: ' + e.message);
-  } finally {
-    btn.disabled = false;
-    spinner.className = '';
-  }
+    const d = await fetch('upload-inventory', { method: 'POST', body: fd }).then(r => r.json());
+    msg.textContent = d.ok ? d.message : '失敗: ' + d.error;
+    if (d.ok) { allInventory = []; selectedFkId = ''; await loadInventory(); }
+  } catch(e) { msg.textContent = 'エラー: ' + e.message; }
+  input.value = '';
 }
 
-async function saveArticle() {
-  const brand   = document.getElementById('brand').value;
-  const content = document.getElementById('article-out').value;
+/* ── ローディング ────────────────────────────────────── */
+function startLoad() {
+  document.getElementById('loading').className = 'loading-wrap active';
+  document.getElementById('progress').style.width = '0%';
+  let pct = 0;
+  document.getElementById('loading-msg').textContent = MSGS[0];
+  progTimer = setInterval(() => {
+    pct = Math.min(pct + (92 - pct) * 0.035, 92);
+    document.getElementById('progress').style.width = pct + '%';
+    document.getElementById('loading-msg').textContent = MSGS[Math.min(Math.floor(pct / 22), MSGS.length - 1)];
+  }, 600);
+}
+function stopLoad() {
+  clearInterval(progTimer);
+  document.getElementById('progress').style.width = '100%';
+  setTimeout(() => { document.getElementById('loading').className = 'loading-wrap'; }, 400);
+}
 
-  const res = await fetch('save', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ brand, slug: currentSlug, content }),
-  });
-  const data = await res.json();
-  const el = document.getElementById('save-result');
-  if (data.ok) {
-    el.className = 'save-result ok';
-    el.textContent = `✓ 保存完了: ${data.saved_path}`;
+/* ── 生成 ───────────────────────────────────────────── */
+async function generate() {
+  const btn = document.getElementById('gen-btn');
+  let payload;
+  if (currentMode === 'inv') {
+    if (!selectedFkId) { alert('在庫から商品を 1 点選択してください'); return; }
+    const item = allInventory.find(i => i.fk_id === selectedFkId);
+    payload = { brand: item?.brand_key || 'OTHER', tone: document.getElementById('tone-inv').value, fk_id: selectedFkId };
   } else {
-    el.className = 'save-result ng';
-    el.textContent = `✗ 保存失敗: ${data.error}`;
+    payload = { brand: document.getElementById('brand').value, tone: document.getElementById('tone').value };
   }
+  btn.disabled = true;
+  startLoad();
+  try {
+    const res  = await fetch('generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    const data = await res.json();
+    stopLoad();
+    if (data.ok) window.location.href = 'review';
+    else alert('生成失敗: ' + data.error);
+  } catch(e) { stopLoad(); alert('エラー: ' + e.message); }
+  finally { btn.disabled = false; }
 }
 
-function copyArticle() {
-  const txt = document.getElementById('article-out').value;
-  navigator.clipboard.writeText(txt).then(() => alert('コピーしました'));
-}
-
-function resetForm() {
-  document.getElementById('result-card').classList.add('hidden');
-  document.getElementById('article-out').value = '';
-  document.getElementById('save-result').textContent = '';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-checkAws();
+/* ── 初期化 ─────────────────────────────────────────── */
+document.getElementById('panel-brand').style.display = '';
+checkDedup();
 </script>
 </body>
 </html>
