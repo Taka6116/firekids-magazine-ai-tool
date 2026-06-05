@@ -118,6 +118,11 @@ def main():
         run(["aws", "apprunner", "update-service", "--region", REGION,
              "--service-arn", svc_arn,
              "--source-configuration", file_uri(cfg_file)])
+        # latest タグで update-service しても App Runner がイメージを再取得しない場合があるため
+        # start-deployment で強制的に最新イメージを pull させる
+        time.sleep(3)
+        run(["aws", "apprunner", "start-deployment", "--region", REGION,
+             "--service-arn", svc_arn])
     else:
         print(f"Creating App Runner service: {SERVICE_NAME}")
         create_input = {
@@ -132,14 +137,19 @@ def main():
         svc_arn = json.loads(r.stdout)["Service"]["ServiceArn"]
 
     print("Waiting for deployment...")
-    for _ in range(30):
+    # update-service + start-deployment 後、まず OPERATION_IN_PROGRESS になるまで待つ
+    # その後 RUNNING に戻ったら新バージョンのデプロイ完了
+    saw_in_progress = False
+    for _ in range(40):
         time.sleep(15)
         r = run(["aws", "apprunner", "describe-service", "--region", REGION,
                  "--service-arn", svc_arn, "--output", "json"])
         svc = json.loads(r.stdout)["Service"]
         status = svc["Status"]
         print(f"  Status: {status}")
-        if status == "RUNNING":
+        if "OPERATION_IN_PROGRESS" in status or "CREATE_IN_PROGRESS" in status:
+            saw_in_progress = True
+        if status == "RUNNING" and saw_in_progress:
             url = svc["ServiceUrl"]
             print("\n=== DEPLOY SUCCESS ===")
             print(f"URL: https://{url}")
