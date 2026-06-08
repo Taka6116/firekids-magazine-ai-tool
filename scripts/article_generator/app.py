@@ -1288,18 +1288,6 @@ def index():
     return render_template("index.html", brands=BRANDS, tones=TONES)
 
 
-@app.route("/review")
-def review():
-    return render_template(
-        "review.html",
-        article=session.get("draft_article", ""),
-        brand=session.get("draft_brand",   "ROLEX"),
-        slug=session.get("draft_slug",     "article"),
-        title=session.get("draft_title",   ""),
-        brands=BRANDS,
-    )
-
-
 @app.route("/generate", methods=["POST"])
 def generate():
     """記事生成を非同期ジョブとして開始し、job_id を即座に返す。
@@ -1389,11 +1377,6 @@ def generate_status(job_id: str):
 
     if job["status"] == "done":
         result = job["result"] or {}
-        # セッション保存（ポーリング成功時に行う）
-        session["draft_article"] = result.get("article", "")
-        session["draft_brand"]   = result.get("brand_key", "ROLEX")
-        session["draft_slug"]    = result.get("slug", "article")
-        session["draft_title"]   = result.get("title", "")
         return jsonify({"status": "done", "result": result})
 
     if job["status"] == "error":

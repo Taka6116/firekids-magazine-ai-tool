@@ -637,7 +637,8 @@ textarea.direction-input {
   backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
   display: none; flex-direction: column;
 }
-.live-overlay.show { display: flex; }
+.live-overlay.show { display: flex; animation: overlayFade 0.28s ease; }
+@keyframes overlayFade { from { opacity: 0; } to { opacity: 1; } }
 
 .live-statusbar {
   flex-shrink: 0; height: 50px;
@@ -664,10 +665,56 @@ textarea.direction-input {
 }
 .live-close:hover { background: rgba(255,255,255,0.2); }
 
+/* ── ステップ表示（① 執筆 → ② 画像差し込み → ③ プレビュー → ④ 投稿）── */
+.live-steps { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.live-step {
+  font-size: 12px; color: rgba(255,255,255,0.42); font-weight: 600;
+  padding: 4px 11px; border-radius: 999px; white-space: nowrap;
+  transition: background 0.2s, color 0.2s;
+}
+.live-step.active { color: #fff; background: rgba(230,126,34,0.92); }
+.live-step.done   { color: rgba(255,255,255,0.78); }
+@media (max-width: 680px) { .live-step { font-size: 11px; padding: 3px 8px; } }
+
+/* ── 生成待機ステージング（中央の大きな進行表示）── */
+.live-staging {
+  flex: 1; display: none;
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 20px; padding: 30px; color: #fff; text-align: center;
+}
+.live-staging.show { display: flex; }
+.staging-spinner {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.16);
+  border-top-color: #e67e22;
+  animation: spin 0.8s linear infinite;
+}
+.staging-stage {
+  font-size: 21px; font-weight: 700; letter-spacing: 0.01em;
+  font-family: "Zen Kaku Gothic New", "Noto Sans JP", sans-serif;
+  min-height: 30px; transition: opacity 0.25s;
+}
+.staging-hint {
+  font-size: 13px; color: rgba(255,255,255,0.6);
+  max-width: 440px; line-height: 1.9; min-height: 24px; transition: opacity 0.25s;
+}
+.staging-progress { display: flex; gap: 8px; margin-top: 4px; }
+.staging-progress span {
+  width: 42px; height: 4px; border-radius: 2px;
+  background: rgba(255,255,255,0.18); transition: background 0.3s;
+}
+.staging-progress span.on { background: #e67e22; }
+
 .wp-scroll {
   flex: 1; overflow-y: auto; background: #fff;
   margin: 14px auto; width: min(860px, calc(100% - 28px));
   border-radius: 12px; box-shadow: 0 24px 70px rgba(0,0,0,0.4);
+}
+/* プレビューがふわっと浮かび上がる */
+.wp-scroll.reveal { animation: wpReveal 0.55s cubic-bezier(0.2,0.7,0.3,1); }
+@keyframes wpReveal {
+  from { opacity: 0; transform: translateY(28px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
 }
 
 /* WordPress 記事ページ風 */
@@ -1018,9 +1065,24 @@ textarea.direction-input {
 <div id="live-overlay" class="live-overlay">
   <div class="live-statusbar">
     <span class="live-dot"></span>
-    <span id="live-stage">生成を開始しています…</span>
+    <div class="live-steps" id="live-steps">
+      <span class="live-step active" data-step="1">① 執筆</span>
+      <span class="live-step" data-step="2">② 画像差し込み</span>
+      <span class="live-step" data-step="3">③ プレビュー</span>
+      <span class="live-step" data-step="4">④ 投稿</span>
+    </div>
     <span class="live-elapsed" id="live-elapsed"></span>
     <button class="live-close" id="live-close" onclick="closeLive()" style="display:none;">✕ 閉じる</button>
+  </div>
+
+  <!-- 生成待機中の中央ステージング表示 -->
+  <div class="live-staging" id="live-staging">
+    <div class="staging-spinner"></div>
+    <div class="staging-stage" id="staging-stage">生成を開始しています…</div>
+    <div class="staging-hint" id="staging-hint">過去記事と照合し、被らない構成を準備しています…</div>
+    <div class="staging-progress" id="staging-progress">
+      <span></span><span></span><span></span><span></span>
+    </div>
   </div>
 
   <!-- エラー / 在庫未検出パネル（alert を使わず画面内に表示）-->
@@ -1075,18 +1137,20 @@ textarea.direction-input {
   <div class="live-actions" id="live-actions" style="display:none;">
     <div class="live-next-panel">
       <div class="live-next-card">
-        <div class="live-next-label">STEP 2</div>
-        <div class="live-next-title">画像生成 / インポート</div>
-        <button class="live-btn-primary" id="go-image">画像生成へ進む</button>
+        <div class="live-next-label">STEP ② 画像差し込み</div>
+        <div class="live-next-title">主役商品の画像を差し込む</div>
+        <button class="live-btn-primary" id="go-image">画像を差し込む</button>
+        <button class="live-btn-ghost" id="import-image" style="margin-top:8px;">手元の画像をインポート</button>
       </div>
       <div class="live-next-card">
-        <div class="live-next-label">STEP 3</div>
-        <div class="live-next-title">画像を取り込む</div>
-        <button class="live-btn-ghost" id="import-image">画像をインポート</button>
+        <div class="live-next-label">STEP ③ プレビュー</div>
+        <div class="live-next-title">完成イメージを確認</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.65);line-height:1.7;">
+          下に表示されている本文が、そのまま投稿される完成プレビューです。スクロールして全体を確認してください。
+        </div>
       </div>
     </div>
-    <button class="live-btn-primary" id="go-preview">プレビューを確認</button>
-    <button class="live-btn-ghost" id="go-post">投稿準備へ</button>
+    <button class="live-btn-primary" id="go-post">④ 投稿へ進む →</button>
     <button class="live-btn-ghost" onclick="closeLive()">閉じる</button>
     <input type="file" id="image-import-file" accept="image/*" style="display:none;">
   </div>
@@ -1280,15 +1344,71 @@ wpScroll.addEventListener('scroll', () => {
   userScrolled = !nearBottom;
 });
 
+let livePreviewRevealed = false;
+let stagingHintTimer = null;
+let stagingHintIdx = 0;
+
+// ステップ表示（① 執筆 → ② 画像差し込み → ③ プレビュー → ④ 投稿）
+function setStep(n) {
+  document.querySelectorAll('#live-steps .live-step').forEach(el => {
+    const s = parseInt(el.dataset.step, 10);
+    el.classList.toggle('active', s === n);
+    el.classList.toggle('done', s < n);
+  });
+}
+
+// 中央ステージングの進行メッセージを更新
+function setStagingStage(text) {
+  const el = document.getElementById('staging-stage');
+  if (el && text) el.textContent = text;
+}
+
+// 待機中のヒント文を巡回表示
+function startStagingHints() {
+  stopStagingHints();
+  stagingHintIdx = 0;
+  const hint = document.getElementById('staging-hint');
+  stagingHintTimer = setInterval(() => {
+    if (!hint) return;
+    stagingHintIdx = (stagingHintIdx + 1) % MSGS.length;
+    hint.style.opacity = '0';
+    setTimeout(() => { hint.textContent = MSGS[stagingHintIdx]; hint.style.opacity = ''; }, 250);
+  }, 3200);
+}
+function stopStagingHints() {
+  if (stagingHintTimer) clearInterval(stagingHintTimer);
+  stagingHintTimer = null;
+}
+
+// 生成テキストが届いたら、ステージングを消してプレビューをふわっと出現させる
+function revealPreview() {
+  if (livePreviewRevealed) return;
+  livePreviewRevealed = true;
+  stopStagingHints();
+  document.getElementById('live-staging').classList.remove('show');
+  const scroll = document.getElementById('wp-scroll');
+  scroll.style.display = '';
+  scroll.classList.remove('reveal');
+  // リフローを挟んでアニメーションを確実に再生
+  void scroll.offsetWidth;
+  scroll.classList.add('reveal');
+}
+
 function openLive(catLabel) {
   userScrolled = false;
+  livePreviewRevealed = false;
   resetLiveTyping();
-  document.getElementById('live-stage').textContent   = '生成を開始しています…';
+  setStep(1);
+  document.getElementById('staging-stage').textContent = '生成を開始しています…';
+  document.getElementById('staging-hint').textContent  = MSGS[0];
+  document.getElementById('live-staging').classList.add('show');
+  startStagingHints();
   document.getElementById('live-elapsed').textContent = '';
   document.getElementById('live-close').style.display   = 'none';
   document.getElementById('live-actions').style.display = 'none';
   document.getElementById('live-error').style.display   = 'none';
-  document.getElementById('wp-scroll').style.display    = '';
+  document.getElementById('wp-scroll').style.display    = 'none';
+  document.getElementById('wp-scroll').classList.remove('reveal');
   document.getElementById('wp-axis').style.display      = 'none';
   document.getElementById('wp-title').textContent       = 'タイトルを生成中…';
   document.getElementById('wp-crumb-title').textContent = '新しい記事';
@@ -1308,6 +1428,7 @@ function openLive(catLabel) {
 
 function closeLive() {
   clearInterval(liveTimer);
+  stopStagingHints();
   resetLiveTyping();
   document.getElementById('live-overlay').classList.remove('show');
   document.getElementById('gen-btn').disabled = false;
@@ -1318,7 +1439,9 @@ let lastPayload = null;
 // オーバーレイ内にエラー（または在庫未検出）を表示する。alert は使わない。
 function showLiveError(opts) {
   clearInterval(liveTimer);
+  stopStagingHints();
   const card  = document.querySelector('.live-error-card');
+  document.getElementById('live-staging').classList.remove('show');
   document.getElementById('wp-scroll').style.display    = 'none';
   document.getElementById('live-actions').style.display = 'none';
   document.getElementById('live-error').style.display   = 'flex';
@@ -1328,7 +1451,6 @@ function showLiveError(opts) {
   document.getElementById('live-error-title').textContent = opts.title || 'エラーが発生しました';
   document.getElementById('live-error-msg').textContent   = opts.msg || '';
   document.getElementById('live-error-stage').textContent = opts.stage ? ('最終ステージ: ' + opts.stage) : '';
-  document.getElementById('live-stage').textContent = opts.warn ? '⚠ 中断' : '✕ 失敗';
   // 在庫未検出の場合は「一般記事で続行」ボタンを足す
   const actions = document.getElementById('live-error-actions');
   const extra = document.getElementById('err-continue-general');
@@ -1418,11 +1540,13 @@ function renderLiveNow(md, finished) {
 function pumpLiveTyping() {
   if (liveVisibleText.length < liveTargetText.length) {
     const gap = liveTargetText.length - liveVisibleText.length;
-    const CHARS_PER_TICK = 8;
-    const step = Math.min(CHARS_PER_TICK, gap);
+    // 基本は 1 文字ずつ滑らかに。差が大きく開いた時だけ少し速める（カクつきを抑える）
+    let step = 1;
+    if (gap > 1500)      step = Math.ceil(gap / 220);
+    else if (gap > 300)  step = 2;
     liveVisibleText = liveTargetText.slice(0, liveVisibleText.length + step);
     renderLiveNow(liveVisibleText, liveIsFinished && liveVisibleText.length >= liveTargetText.length);
-    liveTypingTimer = setTimeout(pumpLiveTyping, 28);
+    liveTypingTimer = setTimeout(pumpLiveTyping, 16);
     return;
   }
   renderLiveNow(liveVisibleText, liveIsFinished);
@@ -1488,26 +1612,27 @@ async function generate(opts) {
       } catch(e) { continue; }
 
       if (poll.status === 'running') {
-        if (poll.stage) { document.getElementById('live-stage').textContent = poll.stage; lastStage = poll.stage; }
-        if (poll.partial) renderLive(poll.partial, false);
+        if (poll.stage) { setStagingStage(poll.stage); lastStage = poll.stage; }
+        if (poll.partial) { revealPreview(); renderLive(poll.partial, false); }
         continue;
       }
       if (poll.status === 'done') {
         clearInterval(liveTimer);
+        stopStagingHints();
         const result = poll.result || {};
+        revealPreview();
         renderLive(result.article || '', true);
         showAxis(result);
-        document.getElementById('live-stage').textContent   = '✓ 完成しました';
+        setStep(3);
         document.getElementById('live-close').style.display   = '';
         document.getElementById('live-actions').style.display = '';
-        document.getElementById('go-image').onclick = () => flashHint('画像生成CTAです。次の実装で画像生成ツールに接続します。');
-        document.getElementById('import-image').onclick = () => document.getElementById('image-import-file').click();
+        document.getElementById('go-image').onclick = () => { setStep(2); flashHint('画像差し込みは次の実装で WordPress メディア連携に接続します。'); };
+        document.getElementById('import-image').onclick = () => { setStep(2); document.getElementById('image-import-file').click(); };
         document.getElementById('image-import-file').onchange = (ev) => {
           const file = ev.target.files && ev.target.files[0];
           if (file) flashHint('画像を選択しました: ' + file.name);
         };
-        document.getElementById('go-preview').onclick = () => { window.location.href = 'review'; };
-        document.getElementById('go-post').onclick = () => { window.location.href = '../upload/'; };
+        document.getElementById('go-post').onclick = () => { setStep(4); window.location.href = '../upload/'; };
         return;
       }
       if (poll.status === 'inventory_missing') {
