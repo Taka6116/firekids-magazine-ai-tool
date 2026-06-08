@@ -1272,11 +1272,23 @@ def markdown_to_wp_html(md: str) -> str:
     return "\n".join(out)
 
 
+def _next_article_number(brand_dir: Path) -> str:
+    """ブランドディレクトリ内の既存番号から次の3桁連番を返す。"""
+    existing = []
+    if brand_dir.exists():
+        for f in brand_dir.iterdir():
+            m = re.match(r"^(\d+)_article_", f.name)
+            if m:
+                existing.append(int(m.group(1)))
+    return f"{(max(existing) + 1 if existing else 1):03d}"
+
+
 def save_article(brand_key: str, slug: str, content: str) -> Path:
     brand_dir = ROOT / "articles" / brand_key
     brand_dir.mkdir(parents=True, exist_ok=True)
-    filename = f"{datetime.date.today().strftime('%Y-%m-%d')}_{slug}.txt"
-    path     = brand_dir / filename
+    number = _next_article_number(brand_dir)
+    filename = f"{number}_article_{slug}.txt"
+    path = brand_dir / filename
     path.write_text(content, encoding="utf-8")
     return path
 
@@ -1479,6 +1491,214 @@ def scan_status():
         "degraded_modes":          _SCAN_STATE["degraded_modes"],
         "scanned_at":              m.get("scanned_at", ""),
     })
+
+
+def _s3_client_simple():
+    import boto3
+    region = os.getenv("S3_REGION") or os.getenv("AWS_REGION", "us-east-1")
+    return boto3.client(
+        "s3",
+        region_name=region,
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+    )
+
+
+@app.route("/save-draft", methods=["POST"])
+def save_draft():
+    """記事生成完了時に自動呼び出し。TXT + HTML を articles/ に保存し S3 にもバックアップ。"""
+    data      = request.get_json(silent=True) or {}
+    brand_key = (data.get("brand") or "ROLEX").strip()
+    slug      = re.sub(r"[^\w\-]", "-", (data.get("slug") or "article").strip()).strip("-") or "article"
+    title     = (data.get("title") or "").strip()
+    content   = (data.get("content") or "").strip()   # Markdown / プレーンテキスト
+    html      = (data.get("html") or "").strip()       # WP HTML
+    image_meta = data.get("image_meta")                # {s3_key, source_url, alt} or null
+
+    if not content and not html:
+        return jsonify({"ok": False, "error": "本文が空です"}), 400
+
+    brand_dir = ROOT / "articles" / brand_key
+    brand_dir.mkdir(parents=True, exist_ok=True)
+
+    # 同一 slug が既に存在するか確認（重複保存防止）
+    existing_numbers = []
+    for f in brand_dir.iterdir():
+        m = re.match(r"^(\d+)_article_", f.name)
+        if m:
+            existing_numbers.append(int(m.group(1)))
+        # 同一slugが既存なら上書き
+        if re.match(rf"^\d+_article_{re.escape(slug)}\.(txt|html)$", f.name):
+            number_m = re.match(r"^(\d+)_", f.name)
+            number = number_m.group(1) if number_m else f"{(max(existing_numbers, default=0) + 1):03d}"
+            break
+    else:
+        number = f"{(max(existing_numbers, default=0) + 1):03d}"
+
+    saved_paths = []
+    if content:
+        txt_path = brand_dir / f"{number}_article_{slug}.txt"
+        txt_path.write_text(content, encoding="utf-8")
+        saved_paths.append(str(txt_path.relative_to(ROOT)))
+    if html:
+        html_path = brand_dir / f"{number}_article_{slug}.html"
+        html_path.write_text(html, encoding="utf-8")
+        saved_paths.append(str(html_path.relative_to(ROOT)))
+
+    # S3 バックアップ（非同期で行い失敗しても本処理に影響しない）
+    bucket = os.getenv("S3_BUCKET", "")
+    if bucket:
+        def _s3_backup():
+            try:
+                s3 = _s3_client_simple()
+                meta_extra = {"Metadata": {"title": title[:256], "brand": brand_key}}
+                if content:
+                    s3.put_object(
+                        Bucket=bucket,
+                        Key=f"drafts/{brand_key}/{number}_article_{slug}.txt",
+                        Body=content.encode("utf-8"),
+                        ContentType="text/plain; charset=utf-8",
+                        **meta_extra,
+                    )
+                if html:
+                    s3.put_object(
+                        Bucket=bucket,
+                        Key=f"drafts/{brand_key}/{number}_article_{slug}.html",
+                        Body=html.encode("utf-8"),
+                        ContentType="text/html; charset=utf-8",
+                        **meta_extra,
+                    )
+            except Exception as e:
+                print(f"[save-draft] S3 backup error: {e}")
+        import threading as _threading
+        _threading.Thread(target=_s3_backup, daemon=True).start()
+
+    return jsonify({
+        "ok": True,
+        "number": number,
+        "slug": slug,
+        "saved_paths": saved_paths,
+    })
+
+
+@app.route("/drafts")
+def drafts():
+    """保存済み記事一覧を返す（articles/ ディレクトリ走査）。"""
+    articles_dir = ROOT / "articles"
+    result = []
+    if not articles_dir.exists():
+        return jsonify([])
+
+    for brand_dir in sorted(articles_dir.iterdir()):
+        if not brand_dir.is_dir():
+            continue
+        brand_key = brand_dir.name
+        entries: dict[str, dict] = {}
+        for f in sorted(brand_dir.iterdir(), reverse=True):
+            m = re.match(r"^(\d+)_article_(.+)\.(txt|html)$", f.name)
+            if not m:
+                continue
+            number, slug, ext = m.group(1), m.group(2), m.group(3)
+            key = f"{brand_key}/{number}_{slug}"
+            if key not in entries:
+                stat = f.stat()
+                entries[key] = {
+                    "brand": brand_key,
+                    "number": number,
+                    "slug": slug,
+                    "title": slug.replace("-", " ").title(),
+                    "saved_at": datetime.datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"),
+                    "has_txt": False,
+                    "has_html": False,
+                    "char_count": 0,
+                    "image_url": None,
+                }
+            entries[key][f"has_{ext}"] = True
+            if ext == "txt":
+                try:
+                    entries[key]["char_count"] = len(f.read_text(encoding="utf-8"))
+                except Exception:
+                    pass
+        result.extend(sorted(entries.values(), key=lambda x: x["saved_at"], reverse=True))
+
+    return jsonify(result)
+
+
+_POSTS_LOG_S3_KEY = "posts_log/posts_log.json"
+
+
+def _load_posts_log() -> list:
+    bucket = os.getenv("S3_BUCKET", "")
+    if bucket:
+        try:
+            s3 = _s3_client_simple()
+            obj = s3.get_object(Bucket=bucket, Key=_POSTS_LOG_S3_KEY)
+            return json.loads(obj["Body"].read().decode("utf-8"))
+        except Exception:
+            pass
+    # ローカルフォールバック
+    local = ROOT / "data" / "posts_log.json"
+    if local.exists():
+        try:
+            return json.loads(local.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    return []
+
+
+def _save_posts_log(log: list) -> None:
+    bucket = os.getenv("S3_BUCKET", "")
+    payload = json.dumps(log, ensure_ascii=False, indent=2)
+    if bucket:
+        try:
+            s3 = _s3_client_simple()
+            s3.put_object(
+                Bucket=bucket,
+                Key=_POSTS_LOG_S3_KEY,
+                Body=payload.encode("utf-8"),
+                ContentType="application/json; charset=utf-8",
+            )
+        except Exception as e:
+            print(f"[log-post] S3 save error: {e}")
+    # ローカルにも保存
+    local = ROOT / "data" / "posts_log.json"
+    local.parent.mkdir(parents=True, exist_ok=True)
+    local.write_text(payload, encoding="utf-8")
+
+
+@app.route("/log-post", methods=["POST"])
+def log_post():
+    """WP投稿完了後に投稿メタを記録する。"""
+    data = request.get_json(silent=True) or {}
+    required = ["brand", "title", "wp_id", "wp_link"]
+    for k in required:
+        if not data.get(k):
+            return jsonify({"ok": False, "error": f"{k} is required"}), 400
+
+    entry = {
+        "brand":      data.get("brand", ""),
+        "slug":       data.get("slug", ""),
+        "title":      data.get("title", ""),
+        "wp_id":      data.get("wp_id"),
+        "wp_link":    data.get("wp_link", ""),
+        "wp_status":  data.get("wp_status", "publish"),
+        "image_url":  data.get("image_url", ""),
+        "char_count": int(data.get("char_count", 0)),
+        "logged_at":  datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "date":       data.get("date", datetime.date.today().strftime("%Y.%-m.%-d") if hasattr(datetime.date.today(), "strftime") else ""),
+    }
+    log = _load_posts_log()
+    # 同一 wp_id があれば上書き
+    log = [e for e in log if str(e.get("wp_id")) != str(entry["wp_id"])]
+    log.insert(0, entry)
+    _save_posts_log(log)
+    return jsonify({"ok": True})
+
+
+@app.route("/posts-log")
+def posts_log():
+    """投稿済み記事ログを返す。"""
+    return jsonify(_load_posts_log())
 
 
 @app.route("/image-proxy")

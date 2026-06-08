@@ -494,6 +494,28 @@ function renderResults(data) {
         ✓ ${statusLabel}完了（ID: ${r.id} / ${escapeHtml(r.date)}）${meta.length ? '<br><span class="muted">' + meta.join(' / ') + '</span>' : ''}<br>
         <a href="${escapeHtml(r.link)}" target="_blank" rel="noopener">${escapeHtml(r.link)}</a>
       </div>`;
+
+      // 記事生成ツールに投稿完了を通知（log-post）
+      try {
+        const pending = JSON.parse(sessionStorage.getItem('fk_pending_post') || '{}');
+        const generatorOrigin = pending.generatorOrigin || window.location.origin;
+        fetch(generatorOrigin + '/generator/log-post', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            brand:      r.brand || pending.brand || '',
+            slug:       pending.slug || r.filename || '',
+            title:      pending.title || r.filename || '',
+            wp_id:      r.id,
+            wp_link:    r.link || '',
+            wp_status:  r.status || 'publish',
+            image_url:  pending.image_url || '',
+            char_count: pending.char_count || 0,
+            date:       pending.date || '',
+          }),
+        }).catch(() => {});
+        sessionStorage.removeItem('fk_pending_post');
+      } catch(e) {}
     } else {
       const errMsg = typeof r.error === 'string' ? r.error : JSON.stringify(r.error, null, 2);
       html += `<div class="result-item ng">
