@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
+import { NavLink } from "@/components/NavLink";
 
 export const metadata: Metadata = {
   title: "FIRE KIDS Magazine — 管理ツール",
@@ -19,19 +20,37 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin=""
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="min-h-screen flex flex-col">
-        <header className="glass-nav text-white sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-5 py-3.5 flex items-center gap-6">
+        <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-5 h-[52px] flex items-center gap-4">
             <Link
               href="/"
-              className="font-bold text-lg tracking-wide hover:opacity-80 transition flex items-baseline gap-2"
+              className="flex items-center gap-2 hover:opacity-80 transition"
             >
-              <span className="text-white">FIRE KIDS Magazine</span>
-              <span className="text-xs font-normal text-gray-400">
-                管理ツール
+              <span className="bg-red-600 text-white w-7 h-7 rounded font-bold text-sm flex items-center justify-center">
+                FK
+              </span>
+              <span className="text-sm font-semibold text-gray-900">
+                FIRE KIDS Magazine
               </span>
             </Link>
-            <nav className="flex items-center gap-1 text-sm ml-auto">
+
+            {/* 中央: 将来の検索バー用スペース */}
+            <div className="flex-1" />
+
+            <nav className="flex items-center gap-1">
               <NavLink href="/articles" label="記事一覧" />
               <NavLink href="/validation" label="ルール検証" />
               <NavLink href="/wordpress" label="WP dry-run" />
@@ -39,14 +58,9 @@ export default function RootLayout({
                 href={GENERATOR_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="ml-2 px-4 py-1.5 rounded-full text-sm font-semibold text-white transition hover:opacity-90"
-                style={{
-                  background:
-                    "linear-gradient(120deg, #e67e22 0%, #c4621a 100%)",
-                  boxShadow: "0 4px 14px rgba(230,126,34,0.4)",
-                }}
+                className="ml-2 bg-red-600 text-white text-xs font-semibold px-3 py-1.5 rounded-md hover:bg-red-700 transition"
               >
-                記事を生成
+                ＋ 記事を生成
               </a>
             </nav>
           </div>
@@ -56,21 +70,10 @@ export default function RootLayout({
           {children}
         </main>
 
-        <footer className="text-center py-4 text-xs text-[#8b6f47]">
+        <footer className="text-center py-4 text-xs text-gray-400">
           FIRE KIDS Magazine 管理ツール — 内部使用限定
         </footer>
       </body>
     </html>
-  );
-}
-
-function NavLink({ href, label }: { href: string; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="px-3 py-1.5 rounded-full text-gray-300 hover:text-white hover:bg-white/10 transition"
-    >
-      {label}
-    </Link>
   );
 }

@@ -3,12 +3,52 @@
 @tailwind utilities;
 
 :root {
-  --fk-dark: #1a1a1a;
-  --fk-brown: #5a5248;
-  --fk-warm: #8b6f47;
-  --fk-accent: #e67e22;
-  --fk-bg: #faf6ee;
-  --fk-border: #e8e4de;
+  /* ── Surface ── */
+  --bg:          #F8F9FA;
+  --bg-card:     #FFFFFF;
+  --bg-subtle:   #F1F3F5;
+
+  /* ── Border ── */
+  --border:      #E5E7EB;
+  --border-hov:  #D1D5DB;
+  --border-focus:#6366F1;
+
+  /* ── Text ── */
+  --text:        #111827;
+  --text-sub:    #374151;
+  --text-muted:  #9CA3AF;
+
+  /* ── Accent（FIRE KIDSブランドレッドをトーンダウン）── */
+  --accent:      #DC2626;
+  --accent-d:    #B91C1C;
+  --accent-bg:   #FEF2F2;
+
+  /* ── Semantic ── */
+  --success:     #16A34A;
+  --success-bg:  #F0FDF4;
+  --warning:     #D97706;
+  --warning-bg:  #FFFBEB;
+  --danger:      #DC2626;
+  --danger-bg:   #FEF2F2;
+  --info:        #2563EB;
+  --info-bg:     #EFF6FF;
+
+  /* ── Status Pills（記事ステータス）── */
+  --status-draft:     #6B7280;
+  --status-ready:     #2563EB;
+  --status-published: #16A34A;
+
+  /* ── Layout ── */
+  --sidebar-w:   220px;
+  --header-h:    52px;
+  --r-sm:        6px;
+  --r:           8px;
+  --r-lg:        12px;
+
+  /* ── Shadow ── */
+  --shadow-sm:   0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow:      0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md:   0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
 html {
@@ -16,13 +56,9 @@ html {
 }
 
 body {
-  color: var(--fk-dark);
-  background:
-    radial-gradient(1100px 560px at 8% -12%, rgba(230, 126, 34, 0.1), transparent 60%),
-    radial-gradient(960px 520px at 96% -4%, rgba(139, 111, 71, 0.13), transparent 55%),
-    radial-gradient(900px 700px at 50% 120%, rgba(90, 82, 72, 0.1), transparent 60%),
-    linear-gradient(180deg, #fdfbf6 0%, #f6f0e5 55%, #f1e9da 100%);
-  background-attachment: fixed;
+  font-family: "Inter", "Noto Sans JP", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text);
+  background: var(--bg);
   min-height: 100vh;
 }
 

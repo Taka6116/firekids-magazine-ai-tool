@@ -61,6 +61,7 @@ export interface ArticleMeta {
   hasXPost: boolean;
   hasXImage: boolean;
   isPosted: boolean;
+  updatedAt?: string;
 }
 
 export interface ArticleContent {

@@ -35,27 +35,30 @@ export default function WordPressDryRunPage({ searchParams }: Props) {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gradient tracking-tight">WordPress dry-run</h1>
-        <p className="text-sm text-[#5a5248] mt-1">
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+          WordPress dry-run
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
           投稿する記事を選択して内容を確認してください。本番投稿はdry-run確認後のみ行います。
         </p>
       </div>
 
-      <div
-        className="mb-4 p-3.5 border border-yellow-300 bg-yellow-50/70 rounded-2xl text-sm text-yellow-800"
-      >
-        ⚠ このページは dry-run（内容確認）専用です。「本番投稿」ボタンは現在未実装です。
-        WordPress投稿は確認後に別途実施してください。
+      <div className="mb-4 bg-blue-50 border-l-4 border-blue-400 px-4 py-3 rounded-r-md flex items-start gap-2">
+        <span className="text-blue-400">ℹ️</span>
+        <p className="text-sm text-blue-700">
+          このページは <strong>dry-run（確認専用）</strong>{" "}
+          です。「本番投稿」ボタンは現在未実装です。WordPress投稿は確認後に別途実施してください。
+        </p>
       </div>
 
-      {/* ブランドフィルター */}
-      <div className="flex gap-2 flex-wrap mb-4">
+      {/* ブランドフィルタータブ */}
+      <div className="inline-flex flex-wrap gap-1 bg-white border border-gray-200 rounded-lg p-1 mb-4">
         <Link
           href="/wordpress"
-          className={`text-xs px-3 py-1 rounded border transition ${
+          className={`text-sm px-3 py-1.5 rounded-md transition ${
             !brand
-              ? "bg-[#1a1a1a] text-white border-[#1a1a1a]"
-              : "border-[#e8e4de] hover:border-[#1a1a1a]"
+              ? "font-medium text-gray-900 bg-gray-100"
+              : "text-gray-500 hover:bg-gray-100"
           }`}
         >
           すべて
@@ -64,10 +67,10 @@ export default function WordPressDryRunPage({ searchParams }: Props) {
           <Link
             key={b}
             href={`/wordpress?brand=${b}`}
-            className={`text-xs px-3 py-1 rounded border transition ${
+            className={`text-sm px-3 py-1.5 rounded-md transition ${
               brand === b
-                ? "bg-[#1a1a1a] text-white border-[#1a1a1a]"
-                : "border-[#e8e4de] hover:border-[#1a1a1a]"
+                ? "font-medium text-gray-900 bg-gray-100"
+                : "text-gray-500 hover:bg-gray-100"
             }`}
           >
             {BRAND_LABELS[b]}
@@ -75,51 +78,49 @@ export default function WordPressDryRunPage({ searchParams }: Props) {
         ))}
       </div>
 
-      <div className="glass-strong overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
         <table className="w-full text-sm">
-          <thead className="fk-thead">
+          <thead className="bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
             <tr>
               <th className="text-left px-4 py-3">ブランド</th>
               <th className="text-left px-4 py-3">スラッグ</th>
               <th className="text-center px-3 py-3 w-14">TXT</th>
               <th className="text-center px-3 py-3 w-14">HTML</th>
-              <th className="px-4 py-3 w-32"></th>
+              <th className="px-4 py-3 w-32 text-right">アクション</th>
             </tr>
           </thead>
           <tbody>
-            {articles.map((article, i) => (
+            {articles.map((article) => (
               <tr
                 key={article.filename}
-                className={`transition hover:bg-[#e67e22]/5 ${
-                  i % 2 === 0 ? "bg-white/40" : "bg-white/20"
-                }`}
+                className="border-b border-gray-100 hover:bg-gray-50"
               >
-                <td className="px-4 py-2 text-xs text-gray-500">
+                <td className="px-4 py-2.5 text-xs text-gray-500">
                   {BRAND_LABELS[article.brand]}
                 </td>
-                <td className="px-4 py-2 font-mono text-xs">
+                <td className="px-4 py-2.5 font-mono text-xs text-gray-600">
                   {article.number}_{article.slug}
                 </td>
-                <td className="px-3 py-2 text-center text-xs">
+                <td className="px-3 py-2.5 text-center text-xs">
                   {article.hasTxt ? (
-                    <span className="text-green-700">✓</span>
+                    <span className="text-green-600">✓</span>
                   ) : (
                     <span className="text-gray-300">—</span>
                   )}
                 </td>
-                <td className="px-3 py-2 text-center text-xs">
+                <td className="px-3 py-2.5 text-center text-xs">
                   {article.hasHtml ? (
-                    <span className="text-blue-700">✓</span>
+                    <span className="text-blue-600">✓</span>
                   ) : (
                     <span className="text-gray-300">—</span>
                   )}
                 </td>
-                <td className="px-4 py-2 text-right">
+                <td className="px-4 py-2.5 text-right">
                   <Link
                     href={`/wordpress?brand=${article.brand}&slug=${article.number}_${article.slug}`}
-                    className="text-[#E67E22] text-xs hover:underline"
+                    className="text-xs text-blue-600 hover:underline"
                   >
-                    dry-run確認 →
+                    dry-run確認
                   </Link>
                 </td>
               </tr>
@@ -192,8 +193,12 @@ function DryRunDetail({
         </h1>
       </div>
 
-      <div className="mb-4 p-3.5 border border-yellow-300 bg-yellow-50/70 rounded-2xl text-sm text-yellow-800">
-        ⚠ これはdry-runです。WordPressへの実際の投稿は行われません。
+      <div className="mb-4 bg-blue-50 border-l-4 border-blue-400 px-4 py-3 rounded-r-md flex items-start gap-2">
+        <span className="text-blue-400">ℹ️</span>
+        <p className="text-sm text-blue-700">
+          これは <strong>dry-run（確認専用）</strong>{" "}
+          です。WordPressへの実際の投稿は行われません。
+        </p>
       </div>
 
       {/* 投稿プレビューカード */}

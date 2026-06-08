@@ -3,32 +3,107 @@
 <head>
 <meta charset="UTF-8">
 <title>FIRE KIDS WP投稿アップローダー</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #fafafa;
-  --card: #ffffff;
-  --accent: #1a1a1a;
-  --accent2: #5a5248;
-  --line: #e8e4de;
-  --line2: #c8c0b4;
-  --text: #1a1a1a;
-  --sub: #3a3a3a;
-  --good: #2d7a3e;
-  --bad: #b34040;
-  --soft: #f7f5f2;
+  /* ── Surface ── */
+  --bg:          #F8F9FA;
+  --bg-card:     #FFFFFF;
+  --bg-subtle:   #F1F3F5;
+
+  /* ── Border ── */
+  --border:      #E5E7EB;
+  --border-hov:  #D1D5DB;
+  --border-focus:#6366F1;
+
+  /* ── Text ── */
+  --text:        #111827;
+  --text-sub:    #374151;
+  --text-muted:  #9CA3AF;
+
+  /* ── Accent ── */
+  --accent:      #DC2626;
+  --accent-d:    #B91C1C;
+  --accent-bg:   #FEF2F2;
+
+  /* ── Semantic ── */
+  --success:     #16A34A;
+  --success-bg:  #F0FDF4;
+  --warning:     #D97706;
+  --warning-bg:  #FFFBEB;
+  --danger:      #DC2626;
+  --danger-bg:   #FEF2F2;
+  --info:        #2563EB;
+  --info-bg:     #EFF6FF;
+
+  /* ── Layout ── */
+  --header-h:    52px;
+  --r-sm:        6px;
+  --r:           8px;
+  --r-lg:        12px;
+
+  /* ── Shadow ── */
+  --shadow-sm:   0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow:      0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md:   0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
+  /* ── 互換エイリアス（既存CSS用）── */
+  --card:    var(--bg-card);
+  --accent2: var(--text-sub);
+  --line:    var(--border);
+  --line2:   var(--border-hov);
+  --sub:     #6B7280;
+  --good:    var(--success);
+  --bad:     var(--danger);
+  --soft:    var(--bg-subtle);
 }
 * { box-sizing: border-box; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-family: "Inter", "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
   background: var(--bg); color: var(--text);
-  max-width: 920px; margin: 0 auto; padding: 32px 20px;
-  line-height: 1.7;
+  margin: 0; line-height: 1.7;
 }
-h1 { font-size: 24px; border-left: 4px solid var(--accent); padding-left: 14px; margin: 0 0 24px; }
-h2 { font-size: 18px; margin: 0 0 16px; color: var(--accent); }
+
+/* ── Header（generator と同じ top-bar）── */
+.top-bar {
+  height: var(--header-h);
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 20px;
+  position: sticky; top: 0; z-index: 100;
+  gap: 12px;
+}
+.top-bar-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+.top-bar-logo-mark {
+  width: 28px; height: 28px; background: var(--accent); color: #fff;
+  border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+}
+.top-bar-logo-text { font-size: 14px; font-weight: 600; color: var(--text); }
+.top-bar-breadcrumb { font-size: 13px; color: var(--text-muted); }
+.top-bar-breadcrumb::before { content: "/"; margin: 0 8px; color: var(--border-hov); }
+.top-bar-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.top-bar-actions a {
+  font-size: 13px; color: var(--text-sub); text-decoration: none;
+  padding: 6px 11px; border-radius: var(--r-sm);
+  transition: background 0.1s, color 0.1s;
+}
+.top-bar-actions a:hover { color: var(--text); background: var(--bg-subtle); }
+
+.page-wrap { max-width: 960px; margin: 0 auto; padding: 32px 20px; }
+
+h1 {
+  font-size: 18px; font-weight: 600; color: var(--text);
+  border-left: 3px solid var(--accent); padding-left: 12px; margin: 0 0 24px;
+}
+h2 { font-size: 18px; margin: 0 0 16px; color: var(--accent2); }
 h3 { font-size: 15px; margin: 0; color: var(--accent2); }
 .card {
-  background: var(--card); border: 1px solid var(--line); border-radius: 4px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
   padding: 24px; margin-bottom: 20px;
 }
 label { display: block; font-weight: 600; margin: 12px 0 5px; font-size: 13px; color: var(--accent2); }
@@ -39,11 +114,12 @@ input[type="text"], input[type="datetime-local"], select, textarea {
 input[type="file"] { padding: 8px 0; }
 button {
   background: var(--accent); color: #fff; padding: 12px 28px;
-  border: 0; border-radius: 3px; cursor: pointer; font-weight: 700;
-  font-size: 14px; letter-spacing: 0.04em; margin-top: 16px;
+  border: 0; border-radius: var(--r); cursor: pointer; font-weight: 600;
+  font-size: 14px; letter-spacing: 0.02em; margin-top: 16px;
+  transition: background 0.15s;
 }
-button:hover { background: var(--accent2); }
-button:disabled { background: #aaa; cursor: not-allowed; }
+button:hover { background: var(--accent-d); }
+button:disabled { background: #c4c4c4; cursor: not-allowed; }
 .hidden { display: none; }
 .muted { color: var(--sub); font-size: 12.5px; }
 
@@ -137,6 +213,20 @@ button:disabled { background: #aaa; cursor: not-allowed; }
 </head>
 <body>
 
+<header class="top-bar">
+  <a class="top-bar-logo" href="../generator/">
+    <div class="top-bar-logo-mark">FK</div>
+    <span class="top-bar-logo-text">FIRE KIDS Magazine</span>
+  </a>
+  <span class="top-bar-breadcrumb">WP 投稿</span>
+  <nav class="top-bar-actions">
+    <a href="/">ダッシュボード</a>
+    <a href="../generator/">記事生成</a>
+  </nav>
+</header>
+
+<div class="page-wrap">
+
 <h1>FIRE KIDS WP投稿アップローダー</h1>
 
 <div id="health" class="health">WP接続確認中…</div>
@@ -176,6 +266,8 @@ button:disabled { background: #aaa; cursor: not-allowed; }
   <button id="submitBtn" onclick="publish()">一括投稿する</button>
   <div id="results"></div>
 </div>
+
+</div><!-- /.page-wrap -->
 
 <script>
 const MAX_FILES = {{ max_files }};

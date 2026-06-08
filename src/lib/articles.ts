@@ -51,6 +51,17 @@ export function getArticleList(brand?: Brand): ArticleMeta[] {
       const entry = slugMap.get(key)!;
       if (file.endsWith(".txt")) entry.hasTxt = true;
       if (file.endsWith(".html")) entry.hasHtml = true;
+
+      // 最終更新日（txt/html の mtime の新しい方）
+      if (file.endsWith(".txt") || file.endsWith(".html")) {
+        try {
+          const mtime = fs.statSync(path.join(brandDir, file)).mtime;
+          const iso = mtime.toISOString();
+          if (!entry.updatedAt || iso > entry.updatedAt) entry.updatedAt = iso;
+        } catch {
+          // stat 失敗時は無視
+        }
+      }
     }
 
     // x_posts から対応するファイルを確認

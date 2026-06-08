@@ -6,32 +6,66 @@
 <title>記事生成 — FIRE KIDS Magazine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Cormorant+Garamond:wght@600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Cormorant+Garamond:wght@600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:         #f7f6f3;
-  --bg-card:    #ffffff;
-  --text:       #0f0f0f;
-  --text-sub:   #525252;
-  --text-muted: #a3a3a3;
-  --accent:     #c0282d;
-  --accent-d:   #9a1f23;
-  --accent-bg:  #fdecec;
-  --accent-bg2: #fdf3f3;
-  --accent-bd:  #f1c4c4;
-  --border:     #e5e5e5;
-  --border-hov: #d4d4d4;
-  --success:    #16a34a;
-  --danger:     #dc2626;
-  --sidebar-w:  196px;
-  --r:          10px;
+  /* ── Surface ── */
+  --bg:          #F8F9FA;
+  --bg-card:     #FFFFFF;
+  --bg-subtle:   #F1F3F5;
+
+  /* ── Border ── */
+  --border:      #E5E7EB;
+  --border-hov:  #D1D5DB;
+  --border-focus:#6366F1;
+
+  /* ── Text ── */
+  --text:        #111827;
+  --text-sub:    #374151;
+  --text-muted:  #9CA3AF;
+
+  /* ── Accent（FIRE KIDSブランドレッドをトーンダウン）── */
+  --accent:      #DC2626;
+  --accent-d:    #B91C1C;
+  --accent-bg:   #FEF2F2;
+
+  /* ── Semantic ── */
+  --success:     #16A34A;
+  --success-bg:  #F0FDF4;
+  --warning:     #D97706;
+  --warning-bg:  #FFFBEB;
+  --danger:      #DC2626;
+  --danger-bg:   #FEF2F2;
+  --info:        #2563EB;
+  --info-bg:     #EFF6FF;
+
+  /* ── Status Pills（記事ステータス）── */
+  --status-draft:     #6B7280;
+  --status-ready:     #2563EB;
+  --status-published: #16A34A;
+
+  /* ── Layout ── */
+  --sidebar-w:   220px;
+  --header-h:    52px;
+  --r-sm:        6px;
+  --r:           8px;
+  --r-lg:        12px;
+
+  /* ── Shadow ── */
+  --shadow-sm:   0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow:      0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md:   0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
+  /* ── 互換エイリアス（既存コンポーネント用）── */
+  --accent-bg2: #FEF2F2;
+  --accent-bd:  #FECACA;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic UI", sans-serif;
+  font-family: "Inter", "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic UI", sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -44,86 +78,276 @@ body {
 
 /* ────────────────────── Header ────────────────────── */
 .top-bar {
-  background: rgba(12,12,12,0.94);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  height: 52px;
+  height: var(--header-h);
+  background: #fff;
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  padding: 0 18px;
-  position: sticky; top: 0; z-index: 100;
-  flex-shrink: 0;
+  padding: 0 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  gap: 12px;
+}
+.top-bar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.top-bar-logo-mark {
+  width: 28px;
+  height: 28px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+.top-bar-logo-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.top-bar-breadcrumb {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.top-bar-breadcrumb::before {
+  content: "/";
+  margin: 0 8px;
+  color: var(--border-hov);
+}
+.top-bar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
-.brand-link {
-  display: flex; align-items: center; gap: 9px;
-  text-decoration: none; flex-shrink: 0;
-}
-.brand-icon {
-  width: 26px; height: 26px; border-radius: 6px;
-  background: linear-gradient(140deg, var(--accent) 0%, var(--accent-d) 100%);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 900; color: #fff; letter-spacing: -0.3px;
-  flex-shrink: 0;
-}
-.brand-name { font-size: 13.5px; font-weight: 700; color: #fff; }
-.brand-sep  { color: rgba(255,255,255,0.18); font-size: 15px; }
-.brand-page { font-size: 13px; color: rgba(255,255,255,0.42); }
-.top-nav { margin-left: auto; display: flex; align-items: center; gap: 2px; }
-.top-nav a {
-  font-size: 13px; color: rgba(255,255,255,0.5); text-decoration: none;
-  padding: 5px 11px; border-radius: 6px;
+.top-bar-actions a {
+  font-size: 13px; color: var(--text-sub); text-decoration: none;
+  padding: 6px 11px; border-radius: var(--r-sm);
   transition: background 0.1s, color 0.1s;
 }
-.top-nav a:hover { color: #fff; background: rgba(255,255,255,0.08); }
-.top-nav a.cta {
-  margin-left: 6px; color: #fff; font-weight: 600;
-  background: rgba(192,40,45,0.92);
+.top-bar-actions a:hover { color: var(--text); background: var(--bg-subtle); }
+.top-bar-actions a.cta {
+  color: #fff; font-weight: 600; background: var(--accent);
 }
-.top-nav a.cta:hover { background: var(--accent); }
+.top-bar-actions a.cta:hover { background: var(--accent-d); }
 
 /* ────────────────────── Shell ────────────────────── */
 .shell { display: flex; flex: 1; min-height: 0; }
 
 /* ────────────────────── Sidebar ────────────────────── */
 .sidebar {
-  width: var(--sidebar-w); flex-shrink: 0;
-  padding: 10px 6px 16px;
-  display: flex; flex-direction: column; gap: 0;
-  border-right: 1px solid var(--border);
+  width: var(--sidebar-w);
+  min-height: calc(100vh - var(--header-h));
   background: var(--bg-card);
+  border-right: 1px solid var(--border);
+  padding: 16px 0;
+  position: fixed;
+  top: var(--header-h);
+  left: 0;
+  overflow-y: auto;
 }
-.nav-section { margin-bottom: 6px; }
-.nav-label {
-  font-size: 10px; font-weight: 600; color: var(--text-muted);
-  padding: 10px 10px 5px; letter-spacing: 0.08em; text-transform: uppercase;
+
+.sidebar-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 12px 16px 4px;
 }
-.nav-item {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 10px; font-size: 13px; color: var(--text-sub);
-  text-decoration: none; border-radius: 6px;
-  transition: background 0.1s, color 0.1s;
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-sub);
+  text-decoration: none;
+  border-radius: 6px;
+  margin: 1px 8px;
+  transition: background 0.15s, color 0.15s;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: calc(100% - 16px);
+  text-align: left;
 }
-.nav-item:hover { background: #f5f5f5; color: var(--text); }
-.nav-item.active {
-  background: var(--accent-bg); color: var(--accent-d); font-weight: 600;
+
+.sidebar-item:hover {
+  background: var(--bg-subtle);
+  color: var(--text);
 }
-.nav-icon { width: 15px; text-align: center; font-size: 12px; opacity: 0.65; flex-shrink: 0; }
-.nav-item.active .nav-icon { opacity: 1; }
-.sidebar-gap { flex: 1; }
-.sidebar-foot {
-  padding: 10px 10px 0; font-size: 10.5px; color: var(--text-muted);
-  border-top: 1px solid var(--border); line-height: 1.7;
+
+.sidebar-item.active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.sidebar-item .icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+  flex-shrink: 0;
 }
 
 /* ────────────────────── Main ────────────────────── */
 .main {
-  flex: 1; padding: 36px 40px;
-  max-width: 700px; min-width: 0;
+  flex: 1; min-width: 0;
+  margin-left: var(--sidebar-w);
 }
 .page-title { font-size: 21px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 5px; }
 .page-desc  { font-size: 13px; color: var(--text-sub); margin-bottom: 22px; }
+
+/* ────────────────────── Generator Layout ────────────────────── */
+.gen-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  padding: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.gen-left { display: flex; flex-direction: column; gap: 12px; }
+.gen-right { display: flex; flex-direction: column; gap: 12px; }
+
+.gen-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 20px;
+}
+.gen-card-header { margin-bottom: 20px; }
+.gen-card-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.gen-card-title-sm { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.gen-card-sub { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+/* ── Form Elements ── */
+.form-group { margin-bottom: 16px; }
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-sub);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.form-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg-card);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+}
+.form-select:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+}
+
+/* ── Buttons ── */
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--r);
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-primary:hover { background: var(--accent-d); }
+.btn-primary:disabled { background: #c4c4c4; cursor: not-allowed; }
+.btn-full { width: 100%; text-align: center; }
+
+/* ── Advanced Details ── */
+.advanced-details {
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  margin-top: 12px;
+}
+.advanced-summary {
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-sub);
+  cursor: pointer;
+  list-style: none;
+}
+.advanced-summary::-webkit-details-marker { display: none; }
+.advanced-summary::before {
+  content: "›";
+  margin-right: 6px;
+  display: inline-block;
+  transition: transform 0.15s;
+}
+details[open] .advanced-summary::before { transform: rotate(90deg); }
+
+/* ── Info Box ── */
+.info-box {
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  background: var(--bg-card);
+}
+.info-box-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-sub);
+}
+.info-toggle { margin-left: auto; transition: transform 0.15s; }
+.info-box.open .info-toggle { transform: rotate(90deg); }
+.info-body { display: none; padding: 0 14px 14px; }
+.info-box.open .info-body { display: block; }
+.info-body ul { padding-left: 16px; }
+.info-body li { font-size: 12px; color: var(--text-muted); margin: 4px 0; }
+
+/* ── Stat List ── */
+.stat-list { display: flex; flex-direction: column; gap: 0; }
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.stat-item:last-child { border-bottom: none; }
+.stat-label { color: var(--text-muted); }
+.stat-value { font-weight: 500; color: var(--text); }
+
+/* ── Tip Card ── */
+.gen-card--tip {
+  background: var(--info-bg);
+  border-color: #BFDBFE;
+}
+.tip-text { font-size: 12px; color: var(--info); line-height: 1.6; }
+
+/* ── Status Bar ── */
+.status-bar { margin-bottom: 16px; }
 
 /* 被り防止ステータス */
 .status-strip {
@@ -393,14 +617,15 @@ textarea.direction-input {
 /* ───────────── レスポンシブ（スマホ 375px〜）───────────── */
 @media (max-width: 720px) {
   .sidebar { display: none; }
-  .main { padding: 22px 16px; }
+  .main { margin-left: 0; }
+  .gen-layout { grid-template-columns: 1fr; padding: 22px 16px; }
 }
 @media (max-width: 400px) {
-  .main { padding: 18px 12px; }
+  .gen-layout { padding: 18px 12px; }
   .card { padding: 18px 16px; }
   .page-title { font-size: 19px; }
   .top-bar { padding: 0 12px; }
-  .brand-page { display: none; }
+  .top-bar-breadcrumb { display: none; }
   .inv-toolbar { flex-wrap: wrap; }
   .inv-toolbar select { width: 100%; }
 }
@@ -607,13 +832,12 @@ textarea.direction-input {
 
 <!-- ─── Header ─────────────────────────────────────────── -->
 <header class="top-bar">
-  <a class="brand-link" href="/">
-    <div class="brand-icon">FK</div>
-    <span class="brand-name">FIRE KIDS Magazine</span>
-    <span class="brand-sep">/</span>
-    <span class="brand-page">記事生成</span>
+  <a class="top-bar-logo" href="/">
+    <div class="top-bar-logo-mark">FK</div>
+    <span class="top-bar-logo-text">FIRE KIDS Magazine</span>
   </a>
-  <nav class="top-nav">
+  <span class="top-bar-breadcrumb">記事生成</span>
+  <nav class="top-bar-actions">
     <a href="/">ダッシュボード</a>
     <a href="../upload/">WP投稿</a>
     <a href="." class="cta">＋ 新規作成</a>
@@ -624,122 +848,168 @@ textarea.direction-input {
 
   <!-- ─── Sidebar ─────────────────────────────────────── -->
   <nav class="sidebar">
-    <div class="nav-section">
-      <div class="nav-label">記事</div>
-      <a class="nav-item active" href="."><span class="nav-icon">✎</span>記事を作成</a>
-      <a class="nav-item" href="#"><span class="nav-icon">☰</span>保存済み一覧</a>
-      <a class="nav-item" href="#"><span class="nav-icon">⊘</span>投稿済み一覧</a>
-    </div>
-    <div class="nav-section">
-      <div class="nav-label">ツール</div>
-      <a class="nav-item" href="#"><span class="nav-icon">◷</span>スケジュール</a>
-      <a class="nav-item" href="../upload/"><span class="nav-icon">⇪</span>WP 投稿</a>
-    </div>
-    <div class="sidebar-gap"></div>
-    <div class="sidebar-foot">FIRE KIDS Magazine<br>内部使用限定</div>
+    <!-- セクション: 記事制作 -->
+    <div class="sidebar-section-label">記事制作</div>
+    <a href="." class="sidebar-item active" id="nav-generate">
+      <span class="icon">✦</span> 記事を生成
+    </a>
+    <button class="sidebar-item" id="nav-saved">
+      <span class="icon">☰</span> 保存済み一覧
+    </button>
+    <button class="sidebar-item" id="nav-posted">
+      <span class="icon">✓</span> 投稿済み一覧
+    </button>
+
+    <!-- セクション: 管理 -->
+    <div class="sidebar-section-label" style="margin-top:8px;">管理</div>
+    <button class="sidebar-item" id="nav-schedule">
+      <span class="icon">◷</span> スケジュール
+    </button>
+    <button class="sidebar-item" id="nav-prompt">
+      <span class="icon">⊞</span> プロンプト設定
+    </button>
+    <a href="../upload/" class="sidebar-item">
+      <span class="icon">⇪</span> WP 投稿
+    </a>
   </nav>
 
   <!-- ─── Main ─────────────────────────────────────────── -->
   <main class="main">
-    <div class="page-title">記事を生成する</div>
-    <div class="page-desc">ブランド指定または在庫商品を選ぶだけ。AI が被りなしのタイトル・本文を自動執筆します。</div>
+    <div class="gen-layout">
+      <!-- 左カラム: 生成設定 -->
+      <div class="gen-left">
+        <div class="gen-card">
+          <div class="gen-card-header">
+            <h2 class="gen-card-title">記事を生成する</h2>
+            <p class="gen-card-sub">ブランドを選ぶだけ。AI が在庫から主役を自動選定し、過去記事と被らない本文を執筆します。</p>
+          </div>
 
-    <!-- 状態バッジ -->
-    <div class="status-strip">
-      <span class="state-badge ready" id="state-badge"><span class="sb-dot"></span><span id="state-badge-text">準備中…</span></span>
-      <span id="dedup-info">過去記事キャッシュ確認中…</span>
-    </div>
+          <!-- 状態バッジ -->
+          <div id="status-badge-area" class="status-bar">
+            <div class="status-strip">
+              <span class="state-badge ready" id="state-badge"><span class="sb-dot"></span><span id="state-badge-text">準備中…</span></span>
+              <span id="dedup-info">過去記事キャッシュ確認中…</span>
+            </div>
+          </div>
 
-    <!-- ─── 生成カード ────────────────────────────────── -->
-    <div class="card">
-      <div class="card-head">
-        <h2>ブランドを選んで記事を作成</h2>
-        <p>ブランドを選ぶだけ。在庫から記事の主役を自動で選び、過去記事と被らない本文を執筆します。</p>
+          <!-- ブランド指定（主動線）-->
+          <div id="panel-brand">
+            <div class="form-group">
+              <label class="form-label">ブランド</label>
+              <select id="brand" class="form-select">
+                {% for key, val in brands.items() %}
+                <option value="{{ key }}">{{ val.jp }}（{{ key }}）</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="field" style="margin-bottom:16px;">
+              <label class="form-label">方向性メモ（任意）</label>
+              <textarea class="direction-input" id="direction"
+                placeholder="例: 初心者にもわかる選び方に寄せたい / ビジネスで使いやすい観点を強めたい / 歴史背景より所有感を中心にしたい"></textarea>
+              <div class="field-help">未入力でも生成できます。特に寄せたい切り口がある時だけ入力してください。</div>
+            </div>
+            <div class="auto-note">
+              <span class="auto-note-icon">●</span>
+              <div>
+                <b>ブランドを選ぶだけ。</b>
+                記事の主役となる在庫時計・タイトル・テーマは AI が自動で決定します。
+                過去記事と<b>口調は揃え、内容は被らない</b>記事を執筆します。
+                <span id="sel-item-note"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- CTA（主動線）-->
+          <button class="btn-primary btn-full" id="gen-btn" style="margin-top:16px;" onclick="generate()">
+            記事を作成する →
+          </button>
+
+          <!-- ─── 詳細設定（折りたたみ）─────────────────────── -->
+          <details class="advanced" id="advanced">
+            <summary>詳細設定（在庫から主役を選ぶ / CSV更新 / スキャン）</summary>
+            <div class="advanced-body">
+
+              <div class="advanced-sub">在庫から主役を選ぶ（任意）</div>
+              <div class="inv-count" id="inv-count-msg">在庫データを読み込み中…</div>
+              <div class="inv-toolbar">
+                <select id="inv-brand-filter" onchange="filterInventory()">
+                  <option value="">全ブランド</option>
+                  {% for key, val in brands.items() %}
+                  <option value="{{ key }}">{{ val.jp }}</option>
+                  {% endfor %}
+                </select>
+                <input class="inv-search" id="inv-search" type="text"
+                       placeholder="モデル名・Ref・FK番号で検索…" oninput="filterInventory()">
+              </div>
+
+              <div class="inv-list" id="inv-list">
+                <div class="inv-empty">在庫データを読み込み中…</div>
+              </div>
+
+              <div class="inv-sel-card" id="inv-selected">
+                <div class="inv-sel-label">選択中の主役商品</div>
+                <div class="inv-sel-name"  id="inv-sel-name"></div>
+                <div class="inv-sel-spec"  id="inv-sel-spec"></div>
+              </div>
+
+              <div class="advanced-sub">在庫データ</div>
+              <label class="inv-upload" for="inv-file">
+                <span>↑</span>在庫 CSV を更新する（仕入れデータ.csv）
+              </label>
+              <input type="file" id="inv-file" accept=".csv" onchange="uploadInventory(this)">
+
+              <div class="advanced-sub">過去記事スキャン</div>
+              <div class="scan-row">
+                <button class="btn-ghost-sm" id="scan-btn" onclick="manualScan()">増分スキャンを実行</button>
+                <span id="scan-detail" style="font-size:12px;color:var(--text-muted);"></span>
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <!-- 注意事項（折りたたみ式 info-box）-->
+        <div class="info-box">
+          <div class="info-box-header" onclick="this.parentElement.classList.toggle('open')">
+            <span class="info-icon">ℹ</span>
+            <span class="info-title">使用上の注意</span>
+            <span class="info-toggle">›</span>
+          </div>
+          <div class="info-body">
+            <ul>
+              <li>生成後は必ず人間が確認してから保存・投稿してください</li>
+              <li>Cal.番号・Ref.番号などの仕様は caliber_db.json / correction_log.json と照合してください</li>
+              <li>AI が補完した可能性のある箇所は削除・修正してください</li>
+            </ul>
+          </div>
+        </div>
       </div>
 
-      <!-- ブランド指定（主動線）-->
-      <div id="panel-brand">
-        <div class="field">
-          <label>ブランド</label>
-          <select id="brand">
-            {% for key, val in brands.items() %}
-            <option value="{{ key }}">{{ val.jp }}（{{ key }}）</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="field" style="margin-top:14px;">
-          <label>方向性メモ（任意）</label>
-          <textarea class="direction-input" id="direction"
-            placeholder="例: 初心者にもわかる選び方に寄せたい / ビジネスで使いやすい観点を強めたい / 歴史背景より所有感を中心にしたい"></textarea>
-          <div class="field-help">未入力でも生成できます。特に寄せたい切り口がある時だけ入力してください。</div>
-        </div>
-        <div class="auto-note">
-          <span class="auto-note-icon">●</span>
-          <div>
-            <b>ブランドを選ぶだけ。</b>
-            記事の主役となる在庫時計・タイトル・テーマは AI が自動で決定します。
-            過去記事と<b>口調は揃え、内容は被らない</b>記事を執筆します。
-            <span id="sel-item-note"></span>
+      <!-- 右カラム: ステータスパネル -->
+      <div class="gen-right">
+        <div class="gen-card">
+          <div class="gen-card-header">
+            <h3 class="gen-card-title-sm">データ状態</h3>
           </div>
+          <div class="stat-list">
+            <div class="stat-item">
+              <span class="stat-label">過去記事キャッシュ</span>
+              <span class="stat-value" id="stat-past-count">—</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">H2埋め込み済</span>
+              <span class="stat-value" id="stat-h2-count">—</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">最終更新</span>
+              <span class="stat-value" id="stat-updated">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="gen-card gen-card--tip">
+          <p class="tip-text">💡 生成後は必ず人間がタイトル・本文・Cal.番号・Ref.番号を確認してからWordPressに投稿してください。</p>
         </div>
       </div>
-
-      <!-- CTA（主動線）-->
-      <button class="btn-main" id="gen-btn" onclick="generate()">
-        記事を作成する <span class="btn-arrow">→</span>
-      </button>
-
-      <!-- ─── 詳細設定（折りたたみ）─────────────────────── -->
-      <details class="advanced" id="advanced">
-        <summary>詳細設定（在庫から主役を選ぶ / CSV更新 / スキャン）</summary>
-        <div class="advanced-body">
-
-          <div class="advanced-sub">在庫から主役を選ぶ（任意）</div>
-          <div class="inv-count" id="inv-count-msg">在庫データを読み込み中…</div>
-          <div class="inv-toolbar">
-            <select id="inv-brand-filter" onchange="filterInventory()">
-              <option value="">全ブランド</option>
-              {% for key, val in brands.items() %}
-              <option value="{{ key }}">{{ val.jp }}</option>
-              {% endfor %}
-            </select>
-            <input class="inv-search" id="inv-search" type="text"
-                   placeholder="モデル名・Ref・FK番号で検索…" oninput="filterInventory()">
-          </div>
-
-          <div class="inv-list" id="inv-list">
-            <div class="inv-empty">在庫データを読み込み中…</div>
-          </div>
-
-          <div class="inv-sel-card" id="inv-selected">
-            <div class="inv-sel-label">選択中の主役商品</div>
-            <div class="inv-sel-name"  id="inv-sel-name"></div>
-            <div class="inv-sel-spec"  id="inv-sel-spec"></div>
-          </div>
-
-          <div class="advanced-sub">在庫データ</div>
-          <label class="inv-upload" for="inv-file">
-            <span>↑</span>在庫 CSV を更新する（仕入れデータ.csv）
-          </label>
-          <input type="file" id="inv-file" accept=".csv" onchange="uploadInventory(this)">
-
-          <div class="advanced-sub">過去記事スキャン</div>
-          <div class="scan-row">
-            <button class="btn-ghost-sm" id="scan-btn" onclick="manualScan()">増分スキャンを実行</button>
-            <span id="scan-detail" style="font-size:12px;color:var(--text-muted);"></span>
-          </div>
-        </div>
-      </details>
-    </div>
-
-    <!-- 注意事項 -->
-    <div class="note-card">
-      <div class="note-head">⚠ 使用上の注意</div>
-      <ul>
-        <li>生成後は必ず人間が確認してから保存・投稿してください</li>
-        <li>Cal.番号・Ref.番号などの仕様は caliber_db.json / correction_log.json と照合してください</li>
-        <li>AI が補完した可能性のある箇所は削除・修正してください</li>
-      </ul>
     </div>
   </main>
 </div>
@@ -846,6 +1116,11 @@ function setBadge(kind, text) {
   document.getElementById('state-badge-text').textContent = text;
 }
 
+function setStat(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
 async function checkDedup() {
   const el = document.getElementById('dedup-info');
   try {
@@ -861,8 +1136,13 @@ async function checkDedup() {
     if (d.exists || d.article_count) {
       const dt  = (d.scanned_at || '').slice(0, 10);
       const hdg = d.with_heading_embeddings || 0;
+      const cnt = d.article_count || d.count || 0;
       const src = ({vector_cache:'', legacy_migrated:'（旧キャッシュ移行）', empty:''})[d.cache_source] || '';
-      el.textContent = `過去記事 ${d.article_count || d.count} 件 · H2埋め込み ${hdg} 件 · 更新 ${dt}${src}`;
+      el.textContent = `過去記事 ${cnt} 件 · H2埋め込み ${hdg} 件 · 更新 ${dt}${src}`;
+      // 右パネル「データ状態」へ反映
+      setStat('stat-past-count', cnt + ' 件');
+      setStat('stat-h2-count', hdg + ' 件');
+      setStat('stat-updated', dt || '—');
     } else {
       el.textContent = d.running ? '初回スキャンを実行中です…' : '初回生成時に自動スキャンされます';
     }

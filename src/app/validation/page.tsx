@@ -49,44 +49,53 @@ export default function ValidationPage({ searchParams }: Props) {
 
   return (
     <div>
-      <div className="mb-6 flex items-center gap-4">
-        <h1 className="text-2xl font-bold text-gradient tracking-tight">ルール検証</h1>
-        <div className="flex gap-3 ml-auto">
-          <span className="text-sm text-red-700 bg-red-50/70 border border-red-200 px-3 py-1 rounded-full">
-            エラー {totalErrors}件
-          </span>
-          <span className="text-sm text-yellow-700 bg-yellow-50/70 border border-yellow-200 px-3 py-1 rounded-full">
-            警告 {totalWarnings}件
-          </span>
-          <span className="text-sm text-green-700 bg-green-50/70 border border-green-200 px-3 py-1 rounded-full">
-            クリーン {cleanCount}件
-          </span>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+          ルール検証
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          FK番号・価格・URL・UTM を一括チェックします
+        </p>
+      </div>
+
+      {/* サマリーバー */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg px-6 py-4 text-center">
+          <div className="text-2xl font-bold text-red-600">{totalErrors}</div>
+          <div className="text-xs text-gray-500 mt-1">❌ エラー（件）</div>
+        </div>
+        <div className="bg-amber-50 border border-amber-200 rounded-lg px-6 py-4 text-center">
+          <div className="text-2xl font-bold text-amber-600">
+            {totalWarnings}
+          </div>
+          <div className="text-xs text-gray-500 mt-1">⚠️ 警告（件）</div>
+        </div>
+        <div className="bg-green-50 border border-green-200 rounded-lg px-6 py-4 text-center">
+          <div className="text-2xl font-bold text-green-600">{cleanCount}</div>
+          <div className="text-xs text-gray-500 mt-1">✓ クリーン（件）</div>
         </div>
       </div>
 
-      {/* ブランドフィルター */}
-      <div className="flex gap-2 flex-wrap mb-4">
+      {/* ブランドフィルタータブ */}
+      <div className="inline-flex flex-wrap gap-1 bg-white border border-gray-200 rounded-lg p-1 mb-4">
         <Link
           href="/validation"
-          className={`text-xs px-3 py-1 rounded border transition ${
+          className={`text-sm px-3 py-1.5 rounded-md transition ${
             !brand
-              ? "bg-[#1a1a1a] text-white border-[#1a1a1a]"
-              : "border-[#e8e4de] hover:border-[#1a1a1a]"
+              ? "font-medium text-gray-900 bg-gray-100"
+              : "text-gray-500 hover:bg-gray-100"
           }`}
         >
           すべて
         </Link>
-        {BRANDS.filter((b) => {
-          const s = getArticleList(b);
-          return s.length > 0;
-        }).map((b) => (
+        {BRANDS.filter((b) => getArticleList(b).length > 0).map((b) => (
           <Link
             key={b}
             href={`/validation?brand=${b}`}
-            className={`text-xs px-3 py-1 rounded border transition ${
+            className={`text-sm px-3 py-1.5 rounded-md transition ${
               brand === b
-                ? "bg-[#1a1a1a] text-white border-[#1a1a1a]"
-                : "border-[#e8e4de] hover:border-[#1a1a1a]"
+                ? "font-medium text-gray-900 bg-gray-100"
+                : "text-gray-500 hover:bg-gray-100"
             }`}
           >
             {BRAND_LABELS[b]}
@@ -94,56 +103,64 @@ export default function ValidationPage({ searchParams }: Props) {
         ))}
       </div>
 
-      <div className="glass-strong overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
         <table className="w-full text-sm">
-          <thead className="fk-thead">
+          <thead className="bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
             <tr>
               <th className="text-left px-4 py-3">ブランド</th>
               <th className="text-left px-4 py-3">スラッグ</th>
               <th className="text-center px-3 py-3 w-20">エラー</th>
               <th className="text-center px-3 py-3 w-20">警告</th>
-              <th className="px-4 py-3 w-24"></th>
+              <th className="px-4 py-3 w-28 text-right">アクション</th>
             </tr>
           </thead>
           <tbody>
-            {results.map((result, i) => {
+            {results.map((result) => {
               if (!result) return null;
               const { articleMeta, errorCount, warningCount } = result;
               const ok = errorCount === 0 && warningCount === 0;
+              const rowBg =
+                errorCount > 0
+                  ? "bg-red-50"
+                  : warningCount > 0
+                  ? "bg-amber-50"
+                  : "";
               return (
                 <tr
                   key={`${articleMeta.brand}_${articleMeta.filename}`}
-                  className={`transition hover:bg-[#e67e22]/5 ${
-                    i % 2 === 0 ? "bg-white/40" : "bg-white/20"
-                  }`}
+                  className={`border-b border-gray-100 hover:bg-gray-50 ${rowBg}`}
                 >
-                  <td className="px-4 py-2 text-xs text-gray-500">
+                  <td className="px-4 py-2.5 text-xs text-gray-500">
                     {BRAND_LABELS[articleMeta.brand]}
                   </td>
-                  <td className="px-4 py-2 font-mono text-xs">
+                  <td className="px-4 py-2.5 font-mono text-xs text-gray-600">
                     {articleMeta.number}_{articleMeta.slug}
                   </td>
-                  <td className="px-3 py-2 text-center">
+                  <td className="px-3 py-2.5 text-center">
                     {errorCount > 0 ? (
-                      <span className="text-red-700 font-bold">{errorCount}</span>
+                      <span className="text-sm font-semibold text-red-600">
+                        {errorCount}
+                      </span>
                     ) : (
                       <span className="text-gray-300">—</span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-center">
+                  <td className="px-3 py-2.5 text-center">
                     {warningCount > 0 ? (
-                      <span className="text-yellow-700">{warningCount}</span>
+                      <span className="text-sm font-semibold text-amber-600">
+                        {warningCount}
+                      </span>
                     ) : (
                       <span className="text-gray-300">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-2 text-right">
+                  <td className="px-4 py-2.5 text-right">
                     {!ok ? (
                       <Link
                         href={`/validation?brand=${articleMeta.brand}&slug=${articleMeta.number}_${articleMeta.slug}`}
-                        className="text-[#E67E22] text-xs hover:underline"
+                        className="text-xs text-blue-600 hover:underline"
                       >
-                        詳細 →
+                        詳細を見る
                       </Link>
                     ) : (
                       <span className="text-green-600 text-xs">✓ OK</span>
