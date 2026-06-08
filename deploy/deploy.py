@@ -216,9 +216,9 @@ def deploy_vercel() -> None:
         capture_output=True,
     )
     if result.stdout:
-        print(result.stdout.strip())
+        print(result.stdout.encode("utf-8", errors="replace").decode("utf-8", errors="replace").strip())
     if result.stderr:
-        print(result.stderr.strip())
+        print(result.stderr.encode("utf-8", errors="replace").decode("utf-8", errors="replace").strip())
     if result.returncode == 0:
         print("Vercel deploy SUCCESS")
     else:
