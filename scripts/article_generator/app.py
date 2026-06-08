@@ -1481,6 +1481,37 @@ def scan_status():
     })
 
 
+@app.route("/image-proxy")
+def image_proxy():
+    """S3から画像バイナリを取得して返す。
+    Query: ?s3_key=images/BRAND/FK/main.jpg
+    フロントから wp_uploader_local の /upload-media に渡すプロキシURL として使う。
+    """
+    s3_key = request.args.get("s3_key", "").strip()
+    if not s3_key:
+        return jsonify({"error": "s3_key is required"}), 400
+
+    bucket = os.getenv("S3_BUCKET", "")
+    if not bucket:
+        return jsonify({"error": "S3_BUCKET not configured"}), 500
+
+    try:
+        import boto3
+        region = os.getenv("S3_REGION") or os.getenv("AWS_REGION", "us-east-1")
+        s3 = boto3.client(
+            "s3",
+            region_name=region,
+            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+        )
+        obj = s3.get_object(Bucket=bucket, Key=s3_key)
+        data = obj["Body"].read()
+        content_type = obj.get("ContentType", "image/jpeg")
+        return Response(data, mimetype=content_type)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/ping")
 def ping():
     aws_key = os.getenv("AWS_ACCESS_KEY_ID", "")

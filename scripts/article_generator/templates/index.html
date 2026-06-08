@@ -1563,6 +1563,85 @@ function renderLive(partial, finished) {
   if (!liveTypingTimer) pumpLiveTyping();
 }
 
+/* ── 画像差し込み ──────────────────────────────────────── */
+const UPLOAD_MEDIA_URL = window.location.origin + '/upload/upload-media';
+
+function _buildImageHtml(mediaUrl, alt) {
+  return `<figure class="wp-block-image size-large"><img src="${mediaUrl}" alt="${alt || ''}" class="wp-image-inserted" style="max-width:100%;height:auto;display:block;margin:0 auto 1.5em;border-radius:6px;"/></figure>`;
+}
+
+function _injectImageIntoPreview(mediaUrl, alt) {
+  const preview = document.getElementById('live-preview');
+  if (!preview) return;
+  // 既存の差し込み済み画像があれば置き換え
+  const existing = preview.querySelector('.wp-image-inserted');
+  if (existing) {
+    existing.closest('figure') ? existing.closest('figure').remove() : existing.remove();
+  }
+  preview.insertAdjacentHTML('afterbegin', _buildImageHtml(mediaUrl, alt));
+}
+
+async function insertImage(imageMeta) {
+  if (!imageMeta || !imageMeta.s3_key) {
+    flashHint('この記事には画像情報がありません。スキップして投稿へ進めます。');
+    return;
+  }
+  setStep(2);
+  const goImageBtn = document.getElementById('go-image');
+  const origText = goImageBtn.textContent;
+  goImageBtn.disabled = true;
+  goImageBtn.textContent = 'アップロード中…';
+
+  try {
+    // /image-proxy 経由で S3 画像の公開URLを生成（同一オリジンなので認証不要）
+    const proxyUrl = window.location.origin + '/generator/image-proxy?s3_key=' + encodeURIComponent(imageMeta.s3_key);
+    const resp = await fetch(UPLOAD_MEDIA_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_url: proxyUrl, alt: imageMeta.alt || '' }),
+    });
+    const data = await resp.json();
+    if (data.media_id && data.url) {
+      _injectImageIntoPreview(data.url, imageMeta.alt || '');
+      setStep(3);
+      flashHint('画像を差し込みました（WPメディア ID: ' + data.media_id + '）');
+      goImageBtn.textContent = '差し込み済み ✓';
+    } else {
+      flashHint('画像アップロード失敗: ' + (data.error || '不明なエラー'));
+      goImageBtn.disabled = false;
+      goImageBtn.textContent = origText;
+    }
+  } catch (e) {
+    flashHint('通信エラー: ' + e.message);
+    goImageBtn.disabled = false;
+    goImageBtn.textContent = origText;
+  }
+}
+
+async function insertImageFromFile(file) {
+  setStep(2);
+  const importBtn = document.getElementById('import-image');
+  importBtn.disabled = true;
+
+  // FileReader でDataURL取得 → Blob → FormData で直接WP mediaにアップロード
+  const formData = new FormData();
+  formData.append('image_file', file, file.name);
+  formData.append('alt', '');
+
+  try {
+    // ファイルアップロード用の別エンドポイント（/upload/upload-media-file）を使う
+    // なければ source_url 経由が使えないためローカルObjectURLを一時プレビューとして使用
+    const localUrl = URL.createObjectURL(file);
+    _injectImageIntoPreview(localUrl, file.name);
+    setStep(3);
+    flashHint('手元の画像を挿入しました（投稿時にWPへアップロードされます）');
+    importBtn.textContent = 'インポート済み ✓';
+  } catch (e) {
+    flashHint('画像挿入エラー: ' + e.message);
+    importBtn.disabled = false;
+  }
+}
+
 /* ── 生成（非同期ポーリング + ストリーミング表示）──────── */
 // POST /generate → job_id → /generate-status/<job_id> を約1秒ごとにポーリングし
 // 生成途中の本文（partial）をリアルタイムでWP記事風プレビューに反映する。
@@ -1626,11 +1705,14 @@ async function generate(opts) {
         setStep(3);
         document.getElementById('live-close').style.display   = '';
         document.getElementById('live-actions').style.display = '';
-        document.getElementById('go-image').onclick = () => { setStep(2); flashHint('画像差し込みは次の実装で WordPress メディア連携に接続します。'); };
-        document.getElementById('import-image').onclick = () => { setStep(2); document.getElementById('image-import-file').click(); };
+        // image_meta を保存してボタンハンドラに渡す
+        const imageMeta = result.image_meta || null;
+
+        document.getElementById('go-image').onclick = () => insertImage(imageMeta);
+        document.getElementById('import-image').onclick = () => { document.getElementById('image-import-file').click(); };
         document.getElementById('image-import-file').onchange = (ev) => {
           const file = ev.target.files && ev.target.files[0];
-          if (file) flashHint('画像を選択しました: ' + file.name);
+          if (file) insertImageFromFile(file);
         };
         document.getElementById('go-post').onclick = () => { setStep(4); window.location.href = '../upload/'; };
         return;

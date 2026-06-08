@@ -384,6 +384,60 @@ def publish():
     })
 
 
+@app.route('/upload-media', methods=['POST'])
+def upload_media():
+    """記事生成ツールから画像URLを受け取りWPメディアにアップロードする。
+    Request JSON: { "image_url": "https://...", "alt": "商品名" }
+    Response JSON: { "media_id": 123, "url": "https://wp.../wp-content/..." }
+    """
+    data = request.get_json(silent=True) or {}
+    image_url = (data.get('image_url') or '').strip()
+    alt = (data.get('alt') or '').strip()
+
+    if not image_url:
+        return jsonify({'error': 'image_url が指定されていません'}), 400
+
+    try:
+        img_resp = requests.get(image_url, timeout=30)
+        if not img_resp.ok:
+            return jsonify({'error': f'画像取得失敗 HTTP {img_resp.status_code}'}), 502
+
+        filename = image_url.split('/')[-1].split('?')[0] or 'image.jpg'
+        content_type = img_resp.headers.get('Content-Type', 'image/jpeg').split(';')[0].strip()
+
+        headers = {
+            'Content-Disposition': f'attachment; filename="{filename}"',
+            'Content-Type': content_type,
+        }
+        r = requests.post(
+            f'{WP_BASE_URL}/wp-json/wp/v2/media',
+            data=img_resp.content,
+            headers=headers,
+            auth=get_auth(),
+            timeout=60,
+        )
+        if r.ok:
+            media = r.json()
+            media_id = media.get('id')
+            media_url = media.get('source_url') or media.get('guid', {}).get('rendered', '')
+            # alt テキストを設定
+            if alt and media_id:
+                requests.post(
+                    f'{WP_BASE_URL}/wp-json/wp/v2/media/{media_id}',
+                    json={'alt_text': alt},
+                    auth=get_auth(),
+                    timeout=15,
+                )
+            return jsonify({'media_id': media_id, 'url': media_url})
+        try:
+            err_detail = r.json().get('message', r.text[:200])
+        except Exception:
+            err_detail = r.text[:200]
+        return jsonify({'error': f'WPメディアアップロード失敗: {err_detail}'}), 502
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/ping')
 def ping():
     return jsonify({'pong': True, 'user': os.getenv('WP_USER', ''), 'pw_len': len(os.getenv('WP_APP_PASSWORD', '').replace(' ', ''))})
