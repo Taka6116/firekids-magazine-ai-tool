@@ -836,6 +836,35 @@ textarea.direction-input {
 .live-next-card .live-btn-primary { width: 100%; justify-content: center; }
 @media (max-width: 640px) { .live-next-panel { grid-template-columns: 1fr; } }
 
+/* インライン投稿パネル */
+.post-panel {
+  flex-basis: 100%; max-width: 760px; width: 100%;
+  border: 1px solid rgba(255,255,255,0.16); border-radius: 14px;
+  background: rgba(255,255,255,0.06); padding: 16px 18px; color: #fff;
+  text-align: left;
+}
+.post-panel-title { font-size: 14px; font-weight: 800; margin-bottom: 4px; }
+.post-panel-sub { font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 14px; line-height: 1.6; }
+.post-field-label { font-size: 11px; color: rgba(255,255,255,0.55); margin: 10px 0 6px; font-weight: 700; }
+.post-opt-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.post-opt {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; padding: 8px 14px; border-radius: 9px;
+  border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.05);
+  cursor: pointer; transition: background .12s, border-color .12s;
+}
+.post-opt:hover { background: rgba(255,255,255,0.1); }
+.post-opt input { accent-color: var(--accent); }
+.post-schedule {
+  margin-top: 10px; width: 100%; padding: 9px 12px; border-radius: 9px;
+  border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.25); color: #fff;
+  font-size: 13px;
+}
+.post-result { margin-top: 12px; font-size: 13px; line-height: 1.6; }
+.post-result a { color: #ffd9b0; text-decoration: underline; word-break: break-all; }
+.post-result .ok  { color: #b6f0c2; }
+.post-result .ng  { color: #ffb3a8; }
+
 /* エラー / 在庫未検出パネル */
 .live-error {
   flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px;
@@ -1255,6 +1284,29 @@ textarea.direction-input {
     <button class="live-btn-primary" id="go-post">④ 投稿へ進む →</button>
     <button class="live-btn-ghost" onclick="closeLive()">閉じる</button>
     <input type="file" id="image-import-file" accept="image/*" style="display:none;">
+
+    <!-- インライン投稿パネル -->
+    <div class="post-panel" id="post-panel" style="display:none;">
+      <div class="post-panel-title">④ WordPress へ投稿</div>
+      <div class="post-panel-sub">投稿方法とカテゴリーを選んで、この記事をそのまま WordPress に送信します。</div>
+
+      <div class="post-field-label">投稿方法</div>
+      <div class="post-opt-row">
+        <label class="post-opt"><input type="radio" name="post-mode" value="publish" checked> 今すぐ投稿</label>
+        <label class="post-opt"><input type="radio" name="post-mode" value="future"> 予約投稿</label>
+        <label class="post-opt"><input type="radio" name="post-mode" value="draft"> 下書き保存</label>
+      </div>
+      <input type="datetime-local" id="post-schedule" class="post-schedule" style="display:none;">
+
+      <div class="post-field-label">カテゴリー</div>
+      <div class="post-opt-row">
+        <label class="post-opt"><input type="radio" name="post-cat" value="時計の基礎知識" checked> 時計の基礎知識</label>
+        <label class="post-opt"><input type="radio" name="post-cat" value="コラム"> コラム</label>
+      </div>
+
+      <button class="live-btn-primary" id="do-publish" style="margin-top:6px;">WordPress に投稿する</button>
+      <div class="post-result" id="post-result"></div>
+    </div>
   </div>
 </div>
 
@@ -1519,6 +1571,15 @@ function openLive(catLabel) {
   document.getElementById('wp-date').textContent =
     d.getFullYear() + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + String(d.getDate()).padStart(2,'0');
   document.getElementById('wp-rte').innerHTML = '<span class="type-cursor"></span>';
+  // 投稿パネル・各ボタンの状態をリセット
+  const postPanel = document.getElementById('post-panel');
+  if (postPanel) postPanel.style.display = 'none';
+  const postResult = document.getElementById('post-result');
+  if (postResult) postResult.innerHTML = '';
+  const doPub = document.getElementById('do-publish');
+  if (doPub) { doPub.disabled = false; doPub.textContent = 'WordPress に投稿する'; }
+  const goImg = document.getElementById('go-image');
+  if (goImg) goImg.textContent = '画像を差し込む';
   document.getElementById('live-overlay').classList.add('show');
   liveStart = Date.now();
   liveTimer = setInterval(() => {
@@ -1625,6 +1686,8 @@ function resetLiveTyping() {
   liveIsFinished = false;
   if (liveTypingTimer) clearTimeout(liveTypingTimer);
   liveTypingTimer = null;
+  insertedImageHtml = '';
+  articleImageUrl = '';
 }
 
 function renderLiveNow(md, finished) {
@@ -1636,6 +1699,7 @@ function renderLiveNow(md, finished) {
   const html = marked.parse(body || '');
   document.getElementById('wp-rte').innerHTML =
     html + (finished ? '' : '<span class="type-cursor"></span>');
+  applyInsertedImage();
   if (!userScrolled) wpScroll.scrollTop = wpScroll.scrollHeight;
 }
 
@@ -1666,83 +1730,160 @@ function renderLive(partial, finished) {
 }
 
 /* ── 画像差し込み ──────────────────────────────────────── */
-const UPLOAD_MEDIA_URL = window.location.origin + '/upload/upload-media';
+// プレビューには S3 プロキシ画像を直接表示（WP接続に依存しない）。
+// 投稿時に featured_image_url としてこの URL を WP メディアへ取り込む。
+let insertedImageHtml = '';   // wp-rte 先頭に常時差し込む画像 HTML
+let articleImageUrl   = '';   // 投稿時にアイキャッチへ渡す画像 URL
 
-function _buildImageHtml(mediaUrl, alt) {
-  return `<figure class="wp-block-image size-large"><img src="${mediaUrl}" alt="${alt || ''}" class="wp-image-inserted" style="max-width:100%;height:auto;display:block;margin:0 auto 1.5em;border-radius:6px;"/></figure>`;
+function _buildImageHtml(imgUrl, alt) {
+  return `<figure class="wp-block-image size-large" style="margin:0 0 1.6em;"><img src="${imgUrl}" alt="${(alt||'').replace(/"/g,'&quot;')}" class="wp-image-inserted" style="max-width:100%;height:auto;display:block;border-radius:8px;"/></figure>`;
 }
 
-function _injectImageIntoPreview(mediaUrl, alt) {
-  const preview = document.getElementById('live-preview');
-  if (!preview) return;
-  // 既存の差し込み済み画像があれば置き換え
-  const existing = preview.querySelector('.wp-image-inserted');
-  if (existing) {
-    existing.closest('figure') ? existing.closest('figure').remove() : existing.remove();
+// renderLiveNow が wp-rte を毎フレーム書き換えるため、画像は変数として保持し
+// 描画のたびに先頭へ再挿入する（タイピングアニメで消えないようにする）。
+function applyInsertedImage() {
+  const rte = document.getElementById('wp-rte');
+  if (!rte || !insertedImageHtml) return;
+  if (!rte.querySelector('.wp-image-inserted')) {
+    rte.insertAdjacentHTML('afterbegin', insertedImageHtml);
   }
-  preview.insertAdjacentHTML('afterbegin', _buildImageHtml(mediaUrl, alt));
 }
 
-async function insertImage(imageMeta) {
-  if (!imageMeta || !imageMeta.s3_key) {
-    flashHint('この記事には画像情報がありません。スキップして投稿へ進めます。');
+function setPreviewImage(imgUrl, alt) {
+  insertedImageHtml = _buildImageHtml(imgUrl, alt);
+  articleImageUrl = imgUrl;
+  applyInsertedImage();
+}
+
+// 生成完了時に自動で主役商品の画像をプレビューへ差し込む
+function autoInsertImage(imageMeta) {
+  if (!imageMeta) return false;
+  let imgUrl = '';
+  if (imageMeta.s3_key) {
+    imgUrl = window.location.origin + '/generator/image-proxy?s3_key=' + encodeURIComponent(imageMeta.s3_key);
+  } else if (imageMeta.source_url) {
+    imgUrl = imageMeta.source_url;
+  }
+  if (!imgUrl) return false;
+  setPreviewImage(imgUrl, imageMeta.alt || '');
+  const goImageBtn = document.getElementById('go-image');
+  if (goImageBtn) goImageBtn.textContent = '差し込み済み ✓';
+  return true;
+}
+
+function insertImage(imageMeta) {
+  if (!autoInsertImage(imageMeta)) {
+    flashHint('この記事には対応する商品画像がありません。手元の画像をインポートできます。');
     return;
   }
-  setStep(2);
-  const goImageBtn = document.getElementById('go-image');
-  const origText = goImageBtn.textContent;
-  goImageBtn.disabled = true;
-  goImageBtn.textContent = 'アップロード中…';
-
-  try {
-    // /image-proxy 経由で S3 画像の公開URLを生成（同一オリジンなので認証不要）
-    const proxyUrl = window.location.origin + '/generator/image-proxy?s3_key=' + encodeURIComponent(imageMeta.s3_key);
-    const resp = await fetch(UPLOAD_MEDIA_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image_url: proxyUrl, alt: imageMeta.alt || '' }),
-    });
-    const data = await resp.json();
-    if (data.media_id && data.url) {
-      _injectImageIntoPreview(data.url, imageMeta.alt || '');
-      setStep(3);
-      flashHint('画像を差し込みました（WPメディア ID: ' + data.media_id + '）');
-      goImageBtn.textContent = '差し込み済み ✓';
-    } else {
-      flashHint('画像アップロード失敗: ' + (data.error || '不明なエラー'));
-      goImageBtn.disabled = false;
-      goImageBtn.textContent = origText;
-    }
-  } catch (e) {
-    flashHint('通信エラー: ' + e.message);
-    goImageBtn.disabled = false;
-    goImageBtn.textContent = origText;
-  }
+  flashHint('主役商品の画像を差し込みました');
 }
 
-async function insertImageFromFile(file) {
-  setStep(2);
-  const importBtn = document.getElementById('import-image');
-  importBtn.disabled = true;
-
-  // FileReader でDataURL取得 → Blob → FormData で直接WP mediaにアップロード
-  const formData = new FormData();
-  formData.append('image_file', file, file.name);
-  formData.append('alt', '');
-
+function insertImageFromFile(file) {
   try {
-    // ファイルアップロード用の別エンドポイント（/upload/upload-media-file）を使う
-    // なければ source_url 経由が使えないためローカルObjectURLを一時プレビューとして使用
     const localUrl = URL.createObjectURL(file);
-    _injectImageIntoPreview(localUrl, file.name);
-    setStep(3);
-    flashHint('手元の画像を挿入しました（投稿時にWPへアップロードされます）');
-    importBtn.textContent = 'インポート済み ✓';
+    setPreviewImage(localUrl, file.name);
+    document.getElementById('go-image').textContent = '差し込み済み ✓';
+    flashHint('手元の画像を差し込みました（投稿時にWPへ取り込まれます）');
   } catch (e) {
     flashHint('画像挿入エラー: ' + e.message);
-    importBtn.disabled = false;
   }
 }
+
+/* ── インライン投稿（今すぐ/予約/下書き）─────────────── */
+let currentResult = {};
+const PUBLISH_URL = window.location.origin + '/upload/publish';
+
+function openPostPanel() {
+  setStep(4);
+  const panel = document.getElementById('post-panel');
+  panel.style.display = '';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// 予約投稿を選んだ時だけ日時入力を表示
+document.addEventListener('change', (ev) => {
+  if (ev.target && ev.target.name === 'post-mode') {
+    const sched = document.getElementById('post-schedule');
+    if (sched) sched.style.display = (ev.target.value === 'future') ? '' : 'none';
+  }
+});
+
+async function publishArticle() {
+  const result = currentResult || {};
+  if (!result.html) { flashHint('投稿できる記事がありません'); return; }
+
+  const mode = (document.querySelector('input[name="post-mode"]:checked') || {}).value || 'publish';
+  const cat  = (document.querySelector('input[name="post-cat"]:checked') || {}).value || '時計の基礎知識';
+  let schedule = null;
+  if (mode === 'future') {
+    const v = document.getElementById('post-schedule').value;
+    if (!v) { flashHint('予約投稿の日時を入力してください'); return; }
+    schedule = v + ':00';
+  }
+
+  const btn = document.getElementById('do-publish');
+  const resultBox = document.getElementById('post-result');
+  btn.disabled = true;
+  const origLabel = btn.textContent;
+  btn.textContent = '投稿中…（画像取り込みで時間がかかります）';
+  resultBox.innerHTML = '';
+
+  const post = {
+    filename:           result.slug || 'article',
+    title:              result.title || '',
+    content:            result.html || '',
+    tags:               '',
+    brand:              result.brand_jp || result.brand_key || '',
+    featured_image_url: articleImageUrl || '',
+    category:           cat,
+    schedule:           schedule,
+    status:             mode,
+  };
+
+  try {
+    const data = await fetch(PUBLISH_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ posts: [post] }),
+    }).then(r => r.json());
+
+    const r0 = (data.results && data.results[0]) || {};
+    if (r0.success) {
+      const label = { publish: '公開', future: '予約投稿', draft: '下書き保存' }[r0.status] || r0.status;
+      resultBox.innerHTML = `<span class="ok">✓ ${label}完了（ID: ${r0.id}）</span>` +
+        (r0.link ? `<br><a href="${r0.link}" target="_blank" rel="noopener">${r0.link}</a>` : '');
+      btn.textContent = '投稿済み ✓';
+      // 投稿ログに記録
+      fetch('log-post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          brand:      result.brand_key || '',
+          slug:       result.slug || '',
+          title:      result.title || '',
+          wp_id:      r0.id,
+          wp_link:    r0.link || '',
+          wp_status:  r0.status || mode,
+          image_url:  articleImageUrl || '',
+          char_count: (result.article || '').length,
+          date: new Date().toLocaleDateString('ja-JP', { year:'numeric', month:'numeric', day:'numeric' }).replace(/\//g, '.'),
+        }),
+      }).catch(() => {});
+    } else {
+      const errMsg = typeof r0.error === 'string' ? r0.error : (data.error || JSON.stringify(r0.error || data));
+      resultBox.innerHTML = `<span class="ng">✗ 投稿失敗: ${escapeHtml(errMsg)}</span>`;
+      btn.disabled = false;
+      btn.textContent = origLabel;
+    }
+  } catch (e) {
+    resultBox.innerHTML = `<span class="ng">✗ 通信エラー: ${escapeHtml(e.message)}</span>`;
+    btn.disabled = false;
+    btn.textContent = origLabel;
+  }
+}
+
+document.getElementById('do-publish').addEventListener('click', publishArticle);
 
 /* ── 生成（非同期ポーリング + ストリーミング表示）──────── */
 // POST /generate → job_id → /generate-status/<job_id> を約1秒ごとにポーリングし
@@ -1801,6 +1942,7 @@ async function generate(opts) {
         clearInterval(liveTimer);
         stopStagingHints();
         const result = poll.result || {};
+        currentResult = result;
         revealPreview();
         renderLive(result.article || '', true);
         showAxis(result);
@@ -1809,6 +1951,12 @@ async function generate(opts) {
         document.getElementById('live-actions').style.display = '';
         // image_meta を保存してボタンハンドラに渡す
         const imageMeta = result.image_meta || null;
+
+        // 主役商品の画像をプレビューへ自動差し込み（少し待ってタイピング完了後に確実に表示）
+        if (imageMeta) {
+          autoInsertImage(imageMeta);
+          setTimeout(() => autoInsertImage(imageMeta), 400);
+        }
 
         // 自動保存（バックグラウンド）
         fetch('save-draft', {
@@ -1832,22 +1980,7 @@ async function generate(opts) {
           const file = ev.target.files && ev.target.files[0];
           if (file) insertImageFromFile(file);
         };
-        document.getElementById('go-post').onclick = () => {
-          // 投稿ツールで log-post 通知に使うメタを sessionStorage に渡す
-          try {
-            sessionStorage.setItem('fk_pending_post', JSON.stringify({
-              brand: result.brand_key || payload.brand,
-              slug: result.slug || 'article',
-              title: result.title || '',
-              char_count: (result.article || '').length,
-              image_url: imageMeta ? (imageMeta.source_url || '') : '',
-              generatorOrigin: window.location.origin,
-              date: new Date().toLocaleDateString('ja-JP', { year:'numeric', month:'numeric', day:'numeric' }).replace(/\//g, '.'),
-            }));
-          } catch(e) {}
-          setStep(4);
-          window.location.href = '../upload/';
-        };
+        document.getElementById('go-post').onclick = () => openPostPanel();
         return;
       }
       if (poll.status === 'inventory_missing') {
@@ -1953,13 +2086,32 @@ async function resumeDraft(d) {
   }
   openLive(d.brand);
   revealPreview();
-  renderLive(html || `<p>（${d.title || d.slug} - 保存済み記事）</p>`, true);
+  // 復元時は HTML をそのままプレビューに表示（タイピング不要）
+  resetLiveTyping();
+  document.getElementById('wp-scroll').style.display = '';
+  document.getElementById('wp-rte').innerHTML = html || `<p>（${d.title || d.slug} - 保存済み記事）</p>`;
+  if (d.title) {
+    document.getElementById('wp-title').textContent = d.title;
+    document.getElementById('wp-crumb-title').textContent = d.title;
+  }
+  currentResult = {
+    title: d.title || d.slug,
+    slug: d.slug,
+    brand_key: d.brand,
+    brand_jp: d.brand,
+    article: html || '',
+    html: html || '',
+  };
   setStep(3);
   document.getElementById('live-close').style.display = '';
   document.getElementById('live-actions').style.display = '';
   document.getElementById('go-image').onclick = () => flashHint('画像は再生成時に差し込めます');
   document.getElementById('import-image').onclick = () => { document.getElementById('image-import-file').click(); };
-  document.getElementById('go-post').onclick = () => { setStep(4); window.location.href = '../upload/'; };
+  document.getElementById('image-import-file').onchange = (ev) => {
+    const file = ev.target.files && ev.target.files[0];
+    if (file) insertImageFromFile(file);
+  };
+  document.getElementById('go-post').onclick = () => openPostPanel();
   flashHint(`「${d.title || d.slug}」を復元しました`);
 }
 

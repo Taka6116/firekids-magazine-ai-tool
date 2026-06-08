@@ -76,6 +76,15 @@ BRAND_KEYWORDS = [
 ]
 
 
+# XSERVER 等の WAF は python-requests のデフォルト UA を 403 で弾くため、
+# ブラウザ相当の User-Agent を全 WP リクエストに付与する。
+WP_HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                  '(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    'Accept': 'application/json',
+}
+
+
 def get_auth():
     # Application Password のスペースを除去（requests の latin-1 制限を回避）
     password = WP_APP_PASSWORD.replace(' ', '')
@@ -131,6 +140,7 @@ def get_or_create_tag(name):
         f'{WP_BASE_URL}/wp-json/wp/v2/tags',
         params={'search': name, 'per_page': 100},
         auth=get_auth(),
+        headers=WP_HEADERS,
         timeout=15,
     )
     if r.ok:
@@ -141,6 +151,7 @@ def get_or_create_tag(name):
         f'{WP_BASE_URL}/wp-json/wp/v2/tags',
         json={'name': name},
         auth=get_auth(),
+        headers=WP_HEADERS,
         timeout=15,
     )
     if r.ok:
@@ -161,6 +172,7 @@ def get_category_id_by_name(name):
         f'{WP_BASE_URL}/wp-json/wp/v2/categories',
         params={'search': name, 'per_page': 100},
         auth=get_auth(),
+        headers=WP_HEADERS,
         timeout=15,
     )
     if r.ok:
@@ -176,6 +188,7 @@ def get_writer_user_id():
         f'{WP_BASE_URL}/wp-json/wp/v2/users',
         params={'per_page': 100, 'context': 'edit'},
         auth=get_auth(),
+        headers=WP_HEADERS,
         timeout=15,
     )
     if r.ok:
@@ -188,13 +201,14 @@ def get_writer_user_id():
 def upload_media_from_url(image_url):
     """画像URLからダウンロードしてWPメディアにアップロード、IDを返す"""
     try:
-        img_resp = requests.get(image_url, timeout=30)
+        img_resp = requests.get(image_url, headers=WP_HEADERS, timeout=30)
         if not img_resp.ok:
             return None
         filename = image_url.split('/')[-1].split('?')[0]
         if not filename:
             filename = 'featured.jpg'
         headers = {
+            **WP_HEADERS,
             'Content-Disposition': f'attachment; filename="{filename}"',
             'Content-Type': img_resp.headers.get('Content-Type', 'image/jpeg'),
         }
@@ -212,7 +226,7 @@ def upload_media_from_url(image_url):
     return None
 
 
-def post_one(title, content, tags_input, brand, featured_image_url, category_name, schedule, author_id):
+def post_one(title, content, tags_input, brand, featured_image_url, category_name, schedule, author_id, status=None):
     if not title:
         return {'success': False, 'error': 'タイトルが空です'}
     if not content:
@@ -254,9 +268,14 @@ def post_one(title, content, tags_input, brand, featured_image_url, category_nam
     if author_id:
         post_data['author'] = author_id
 
-    if schedule:
+    # ステータス決定: 明示指定（publish/future/draft）を優先。
+    # 未指定時は従来通り schedule があれば future、なければ publish。
+    if status == 'draft':
+        post_data['status'] = 'draft'
+    elif status == 'future' or (status is None and schedule):
         post_data['status'] = 'future'
-        post_data['date'] = schedule
+        if schedule:
+            post_data['date'] = schedule
     else:
         post_data['status'] = 'publish'
 
@@ -267,6 +286,7 @@ def post_one(title, content, tags_input, brand, featured_image_url, category_nam
         f'{WP_BASE_URL}/wp-json/wp/v2/posts',
         json=post_data,
         auth=get_auth(),
+        headers=WP_HEADERS,
         timeout=30,
     )
     if r.ok:
@@ -370,6 +390,7 @@ def publish():
             category_name=p.get('category'),
             schedule=p.get('schedule'),
             author_id=author_id,
+            status=p.get('status'),
         )
         result['filename'] = filename
         results.append(result)
@@ -398,7 +419,7 @@ def upload_media():
         return jsonify({'error': 'image_url が指定されていません'}), 400
 
     try:
-        img_resp = requests.get(image_url, timeout=30)
+        img_resp = requests.get(image_url, headers=WP_HEADERS, timeout=30)
         if not img_resp.ok:
             return jsonify({'error': f'画像取得失敗 HTTP {img_resp.status_code}'}), 502
 
@@ -406,6 +427,7 @@ def upload_media():
         content_type = img_resp.headers.get('Content-Type', 'image/jpeg').split(';')[0].strip()
 
         headers = {
+            **WP_HEADERS,
             'Content-Disposition': f'attachment; filename="{filename}"',
             'Content-Type': content_type,
         }
@@ -426,6 +448,7 @@ def upload_media():
                     f'{WP_BASE_URL}/wp-json/wp/v2/media/{media_id}',
                     json={'alt_text': alt},
                     auth=get_auth(),
+                    headers=WP_HEADERS,
                     timeout=15,
                 )
             return jsonify({'media_id': media_id, 'url': media_url})
@@ -451,7 +474,7 @@ def health():
     if not user or not pw:
         return jsonify({'ok': False, 'error': '.envにWP_USER/WP_APP_PASSWORDを設定してください'})
     try:
-        r = requests.get(f'{base}/wp-json/wp/v2/users/me', auth=(user, pw), timeout=15)
+        r = requests.get(f'{base}/wp-json/wp/v2/users/me', auth=(user, pw), headers=WP_HEADERS, timeout=15)
         if r.ok:
             u = r.json()
             try:

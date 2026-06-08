@@ -314,6 +314,15 @@ def select_feature_item(brand_key: str) -> dict | None:
         return None
     listed = [i for i in items if i.get("is_listed")]
     pool = listed if listed else items
+    # 画像がある在庫を優先（記事に主役商品の画像を差し込めるようにする）
+    index = _load_image_index()
+    with_image = [
+        i for i in pool
+        if index.get(i.get("fk_id", "")) and index[i["fk_id"]].get("in_stock", True)
+        and (index[i["fk_id"]].get("s3_main") or index[i["fk_id"]].get("source_url"))
+    ]
+    if with_image:
+        pool = with_image
     return max(pool, key=_feature_score)
 
 
