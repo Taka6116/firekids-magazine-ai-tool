@@ -27,6 +27,10 @@ scripts/article_generator/*cache*.json
 scripts/article_generator/past_articles_cache.json
 scripts/article_generator/article_vector_cache.json
 
+# 画像インデックス（クロール生成物・Git管理しない）
+data/fk_image_index.json
+data/fk_image_index_raw.json
+
 # ============================================
 # Python
 # ============================================
