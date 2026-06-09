@@ -757,14 +757,21 @@ textarea.direction-input {
 .wp-writer { color: #555; }
 
 .wp-hero {
-  position: relative; width: 100%; padding-top: 55.8%;
+  position: relative; width: 100%;
   background: linear-gradient(135deg, #2a2a2a, #4a3f38);
   border-radius: 4px; margin-bottom: 30px; overflow: hidden;
+  aspect-ratio: 16/9;
 }
 .wp-hero-label {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   color: rgba(255,255,255,0.35); font-family: "Cormorant Garamond", serif;
   font-size: 26px; letter-spacing: 0.1em;
+}
+.wp-hero img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+}
+.wp-hero.has-image { background: none; }
+.wp-hero.has-image .wp-hero-label { display: none; }
 }
 
 /* 本文 RTE */
@@ -1779,8 +1786,7 @@ function resetLiveTyping() {
   liveIsFinished = false;
   if (liveTypingTimer) clearTimeout(liveTypingTimer);
   liveTypingTimer = null;
-  insertedImageHtml = '';
-  articleImageUrl = '';
+  resetHeroImage();
 }
 
 function renderLiveNow(md, finished) {
@@ -1792,7 +1798,6 @@ function renderLiveNow(md, finished) {
   const html = marked.parse(body || '');
   document.getElementById('wp-rte').innerHTML =
     html + (finished ? '' : '<span class="type-cursor"></span>');
-  applyInsertedImage();
   if (!userScrolled) wpScroll.scrollTop = wpScroll.scrollHeight;
 }
 
@@ -1825,27 +1830,32 @@ function renderLive(partial, finished) {
 /* ── 画像差し込み ──────────────────────────────────────── */
 // プレビューには S3 プロキシ画像を直接表示（WP接続に依存しない）。
 // 投稿時に featured_image_url としてこの URL を WP メディアへ取り込む。
-let insertedImageHtml = '';   // wp-rte 先頭に常時差し込む画像 HTML
 let articleImageUrl   = '';   // 投稿時にアイキャッチへ渡す画像 URL
 
-function _buildImageHtml(imgUrl, alt) {
-  return `<figure class="wp-block-image size-large" style="margin:0 0 1.6em;"><img src="${imgUrl}" alt="${(alt||'').replace(/"/g,'&quot;')}" class="wp-image-inserted" style="max-width:100%;height:auto;display:block;border-radius:8px;"/></figure>`;
-}
-
-// renderLiveNow が wp-rte を毎フレーム書き換えるため、画像は変数として保持し
-// 描画のたびに先頭へ再挿入する（タイピングアニメで消えないようにする）。
-function applyInsertedImage() {
-  const rte = document.getElementById('wp-rte');
-  if (!rte || !insertedImageHtml) return;
-  if (!rte.querySelector('.wp-image-inserted')) {
-    rte.insertAdjacentHTML('afterbegin', insertedImageHtml);
+function setPreviewImage(imgUrl, alt) {
+  const hero = document.getElementById('wp-hero');
+  if (!hero) return;
+  articleImageUrl = imgUrl;
+  hero.classList.add('has-image');
+  const existing = hero.querySelector('img');
+  if (existing) {
+    existing.src = imgUrl;
+    existing.alt = alt || '';
+  } else {
+    const img = document.createElement('img');
+    img.src = imgUrl;
+    img.alt = alt || '';
+    hero.appendChild(img);
   }
 }
 
-function setPreviewImage(imgUrl, alt) {
-  insertedImageHtml = _buildImageHtml(imgUrl, alt);
-  articleImageUrl = imgUrl;
-  applyInsertedImage();
+function resetHeroImage() {
+  const hero = document.getElementById('wp-hero');
+  if (!hero) return;
+  hero.classList.remove('has-image');
+  const img = hero.querySelector('img');
+  if (img) img.remove();
+  articleImageUrl = '';
 }
 
 // 生成完了時に自動で主役商品の画像をプレビューへ差し込む
