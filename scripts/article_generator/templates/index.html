@@ -2035,7 +2035,6 @@ async function _wpGetWriterId(base, user, pass) {
 async function _wpUploadImage(base, user, pass, imageUrl) {
   if (!imageUrl || imageUrl.startsWith('blob:')) return null;
   try {
-    // 画像をArrayBufferで取得
     const imgResp = await fetch(imageUrl);
     if (!imgResp.ok) return null;
     const blob = await imgResp.blob();
@@ -2052,7 +2051,8 @@ async function _wpUploadImage(base, user, pass, imageUrl) {
     });
     if (resp.ok) {
       const d = await resp.json();
-      return d.id || null;
+      // id と source_url の両方を返す
+      return d.id ? { id: d.id, url: d.source_url || '' } : null;
     }
     return null;
   } catch { return null; }
@@ -2121,15 +2121,28 @@ async function publishArticle() {
       wpImageUrl = articleImageUrl;
     }
     let featuredMediaId = null;
+    let featuredMediaUrl = '';
     if (wpImageUrl) {
-      featuredMediaId = await _wpUploadImage(base_url, user, app_password, wpImageUrl);
+      const uploaded = await _wpUploadImage(base_url, user, app_password, wpImageUrl);
+      if (uploaded) {
+        featuredMediaId  = uploaded.id;
+        featuredMediaUrl = uploaded.url;
+      }
     }
 
     // Step4: 投稿作成（ブラウザ→WordPress直接）
     btn.textContent = '投稿送信中…';
+
+    // 本文先頭に画像ブロックを挿入（サムネイルと同じ画像）
+    let bodyContent = result.html || '';
+    if (featuredMediaId && featuredMediaUrl) {
+      const imgBlock = `<!-- wp:image {"id":${featuredMediaId},"sizeSlug":"large","linkDestination":"none"} -->\n<figure class="wp-block-image size-large"><img src="${escapeHtml(featuredMediaUrl)}" class="wp-image-${featuredMediaId}" alt="${escapeHtml(result.title || '')}"/></figure>\n<!-- /wp:image -->\n\n`;
+      bodyContent = imgBlock + bodyContent;
+    }
+
     const postBody = {
       title:   result.title || '',
-      content: result.html  || '',
+      content: bodyContent,
       status:  mode,
       ...(schedule ? { date: schedule } : {}),
       ...(catId        ? { categories: [catId] }     : {}),
