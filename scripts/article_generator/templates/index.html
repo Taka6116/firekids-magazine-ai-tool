@@ -261,6 +261,29 @@ body {
   border-color: var(--border-focus);
   box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
 }
+.cat-selector {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.cat-btn {
+  padding: 6px 16px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg-card);
+  font-size: 13px;
+  color: var(--text-sub);
+  cursor: pointer;
+  transition: all .15s;
+}
+.cat-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.cat-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  font-weight: 600;
+}
 
 /* ── Buttons ── */
 .btn-primary {
@@ -1198,6 +1221,15 @@ textarea.direction-input {
                 {% endfor %}
               </select>
             </div>
+            <div class="form-group">
+              <label class="form-label">記事カテゴリ（任意）</label>
+              <div class="cat-selector" id="cat-selector">
+                {% for key, val in article_categories.items() %}
+                <button type="button" class="cat-btn{% if key == 'basic' %} active{% endif %}" data-cat="{{ key }}">{{ val.jp }}</button>
+                {% endfor %}
+              </div>
+              <div class="field-help">デフォルトは「時計の基礎知識」。記事の口調・参照する過去記事が変わります。</div>
+            </div>
             <div class="field" style="margin-bottom:16px;">
               <label class="form-label">方向性メモ（任意）</label>
               <textarea class="direction-input" id="direction"
@@ -1418,8 +1450,9 @@ textarea.direction-input {
 
       <div class="post-field-label">カテゴリー</div>
       <div class="post-opt-row">
-        <label class="post-opt"><input type="radio" name="post-cat" value="時計の基礎知識" checked> 時計の基礎知識</label>
-        <label class="post-opt"><input type="radio" name="post-cat" value="コラム"> コラム</label>
+        <label class="post-opt"><input type="radio" name="post-cat" value="時計の基礎知識" data-cat-key="basic" checked> 時計の基礎知識</label>
+        <label class="post-opt"><input type="radio" name="post-cat" value="コラム" data-cat-key="column"> コラム</label>
+        <label class="post-opt"><input type="radio" name="post-cat" value="トレンド" data-cat-key="trend"> トレンド</label>
       </div>
 
       <button class="live-btn-primary" id="do-publish" style="margin-top:6px;">WordPress に投稿する</button>
@@ -2048,8 +2081,9 @@ async function publishArticle() {
 
     // Step2: カテゴリ・タグ・投稿者をブラウザから直接WPに問い合わせ
     const brandName = result.brand_jp || result.brand_key || '';
+    const knownCatWpId = result.article_category_wp_id || null;
     const [catId, brandTagId, writerId] = await Promise.all([
-      _wpGetCategoryId(base_url, user, app_password, cat),
+      knownCatWpId ? Promise.resolve(knownCatWpId) : _wpGetCategoryId(base_url, user, app_password, cat),
       brandName ? _wpGetOrCreateTag(base_url, user, app_password, brandName) : Promise.resolve(null),
       _wpGetWriterId(base_url, user, app_password),
     ]);
@@ -2125,18 +2159,19 @@ document.getElementById('do-publish').addEventListener('click', publishArticle);
 async function generate(opts) {
   opts = opts || {};
   const btn = document.getElementById('gen-btn');
-  let payload, catLabel = '時計の基礎知識';
+  const activeBtn = document.querySelector('.cat-btn.active');
+  const articleCat = activeBtn ? activeBtn.dataset.cat : 'basic';
+  const catLabel = activeBtn ? activeBtn.textContent.trim() : '時計の基礎知識';
   const direction = (document.getElementById('direction')?.value || '').trim();
+  let payload;
 
   if (opts.retry && lastPayload) {
     payload = Object.assign({}, lastPayload);
   } else if (selectedFkId) {
-    // 詳細設定で在庫商品が選ばれていれば、それを主役にする
     const item = allInventory.find(i => i.fk_id === selectedFkId);
-    payload = { brand: item?.brand_key || 'OTHER', tone: 'auto', fk_id: selectedFkId };
+    payload = { brand: item?.brand_key || 'OTHER', tone: 'auto', fk_id: selectedFkId, article_category: articleCat };
   } else {
-    // 主動線: ブランドのみ。在庫はサーバー側で自動選定。
-    payload = { brand: document.getElementById('brand').value, tone: 'auto' };
+    payload = { brand: document.getElementById('brand').value, tone: 'auto', article_category: articleCat };
   }
   if (direction) payload.direction = direction;
   if (opts.allowNoInventory) payload.allow_no_inventory = true;
@@ -2183,6 +2218,12 @@ async function generate(opts) {
         setStep(3);
         document.getElementById('live-close').style.display   = '';
         document.getElementById('live-actions').style.display = '';
+
+        // 投稿パネルのカテゴリを生成時の選択に連動
+        const genCatKey = result.article_category || articleCat || 'basic';
+        const postCatRadio = document.querySelector(`input[name="post-cat"][data-cat-key="${genCatKey}"]`);
+        if (postCatRadio) postCatRadio.checked = true;
+
         // image_meta を保存してボタンハンドラに渡す
         const imageMeta = result.image_meta || null;
 
@@ -2586,6 +2627,14 @@ document.getElementById('nav-posted').addEventListener('click', openPostsPanel);
 // ソートボタンはHTMLがscriptの後に来るためDOMContentLoadedで登録
 document.getElementById('sort-desc').addEventListener('click', function() { setDraftSort('desc'); });
 document.getElementById('sort-asc').addEventListener('click', function() { setDraftSort('asc'); });
+
+// カテゴリ選択ボタン
+document.querySelectorAll('.cat-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.cat-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+  });
+});
 </script>
 </body>
 </html>

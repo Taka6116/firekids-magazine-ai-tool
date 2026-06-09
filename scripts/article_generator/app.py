@@ -185,6 +185,12 @@ BRANDS = {
     "OTHER":     {"jp": "その他",                   "category_id": None, "path": "other"},
 }
 
+ARTICLE_CATEGORIES = {
+    "basic":  {"jp": "時計の基礎知識", "wp_id": 2},
+    "column": {"jp": "コラム",         "wp_id": 3},
+    "trend":  {"jp": "トレンド",       "wp_id": 4},
+}
+
 TONES = ["guide", "verify", "comparison", "ranking"]
 
 TONE_LABELS = {
@@ -216,14 +222,28 @@ def _lookback_cutoff() -> datetime.datetime:
     return datetime.datetime.now() - datetime.timedelta(days=LOOKBACK_DAYS)
 
 
-def _brand_records(brand_key: str) -> list[dict]:
+def _brand_records(brand_key: str, article_category: str = "basic") -> list[dict]:
     store     = get_store()
     brand_cat = BRANDS.get(brand_key, {}).get("category_id")
+    art_cat_id = ARTICLE_CATEGORIES.get(article_category, {}).get("wp_id")
     records   = store.list_by_category(brand_cat) if brand_cat else store.list_all()
+    # 記事カテゴリでさらにフィルタ
+    if art_cat_id:
+        filtered = [r for r in records if art_cat_id in (r.get("brand_categories") or [])]
+        # ブランド×カテゴリの組み合わせで記事が少ない場合、同カテゴリ全ブランドをフォールバック
+        if len(filtered) < 5:
+            all_cat = [r for r in store.list_all() if art_cat_id in (r.get("brand_categories") or [])]
+            seen = {r.get("post_id") for r in filtered}
+            for r in all_cat:
+                if r.get("post_id") not in seen:
+                    filtered.append(r)
+            records = filtered
+        else:
+            records = filtered
     return sorted(records, key=lambda r: r.get("modified", ""), reverse=True)
 
 
-def _prioritized_cached_records(brand_key: str) -> list[dict]:
+def _prioritized_cached_records(brand_key: str, article_category: str = "basic") -> list[dict]:
     """生成時の重複チェック用キャッシュ。
 
     通常運用では直近 LOOKBACK_DAYS 日を優先する。古い記事は WordPress へ
@@ -232,7 +252,7 @@ def _prioritized_cached_records(brand_key: str) -> list[dict]:
     cutoff = _lookback_cutoff()
     recent: list[dict] = []
     older_cached: list[dict] = []
-    for record in _brand_records(brand_key):
+    for record in _brand_records(brand_key, article_category):
         modified = _parse_modified(record.get("modified", ""))
         if modified and modified >= cutoff:
             recent.append(record)
@@ -591,7 +611,7 @@ def ensure_cache_fresh() -> None:
 
 # ─── 類似度チェック ───────────────────────────────────────────────────────────
 
-def check_overlap(brand_key: str, title: str, h2s: list[str]) -> dict:
+def check_overlap(brand_key: str, title: str, h2s: list[str], article_category: str = "basic") -> dict:
     """2 レベルの被り検出。
 
     Level 1: 候補全体ベクトル vs article_embedding >= ARTICLE_SIM_THRESHOLD
@@ -601,7 +621,7 @@ def check_overlap(brand_key: str, title: str, h2s: list[str]) -> dict:
     戻り値: {"ok": bool, "flagged": [{"title", "url", "article_similarity",
                                        "heading_hit_count", "hit_pairs", "h2_texts"}, ...]}
     """
-    past_arts = _prioritized_cached_records(brand_key)
+    past_arts = _prioritized_cached_records(brand_key, article_category)
 
     # 候補の article-level embedding
     art_text = title + "。" + "。".join(h2s)
@@ -659,13 +679,12 @@ def check_overlap(brand_key: str, title: str, h2s: list[str]) -> dict:
 
 # ─── n-gram 重複チェック（本文生成後） ───────────────────────────────────────
 
-def check_ngram_overlap(generated_text: str, brand_key: str) -> list[dict]:
+def check_ngram_overlap(generated_text: str, brand_key: str, article_category: str = "basic") -> list[dict]:
     """文字 n-gram の Jaccard 類似度で本文表現の重複を検出する。
     生成をブロックせず警告として返す。
     モデル名・記号・改行を正規化してから比較する。
     """
     def clean(text: str) -> str:
-        # タイトル行・メタ行・URL・記号を除去
         text = re.sub(r"https?://\S+", "", text)
         text = re.sub(r"^#.*$", "", text, flags=re.MULTILINE)
         text = re.sub(r"[^\w\u3040-\u30ff\u4e00-\u9fff]", "", text)
@@ -679,7 +698,7 @@ def check_ngram_overlap(generated_text: str, brand_key: str) -> list[dict]:
     if not gen_grams:
         return []
 
-    past_arts = _prioritized_cached_records(brand_key)
+    past_arts = _prioritized_cached_records(brand_key, article_category)
 
     flagged: list[dict] = []
     for art in past_arts:
@@ -737,13 +756,13 @@ def load_rules_context() -> tuple[str, str, str]:
 
 # ─── Stage 1: 構成案の生成 ───────────────────────────────────────────────────
 
-def sample_past_titles(brand_key: str, limit: int = 14) -> list[str]:
+def sample_past_titles(brand_key: str, limit: int = 14, article_category: str = "basic") -> list[str]:
     """指定ブランドの過去記事タイトルを取得する（タイトルの口調・表現の参考用）。
 
     新しい記事ほど現行の文体に近いので modified 降順で返す。
     キャッシュが空なら空リスト（その場合は参考なしで生成）。
     """
-    records   = _prioritized_cached_records(brand_key)
+    records   = _prioritized_cached_records(brand_key, article_category)
     titles: list[str] = []
     for r in records:
         t = (r.get("title") or "").strip()
@@ -755,7 +774,7 @@ def sample_past_titles(brand_key: str, limit: int = 14) -> list[str]:
 
 
 def propose_structure(brand_key: str, tone: str = "auto", item: dict | None = None,
-                      direction: str = "") -> dict:
+                      direction: str = "", article_category: str = "basic") -> dict:
     """タイトル・H2 構成案・テーマ・キーワードを小型コール（最大 800 トークン）で生成する。
 
     tone:
@@ -772,10 +791,11 @@ def propose_structure(brand_key: str, tone: str = "auto", item: dict | None = No
     tone_jp   = TONE_LABELS.get(tone, "")
 
     # 過去タイトルを「口調・表現の参考」として注入（被り回避は後段の check_overlap が担う）
-    past_titles = sample_past_titles(brand_key)
+    art_cat_jp = ARTICLE_CATEGORIES.get(article_category, {}).get("jp", "時計の基礎知識")
+    past_titles = sample_past_titles(brand_key, article_category=article_category)
     if past_titles:
         style_block = (
-            "【過去記事タイトル（口調・表現・粒度の参考）】\n"
+            f"【過去記事タイトル（「{art_cat_jp}」カテゴリの口調・表現・粒度の参考）】\n"
             + "\n".join(f"・{t}" for t in past_titles)
             + "\n\n上記タイトルの『言い回し・丁寧さ・語尾・記号の使い方・長さ感』を踏襲してください。\n"
             "ただし扱うテーマ・切り口は上記と重複させず、必ず新しい内容にしてください。\n"
@@ -810,7 +830,15 @@ def propose_structure(brand_key: str, tone: str = "auto", item: dict | None = No
 この方向性を優先して企画してください。ただし事実確認できない内容、価格断定、個別商品URL、FK番号は使わないでください。
 """
 
+    cat_tone_map = {
+        "basic":  "教育的・体系的で、初心者にもわかりやすい解説記事",
+        "column": "個人的視点やエッセイ調で、読み物としての面白さがある記事",
+        "trend":  "市場動向・最新情報・ニュース性のある記事",
+    }
+    cat_directive = f"この記事は「{art_cat_jp}」カテゴリに掲載されます。{cat_tone_map.get(article_category, cat_tone_map['basic'])}を企画してください。"
+
     prompt = f"""FIRE KIDS Magazine の「{brand_jp}」ブランド記事を1本企画してください。
+{cat_directive}
 {tone_directive}
 {item_block}
 {direction_block}
@@ -845,7 +873,7 @@ def propose_structure(brand_key: str, tone: str = "auto", item: dict | None = No
 
 
 def revise_structure(brand_key: str, tone: str, previous: dict, flagged: list,
-                     direction: str = "") -> dict:
+                     direction: str = "", article_category: str = "basic") -> dict:
     """被りが検出された構成案を類似記事情報を与えて再構成させる。
 
     flagged: check_overlap() の flagged リスト
@@ -910,11 +938,13 @@ def build_article_prompt(
     avoid_articles: list,   # check_overlap の flagged リスト
     item: dict | None = None,
     direction: str = "",
-) -> str:
+    article_category: str = "basic",
+) -> tuple[str, str]:
     brand      = BRANDS.get(brand_key, BRANDS["OTHER"])
     brand_jp   = brand["jp"]
     cat_id     = brand["category_id"]
     tone_label = f"{TONE_LABELS.get(tone, 'ガイド系')} {TONE_CHARS.get(tone, '7000〜9000字')}"
+    art_cat_jp = ARTICLE_CATEGORIES.get(article_category, {}).get("jp", "時計の基礎知識")
     _, caliber_summary, correction_summary = load_rules_context()
 
     cta_base = (
@@ -976,11 +1006,22 @@ def build_article_prompt(
 
 """
 
+    cat_tone_map = {
+        "basic":  "この記事は「時計の基礎知識」カテゴリです。教育的・体系的で、時計初心者にもわかりやすく丁寧に解説してください。専門用語には簡潔な補足を添え、読者が体系的に知識を得られる構成にしてください。",
+        "column": "この記事は「コラム」カテゴリです。個人的視点やエッセイ調で、読み物として楽しめる文章にしてください。ライターの主観的な感想や考察を交え、読者の知的好奇心をくすぐる内容にしてください。",
+        "trend":  "この記事は「トレンド」カテゴリです。市場動向や最新情報に焦点を当て、ニュース性と速報感を意識した文章にしてください。データや具体的な事例を用いて、読者が「今」の市場を理解できるようにしてください。",
+    }
+    category_instruction = cat_tone_map.get(article_category, cat_tone_map["basic"])
+
     prompt = f"""あなたは FIRE KIDS Magazine の記事ライターです。
 以下の条件に従い、ヴィンテージ時計の SEO 記事（Markdown 形式）を1本生成してください。
 
+━━━━━ 記事カテゴリ ━━━━━
+{category_instruction}
+
 ━━━━━ 記事情報 ━━━━━
 ブランド: {brand_jp}（フォルダ: {brand_key}）
+記事カテゴリ: {art_cat_jp}
 タイトル: {title}｜FIRE KIDS Magazine
 テーマ: {theme}
 トーン: {tone_label}
@@ -1040,7 +1081,7 @@ def build_article_prompt(
 
 def generate_article(brand_key: str, tone: str = "auto", fk_id: str = "",
                      on_stage=None, on_chunk=None, allow_no_inventory: bool = False,
-                     direction: str = "") -> dict:
+                     direction: str = "", article_category: str = "basic") -> dict:
     """3 ステージ生成フロー + 後処理 n-gram チェック。
 
     在庫連携:
@@ -1088,20 +1129,20 @@ def generate_article(brand_key: str, tone: str = "auto", fk_id: str = "",
 
     stage("被らないテーマ・構成を考えています…", "prompt_build")
     direction = (direction or "").strip()[:500]
-    structure  = propose_structure(brand_key, tone, item=item, direction=direction)
+    structure  = propose_structure(brand_key, tone, item=item, direction=direction, article_category=article_category)
     effective_tone = structure.get("tone") or (tone if tone and tone != "auto" else "guide")
     overlap    = {"ok": True, "flagged": []}
 
     stage("過去記事との被りをチェックしています…")
     for attempt in range(MAX_REGEN_RETRIES):
-        overlap = check_overlap(brand_key, structure.get("title", ""), structure.get("h2s", []))
+        overlap = check_overlap(brand_key, structure.get("title", ""), structure.get("h2s", []), article_category=article_category)
         if overlap["ok"]:
             break
         if attempt < MAX_REGEN_RETRIES - 1:
             stage("構成を調整しています…")
             log.info("structure_revise brand=%s attempt=%s flagged=%s",
                      brand_key, attempt + 1, len(overlap.get("flagged", [])))
-            structure = revise_structure(brand_key, effective_tone, structure, overlap["flagged"], direction=direction)
+            structure = revise_structure(brand_key, effective_tone, structure, overlap["flagged"], direction=direction, article_category=article_category)
 
     title    = structure.get("title")    or f"{BRANDS[brand_key]['jp']} 特集記事"
     h2s      = structure.get("h2s",      [])
@@ -1110,7 +1151,7 @@ def generate_article(brand_key: str, tone: str = "auto", fk_id: str = "",
 
     prompt, image_placeholder = build_article_prompt(
         brand_key, effective_tone, title, theme, keywords, overlap.get("flagged", []),
-        item=item, direction=direction,
+        item=item, direction=direction, article_category=article_category,
     )
     stage("本文を執筆しています…", "bedrock_call")
     if on_chunk:
@@ -1130,7 +1171,7 @@ def generate_article(brand_key: str, tone: str = "auto", fk_id: str = "",
 
     stage("仕上げチェック中…")
     slug         = title_to_slug(title)
-    ngram_issues = check_ngram_overlap(article, brand_key)
+    ngram_issues = check_ngram_overlap(article, brand_key, article_category=article_category)
 
     # ── 劣化モード / 重複ステータスの判定 ─────────────────────────
     degraded_modes: list[str] = []
@@ -1144,7 +1185,7 @@ def generate_article(brand_key: str, tone: str = "auto", fk_id: str = "",
     else:
         overlap_status = "flagged"
 
-    tone_titles = sample_past_titles(brand_key, limit=6)
+    tone_titles = sample_past_titles(brand_key, limit=6, article_category=article_category)
     tone_reference_summary = (
         "過去記事の口調・見出し設計を参考: " + " / ".join(tone_titles)
         if tone_titles else "参考にできる過去記事が見つかりませんでした"
@@ -1170,6 +1211,9 @@ def generate_article(brand_key: str, tone: str = "auto", fk_id: str = "",
         "item_summary": summarize_item(item) if item else "",
         "tone_reference_summary": tone_reference_summary,
         "fk_id":        fk_id,
+        "article_category": article_category,
+        "article_category_wp_id": ARTICLE_CATEGORIES.get(article_category, {}).get("wp_id"),
+        "article_category_jp": ARTICLE_CATEGORIES.get(article_category, {}).get("jp", ""),
         "item":         item,
         "image_meta":   image_meta,  # WordPress 連携用（s3_key, source_url, alt）
     }
@@ -1316,7 +1360,7 @@ def save_article(brand_key: str, slug: str, content: str) -> Path:
 
 @app.route("/")
 def index():
-    return render_template("index.html", brands=BRANDS, tones=TONES)
+    return render_template("index.html", brands=BRANDS, tones=TONES, article_categories=ARTICLE_CATEGORIES)
 
 
 @app.route("/generate", methods=["POST"])
@@ -1333,6 +1377,9 @@ def generate():
     fk_id       = data.get("fk_id", "")
     direction   = str(data.get("direction", "") or "").strip()[:500]
     allow_no_inv = bool(data.get("allow_no_inventory", False))
+    article_cat = data.get("article_category", "basic")
+    if article_cat not in ARTICLE_CATEGORIES:
+        article_cat = "basic"
     mode        = "inventory" if fk_id else "brand"
 
     job_id = str(uuid.uuid4())
@@ -1345,10 +1392,10 @@ def generate():
             "stage":      "生成を開始しています…",
             "partial":    "",
         }
-    log.info("job_created job_id=%s brand=%s mode=%s direction_set=%s",
-             job_id, brand_key, mode, bool(direction))
+    log.info("job_created job_id=%s brand=%s mode=%s article_cat=%s direction_set=%s",
+             job_id, brand_key, mode, article_cat, bool(direction))
 
-    def _run(jid: str, bk: str, t: str, fk: str, dir_text: str) -> None:
+    def _run(jid: str, bk: str, t: str, fk: str, dir_text: str, art_cat: str) -> None:
         def on_stage(msg: str, stage_id: str = "") -> None:
             with _JOB_LOCK:
                 if jid in JOBS:
@@ -1366,6 +1413,7 @@ def generate():
             result = generate_article(
                 bk, t, fk_id=fk, on_stage=on_stage, on_chunk=on_chunk,
                 allow_no_inventory=allow_no_inv, direction=dir_text,
+                article_category=art_cat,
             )
             with _JOB_LOCK:
                 JOBS[jid]["status"] = "done"
@@ -1384,7 +1432,7 @@ def generate():
                 JOBS[jid]["error"]  = str(e)
             log.warning("job_error job_id=%s err=%s", jid, e)
 
-    threading.Thread(target=_run, args=(job_id, brand_key, tone, fk_id, direction), daemon=True).start()
+    threading.Thread(target=_run, args=(job_id, brand_key, tone, fk_id, direction, article_cat), daemon=True).start()
     _cleanup_jobs()
     return jsonify({"ok": True, "job_id": job_id})
 
