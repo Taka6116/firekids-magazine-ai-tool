@@ -1658,15 +1658,9 @@ def _restore_drafts_from_s3():
 
 @app.route("/drafts")
 def drafts():
-    """保存済み記事一覧を返す（articles/ ディレクトリ走査＋S3同期）。"""
+    """保存済み記事一覧を返す（このセッションで生成・保存した記事のみ）。"""
     articles_dir = ROOT / "articles"
-
-    # ローカルが空の場合（コンテナ再起動後）は S3 からフル復元
-    local_meta_count = sum(
-        1 for p in articles_dir.rglob("*.meta.json")
-    ) if articles_dir.exists() else 0
-    if local_meta_count == 0:
-        _restore_drafts_from_s3()
+    # S3からの自動復元は行わない。このコンテナで生成した記事だけを表示する。
 
     result = []
     if not articles_dir.exists():
