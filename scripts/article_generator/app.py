@@ -1631,6 +1631,7 @@ def save_draft():
         "ok": True,
         "number": number,
         "slug": slug,
+        "saved_at": meta_obj["saved_at"],
         "saved_paths": saved_paths,
     })
 

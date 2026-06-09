@@ -2192,31 +2192,49 @@ async function generate(opts) {
           setTimeout(() => autoInsertImage(imageMeta), 400);
         }
 
-        // 自動保存
-        (async () => {
+        // 自動保存（awaitで完了を確認、保存後すぐに一覧へ反映）
+        await (async () => {
           try {
+            const saveBody = {
+              brand: result.brand_key || payload.brand,
+              slug:  result.slug || 'article',
+              title: result.title || '',
+              content: result.article || '',
+              html:  result.html || '',
+              image_meta: imageMeta,
+              article_image_url: (articleImageUrl && !articleImageUrl.startsWith('blob:')) ? articleImageUrl : '',
+            };
+            console.log('[auto-save] POST save-draft', saveBody.brand, saveBody.slug);
             const r = await fetch('save-draft', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                brand: result.brand_key || payload.brand,
-                slug: result.slug || 'article',
-                title: result.title || '',
-                content: result.article || '',
-                html: result.html || '',
-                image_meta: imageMeta,
-                // 表示中の画像URL（image_metaがない場合のフォールバック）
-                article_image_url: (articleImageUrl && !articleImageUrl.startsWith('blob:')) ? articleImageUrl : '',
-              }),
+              body: JSON.stringify(saveBody),
             });
+            console.log('[auto-save] status', r.status);
             if (r.status === 401) { flashHint('⚠ セッション切れ。再ログインしてください。'); return; }
-            const d = await r.json();
+            let d;
+            try { d = await r.json(); } catch(_) { d = {}; }
+            console.log('[auto-save] response', d);
             if (d.ok) {
-              flashHint('✓ 保存済み一覧に保存しました');
+              // 保存成功 → _draftsData に即追加（パネルを開いたとき即反映）
+              _draftsData.unshift({
+                brand:      saveBody.brand,
+                number:     d.number || '',
+                slug:       saveBody.slug,
+                title:      saveBody.title || saveBody.slug,
+                saved_at:   d.saved_at || new Date().toISOString().slice(0,16).replace('T',' '),
+                has_html:   !!saveBody.html,
+                char_count: saveBody.content.length,
+                image_url:  (imageMeta && imageMeta.source_url) || saveBody.article_image_url || '',
+                excerpt:    saveBody.content.replace(/<[^>]+>/g,'').slice(0,200),
+              });
+              showAutoSaveBadge();
             } else {
+              console.warn('[auto-save] failed', d.error);
               flashHint('⚠ 自動保存失敗: ' + (d.error || '不明なエラー'));
             }
           } catch(e) {
+            console.error('[auto-save] error', e);
             flashHint('⚠ 自動保存エラー: ' + e.message);
           }
         })();
@@ -2260,13 +2278,31 @@ function flashHint(text) {
   if (!el) {
     el = document.createElement('div');
     el.id = 'inline-hint';
-    el.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:11px 20px;border-radius:10px;font-size:13px;z-index:2000;box-shadow:0 8px 24px rgba(0,0,0,0.3);';
+    el.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:11px 20px;border-radius:10px;font-size:13px;z-index:2000;box-shadow:0 8px 24px rgba(0,0,0,0.3);transition:opacity .4s;';
     document.body.appendChild(el);
   }
   el.textContent = text;
   el.style.opacity = '1';
+  el.style.transition = 'none';
   clearTimeout(el._t);
-  el._t = setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .4s'; }, 2600);
+  el._t = setTimeout(() => { el.style.transition = 'opacity .4s'; el.style.opacity = '0'; }, 4000);
+}
+
+// 保存成功時: サイドバーの「保存済み一覧」ボタンにバッジを表示
+let _savedCount = 0;
+function showAutoSaveBadge() {
+  _savedCount++;
+  flashHint('✓ 保存済み一覧に保存しました（' + _savedCount + '件）');
+  const btn = document.getElementById('nav-saved');
+  if (!btn) return;
+  let badge = btn.querySelector('.save-badge');
+  if (!badge) {
+    badge = document.createElement('span');
+    badge.className = 'save-badge';
+    badge.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;background:#e8372a;color:#fff;border-radius:999px;font-size:10px;font-weight:800;min-width:16px;height:16px;padding:0 4px;margin-left:6px;line-height:1;';
+    btn.appendChild(badge);
+  }
+  badge.textContent = _savedCount;
 }
 
 /* ── 初期化 ─────────────────────────────────────────── */
