@@ -27,6 +27,9 @@ scripts/article_generator/*cache*.json
 scripts/article_generator/past_articles_cache.json
 scripts/article_generator/article_vector_cache.json
 
+# 生成記事（コンテナ内のみ存在・Gitで管理しない）
+articles/
+
 # 画像インデックス（クロール生成物・Git管理しない）
 data/fk_image_index.json
 data/fk_image_index_raw.json
