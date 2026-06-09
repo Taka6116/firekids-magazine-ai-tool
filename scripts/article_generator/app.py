@@ -1545,6 +1545,29 @@ def save_draft():
         html_path.write_text(html, encoding="utf-8")
         saved_paths.append(str(html_path.relative_to(ROOT)))
 
+    # メタデータ JSON を保存（一覧表示用 title / image_url / excerpt）
+    meta_path = brand_dir / f"{number}_article_{slug}.meta.json"
+    excerpt_src = content or html or ""
+    import re as _re_strip
+    excerpt_plain = _re_strip.sub(r"<[^>]+>", "", excerpt_src).replace("\n", " ").strip()[:200]
+    image_url = ""
+    if image_meta:
+        image_url = image_meta.get("source_url") or ""
+        if not image_url and image_meta.get("s3_key"):
+            image_url = f"/generator/image-proxy?s3_key={image_meta['s3_key']}"
+    meta_obj = {
+        "title": title or slug.replace("-", " ").title(),
+        "brand": brand_key,
+        "slug": slug,
+        "number": number,
+        "image_url": image_url,
+        "excerpt": excerpt_plain,
+        "char_count": len(content) if content else len(html),
+        "has_html": bool(html),
+        "saved_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+    }
+    meta_path.write_text(json.dumps(meta_obj, ensure_ascii=False, indent=2), encoding="utf-8")
+
     # S3 バックアップ（非同期で行い失敗しても本処理に影響しない）
     bucket = os.getenv("S3_BUCKET", "")
     if bucket:
@@ -1595,6 +1618,32 @@ def drafts():
         brand_key = brand_dir.name
         entries: dict[str, dict] = {}
         for f in sorted(brand_dir.iterdir(), reverse=True):
+            # .meta.json を優先的に読み込む
+            if f.name.endswith(".meta.json"):
+                m = re.match(r"^(\d+)_article_(.+)\.meta\.json$", f.name)
+                if not m:
+                    continue
+                number, slug = m.group(1), m.group(2)
+                key = f"{brand_key}/{number}_{slug}"
+                if key not in entries:
+                    try:
+                        meta = json.loads(f.read_text(encoding="utf-8"))
+                        entries[key] = {
+                            "brand": meta.get("brand", brand_key),
+                            "number": meta.get("number", number),
+                            "slug": meta.get("slug", slug),
+                            "title": meta.get("title", slug.replace("-", " ").title()),
+                            "saved_at": meta.get("saved_at", ""),
+                            "has_txt": False,
+                            "has_html": meta.get("has_html", False),
+                            "char_count": meta.get("char_count", 0),
+                            "image_url": meta.get("image_url") or None,
+                            "excerpt": meta.get("excerpt", ""),
+                        }
+                    except Exception:
+                        pass
+                continue
+
             m = re.match(r"^(\d+)_article_(.+)\.(txt|html)$", f.name)
             if not m:
                 continue
@@ -1612,9 +1661,10 @@ def drafts():
                     "has_html": False,
                     "char_count": 0,
                     "image_url": None,
+                    "excerpt": "",
                 }
             entries[key][f"has_{ext}"] = True
-            if ext == "txt":
+            if ext == "txt" and not entries[key]["char_count"]:
                 try:
                     entries[key]["char_count"] = len(f.read_text(encoding="utf-8"))
                 except Exception:
@@ -1622,6 +1672,26 @@ def drafts():
         result.extend(sorted(entries.values(), key=lambda x: x["saved_at"], reverse=True))
 
     return jsonify(result)
+
+
+@app.route("/delete-draft", methods=["POST"])
+def delete_draft():
+    """保存済み記事を削除する。"""
+    data = request.get_json(silent=True) or {}
+    brand = (data.get("brand") or "").strip()
+    number = (data.get("number") or "").strip()
+    slug = (data.get("slug") or "").strip()
+    if not brand or not number or not slug:
+        return jsonify({"ok": False, "error": "パラメータ不足"}), 400
+
+    brand_dir = ROOT / "articles" / brand
+    deleted = []
+    for ext in ("txt", "html", "meta.json"):
+        p = brand_dir / f"{number}_article_{slug}.{ext}"
+        if p.exists():
+            p.unlink()
+            deleted.append(str(p.relative_to(ROOT)))
+    return jsonify({"ok": True, "deleted": deleted})
 
 
 _POSTS_LOG_S3_KEY = "posts_log/posts_log.json"

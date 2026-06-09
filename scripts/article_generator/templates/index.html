@@ -903,106 +903,200 @@ textarea.direction-input {
 .axis-badge.warn { background: #fdf3e2; color: #9a5b00; border: 1px solid #f0d9a8; }
 .axis-badge.info { background: #eef2fb; color: #2b4b8f; border: 1px solid #cdd9f2; }
 
-/* ── 保存済み / 投稿済み一覧パネル ────────────────────────── */
+/* ── 保存済み / 投稿済み一覧パネル（NAS風カードグリッド）─── */
 .list-panel {
   display: none; position: fixed; inset: 0; z-index: 1800;
-  background: rgba(0,0,0,0.55); align-items: flex-start; justify-content: center;
-  padding: 60px 16px 16px;
+  background: rgba(220,228,240,0.85); backdrop-filter: blur(8px);
+  align-items: flex-start; justify-content: center;
+  padding: 40px 16px 16px; overflow-y: auto;
 }
 .list-panel.show { display: flex; }
 .list-panel-inner {
-  background: #fff; border-radius: 16px; width: 100%; max-width: 1060px;
-  max-height: calc(100vh - 80px); display: flex; flex-direction: column;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.22);
+  background: transparent; width: 100%; max-width: 1180px;
+  display: flex; flex-direction: column; gap: 20px;
 }
 .list-panel-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 18px 24px 14px; border-bottom: 1px solid #f0f0f0;
+  padding: 0 4px;
 }
-.list-panel-header h2 { font-size: 16px; font-weight: 800; color: #111; margin: 0; }
+.list-panel-header h2 { font-size: 20px; font-weight: 800; color: #111; margin: 0; }
+.list-panel-header-sub { font-size: 13px; color: #888; font-weight: 400; margin-top: 2px; }
 .list-panel-close {
-  background: none; border: none; font-size: 20px; cursor: pointer;
-  color: #888; padding: 4px 8px; border-radius: 8px;
-  transition: background .15s;
+  background: #fff; border: 1px solid rgba(20,44,92,0.12); font-size: 18px; cursor: pointer;
+  color: #555; padding: 6px 12px; border-radius: 10px;
+  transition: background .15s, box-shadow .15s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
-.list-panel-close:hover { background: #f3f4f6; }
+.list-panel-close:hover { background: #f8f9fb; box-shadow: 0 2px 8px rgba(0,0,0,0.10); }
 .list-panel-body {
-  overflow-y: auto; padding: 20px 24px 24px; flex: 1;
+  flex: 1;
 }
 .list-panel-empty {
-  text-align: center; padding: 48px 0; color: #aaa; font-size: 14px;
+  text-align: center; padding: 80px 0; color: #aaa; font-size: 14px;
+  background: #fff; border-radius: 16px;
 }
-/* 保存済み一覧 - リスト形式 */
-.draft-list { display: flex; flex-direction: column; gap: 10px; }
-.draft-card {
-  display: flex; align-items: center; gap: 14px;
-  border: 1px solid #eee; border-radius: 12px; padding: 12px 16px;
-  transition: box-shadow .15s, border-color .15s; background: #fff;
+.list-panel-count {
+  font-size: 13px; color: #777; font-weight: 600;
+  padding: 0 4px; margin-bottom: -8px;
 }
-.draft-card:hover { border-color: #ddd; box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
-.draft-thumb {
-  width: 80px; height: 56px; border-radius: 8px; object-fit: cover;
-  background: #f3f4f6; flex-shrink: 0;
-}
-.draft-thumb-placeholder {
-  width: 80px; height: 56px; border-radius: 8px; background: #f3f4f6;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22px; flex-shrink: 0; color: #ccc;
-}
-.draft-info { flex: 1; min-width: 0; }
-.draft-title { font-size: 14px; font-weight: 700; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.draft-meta { font-size: 12px; color: #888; margin-top: 3px; }
-.draft-brand-badge {
-  display: inline-block; font-size: 11px; font-weight: 700;
-  padding: 2px 8px; border-radius: 999px; background: #f0f0f0; color: #555;
-  margin-right: 6px;
-}
-.draft-actions { display: flex; gap: 8px; flex-shrink: 0; }
-.draft-btn-resume {
-  background: var(--accent); color: #fff; border: none;
-  padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 700;
-  cursor: pointer; transition: opacity .15s;
-}
-.draft-btn-resume:hover { opacity: .85; }
 
-/* 投稿済み一覧 - グリッドカード形式（スクショ参考） */
+/* ── 保存済み一覧 - NAS風カードグリッド ── */
+.draft-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.draft-card {
+  display: flex; flex-direction: column; border-radius: 16px; overflow: hidden;
+  background: #fff; border: 1px solid rgba(20,44,92,0.11);
+  box-shadow: 0 1px 2px rgba(20,44,92,0.06), 0 8px 18px rgba(20,44,92,0.08);
+  transition: transform .18s, box-shadow .18s;
+}
+.draft-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(20,44,92,0.08), 0 16px 32px rgba(20,44,92,0.12);
+}
+
+/* サムネイル */
+.draft-card-thumb-wrap {
+  position: relative; aspect-ratio: 16/10; overflow: hidden; background: #e9f0fa;
+}
+.draft-card-thumb {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.draft-card-thumb-placeholder {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #e9f0fa 0%, #dce5f2 100%); color: #aab8d0;
+}
+.draft-card-thumb-placeholder svg {
+  width: 48px; height: 48px; stroke: currentColor; fill: none; stroke-width: 1.5;
+}
+
+/* ステータスバッジ */
+.draft-status-badge {
+  position: absolute; top: 10px; left: 10px;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700;
+  line-height: 1.6; white-space: nowrap;
+}
+.draft-status-badge.ready {
+  background: #ecfdf5; color: #065f46; border: 1px solid #6ee7b7;
+}
+.draft-status-badge.draft {
+  background: #fffbeb; color: #92400e; border: 1px solid #fcd34d;
+}
+.draft-status-dot {
+  width: 6px; height: 6px; border-radius: 99px; flex: none;
+}
+.draft-status-badge.ready .draft-status-dot { background: #0f9f6e; }
+.draft-status-badge.draft .draft-status-dot { background: #f59e0b; }
+
+/* カード本体 */
+.draft-card-body {
+  padding: 14px 16px 16px; display: flex; flex-direction: column; flex: 1; min-height: 0;
+}
+.draft-card-meta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  font-size: 12px; color: #888; margin-bottom: 6px;
+}
+.draft-card-meta .brand-tag {
+  font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+  background: rgba(18,103,242,0.07); color: #1267f2;
+}
+.draft-card-title {
+  font-size: 14px; font-weight: 800; color: #111; line-height: 1.45;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; min-height: 2.5em; margin-bottom: 6px;
+}
+.draft-card-excerpt {
+  font-size: 12px; color: #888; line-height: 1.55;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  overflow: hidden; margin-bottom: 10px; flex: 1;
+}
+.draft-card-actions {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; margin-top: auto; padding-top: 10px;
+  border-top: 1px solid #f0f0f0;
+}
+.draft-btn-resume {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: none; color: #555; border: none;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  padding: 4px 0; transition: color .15s;
+}
+.draft-btn-resume:hover { color: var(--accent); }
+.draft-btn-resume svg { width: 14px; height: 14px; }
+.draft-card-action-btns {
+  display: flex; align-items: center; gap: 4px;
+}
+.draft-card-action-btns button {
+  background: none; border: none; cursor: pointer; padding: 4px;
+  color: #aaa; border-radius: 6px; transition: color .15s, background .15s;
+}
+.draft-card-action-btns button:hover { color: #555; background: #f3f4f6; }
+.draft-card-action-btns button svg { width: 16px; height: 16px; }
+
+/* 投稿済み一覧 - グリッドカード形式 */
 .posts-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
 }
 .post-card {
-  border: 1px solid #e8e8e8; border-radius: 14px; overflow: hidden;
-  background: #fff; transition: box-shadow .15s;
+  display: flex; flex-direction: column; border-radius: 16px; overflow: hidden;
+  background: #fff; border: 1px solid rgba(20,44,92,0.11);
+  box-shadow: 0 1px 2px rgba(20,44,92,0.06), 0 8px 18px rgba(20,44,92,0.08);
+  transition: transform .18s, box-shadow .18s;
 }
-.post-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.10); }
+.post-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(20,44,92,0.08), 0 16px 32px rgba(20,44,92,0.12);
+}
+.post-card-thumb-wrap {
+  position: relative; aspect-ratio: 16/10; overflow: hidden; background: #e9f0fa;
+}
 .post-card-thumb {
-  width: 100%; height: 160px; object-fit: cover; display: block;
-  background: #f3f4f6;
+  width: 100%; height: 100%; object-fit: cover; display: block;
 }
 .post-card-thumb-placeholder {
-  width: 100%; height: 160px; background: linear-gradient(135deg, #f3f4f6 0%, #e8e9ec 100%);
-  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #e9f0fa 0%, #dce5f2 100%);
   font-size: 40px; color: #ccc;
 }
-.post-card-body { padding: 14px 16px; }
+.post-card-body { padding: 14px 16px; display: flex; flex-direction: column; flex: 1; }
 .post-status-badge {
-  display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px;
-  border-radius: 999px; margin-bottom: 8px;
+  display: inline-flex; align-items: center; gap: 5px;
+  position: absolute; top: 10px; left: 10px;
+  font-size: 11px; font-weight: 700; padding: 3px 10px;
+  border-radius: 999px;
 }
-.post-status-badge.publish { background: #e7f4ea; color: #1e6b34; border: 1px solid #bfe3c6; }
-.post-status-badge.future  { background: #fff3cd; color: #856404; border: 1px solid #ffd97a; }
-.post-status-badge.draft   { background: #f3f4f6; color: #555;    border: 1px solid #ddd; }
-.post-card-meta { font-size: 12px; color: #888; margin-bottom: 6px; }
-.post-card-title { font-size: 14px; font-weight: 800; color: #111; line-height: 1.4; margin-bottom: 10px; }
-.post-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.post-status-badge.publish { background: #ecfdf5; color: #065f46; border: 1px solid #6ee7b7; }
+.post-status-badge.future  { background: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
+.post-status-badge.draft   { background: #f8fafc; color: #334155; border: 1px solid #cbd5e1; }
+.post-card-meta { font-size: 12px; color: #888; margin-bottom: 6px; display: flex; gap: 6px; align-items: center; }
+.post-card-title {
+  font-size: 14px; font-weight: 800; color: #111; line-height: 1.4; margin-bottom: 6px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.post-card-excerpt {
+  font-size: 12px; color: #888; line-height: 1.55;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; margin-bottom: 10px; flex: 1;
+}
+.post-card-actions {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto;
+  padding-top: 10px; border-top: 1px solid #f0f0f0;
+}
 .post-card-actions a, .post-card-actions button {
   font-size: 12px; padding: 5px 12px; border-radius: 7px; border: 1px solid #e0e0e0;
   color: #444; text-decoration: none; background: #fff; cursor: pointer;
   transition: background .12s;
 }
 .post-card-actions a:hover, .post-card-actions button:hover { background: #f5f5f5; }
+@media (max-width: 1024px) {
+  .draft-grid, .posts-grid { grid-template-columns: repeat(2, 1fr); }
+}
 @media (max-width: 640px) {
-  .posts-grid { grid-template-columns: 1fr; }
-  .list-panel { padding: 40px 8px 8px; }
+  .draft-grid, .posts-grid { grid-template-columns: 1fr; }
+  .list-panel { padding: 20px 8px 8px; }
 }
 </style>
 </head>
@@ -2046,7 +2140,21 @@ function flashHint(text) {
 document.getElementById('panel-brand').style.display = '';
 checkDedup();
 
-/* ── 保存済み一覧 ────────────────────────────────────── */
+/* ── SVG icons ────────────────────────────────────── */
+const SVG_FILE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>';
+const SVG_EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>';
+const SVG_PENCIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>';
+const SVG_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+
+function _escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function _fmtDate(s) {
+  if (!s) return '';
+  const d = new Date(s.replace(' ', 'T'));
+  if (isNaN(d)) return s;
+  return `${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`;
+}
+
+/* ── 保存済み一覧（NAS風カードグリッド） ─────────────── */
 function openDraftsPanel() {
   const panel = document.getElementById('panel-drafts');
   panel.classList.add('show');
@@ -2062,51 +2170,90 @@ async function loadDrafts() {
   try {
     const data = await fetch('drafts').then(r => r.json());
     if (!data.length) {
-      body.innerHTML = '<div class="list-panel-empty">保存済みの記事はまだありません。</div>';
+      body.innerHTML = '<div class="list-panel-empty">保存済みの記事はまだありません。<br>記事を生成すると自動的にここに保存されます。</div>';
       return;
     }
-    body.innerHTML = '<div class="draft-list" id="draft-list"></div>';
-    const list = document.getElementById('draft-list');
+    const countEl = document.getElementById('drafts-count');
+    if (countEl) countEl.textContent = `${data.length} 件`;
+
+    body.innerHTML = '<div class="draft-grid" id="draft-grid"></div>';
+    const grid = document.getElementById('draft-grid');
+
     data.forEach(d => {
-      const thumb = d.image_url
-        ? `<img class="draft-thumb" src="${d.image_url}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="draft-thumb-placeholder" style="display:none">🕐</div>`
-        : `<div class="draft-thumb-placeholder">🕐</div>`;
-      const card = document.createElement('div');
+      const hasImage = d.image_url && d.image_url.startsWith('http');
+      const thumbInner = hasImage
+        ? `<img class="draft-card-thumb" src="${_escHtml(d.image_url)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="draft-card-thumb-placeholder" style="display:none">${SVG_FILE}</div>`
+        : `<div class="draft-card-thumb-placeholder">${SVG_FILE}</div>`;
+      const statusClass = d.has_html ? 'ready' : 'draft';
+      const statusLabel = d.has_html ? '投稿準備完了' : '下書き';
+
+      const card = document.createElement('article');
       card.className = 'draft-card';
       card.innerHTML = `
-        ${thumb}
-        <div class="draft-info">
-          <div class="draft-title">${d.title || d.slug}</div>
-          <div class="draft-meta">
-            <span class="draft-brand-badge">${d.brand}</span>
-            ${d.saved_at} &nbsp;·&nbsp; ${d.char_count ? d.char_count.toLocaleString() + '字' : ''}
-            ${d.has_html ? '&nbsp;·&nbsp; <span style="color:#1e6b34">HTML✓</span>' : ''}
-          </div>
+        <div class="draft-card-thumb-wrap">
+          ${thumbInner}
+          <span class="draft-status-badge ${statusClass}"><span class="draft-status-dot"></span>${statusLabel}</span>
         </div>
-        <div class="draft-actions">
-          <button class="draft-btn-resume">再開する</button>
+        <div class="draft-card-body">
+          <div class="draft-card-meta">
+            <span class="brand-tag">${_escHtml(d.brand)}</span>
+            <span>${_fmtDate(d.saved_at)}</span>
+            <span>·</span>
+            <span>${d.char_count ? d.char_count.toLocaleString() + '文字' : ''}</span>
+          </div>
+          <div class="draft-card-title">${_escHtml(d.title || d.slug)}</div>
+          <div class="draft-card-excerpt">${_escHtml(d.excerpt || '')}</div>
+          <div class="draft-card-actions">
+            <button class="draft-btn-resume" title="プレビュー">${SVG_EYE} プレビュー</button>
+            <div class="draft-card-action-btns">
+              <button class="btn-edit" title="再開">${SVG_PENCIL}</button>
+              <button class="btn-delete" title="削除">${SVG_TRASH}</button>
+            </div>
+          </div>
         </div>`;
+
       card.querySelector('.draft-btn-resume').onclick = () => resumeDraft(d);
-      list.appendChild(card);
+      card.querySelector('.btn-edit').onclick = () => resumeDraft(d);
+      card.querySelector('.btn-delete').onclick = () => {
+        if (confirm(`「${d.title || d.slug}」を削除しますか？`)) {
+          deleteDraft(d, card);
+        }
+      };
+      grid.appendChild(card);
     });
   } catch(e) {
     body.innerHTML = `<div class="list-panel-empty">読み込み失敗: ${e.message}</div>`;
   }
 }
 
+async function deleteDraft(d, cardEl) {
+  try {
+    await fetch('delete-draft', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ brand: d.brand, number: d.number, slug: d.slug }),
+    });
+    cardEl.style.transition = 'opacity .3s, transform .3s';
+    cardEl.style.opacity = '0';
+    cardEl.style.transform = 'scale(0.95)';
+    setTimeout(() => cardEl.remove(), 300);
+    flashHint('記事を削除しました');
+  } catch(e) {
+    flashHint('削除に失敗しました');
+  }
+}
+
 async function resumeDraft(d) {
   closeDraftsPanel();
-  // HTML がある場合はそちらを fetch して復元
   let html = '';
   if (d.has_html) {
     try {
       const resp = await fetch(`/articles/${d.brand}/${d.number}_article_${d.slug}.html`);
       if (resp.ok) html = await resp.text();
-    } catch(e) { /* fallback to text */ }
+    } catch(e) { /* fallback */ }
   }
   openLive(d.brand);
   revealPreview();
-  // 復元時は HTML をそのままプレビューに表示（タイピング不要）
   resetLiveTyping();
   document.getElementById('wp-scroll').style.display = '';
   document.getElementById('wp-rte').innerHTML = html || `<p>（${d.title || d.slug} - 保存済み記事）</p>`;
@@ -2123,7 +2270,7 @@ async function resumeDraft(d) {
     html: html || '',
   };
   setStep(3);
-  document.getElementById('live-close').style.display = '';
+  document.getElementById('live-close').style.display   = '';
   document.getElementById('live-actions').style.display = '';
   document.getElementById('go-image').onclick = () => flashHint('画像は再生成時に差し込めます');
   document.getElementById('import-image').onclick = () => { document.getElementById('image-import-file').click(); };
@@ -2135,7 +2282,7 @@ async function resumeDraft(d) {
   flashHint(`「${d.title || d.slug}」を復元しました`);
 }
 
-/* ── 投稿済み一覧 ────────────────────────────────────── */
+/* ── 投稿済み一覧（NAS風カードグリッド） ─────────────── */
 function openPostsPanel() {
   const panel = document.getElementById('panel-posts');
   panel.classList.add('show');
@@ -2146,6 +2293,7 @@ function closePostsPanel() {
 }
 
 const STATUS_LABEL = { publish: '投稿済み', future: '予約投稿', draft: '下書き' };
+const STATUS_CLASS = { publish: 'publish', future: 'future', draft: 'draft' };
 
 async function loadPosts() {
   const body = document.getElementById('posts-body');
@@ -2156,24 +2304,37 @@ async function loadPosts() {
       body.innerHTML = '<div class="list-panel-empty">投稿済みの記事はまだありません。</div>';
       return;
     }
+    const countEl = document.getElementById('posts-count');
+    if (countEl) countEl.textContent = `${data.length} 件`;
+
     body.innerHTML = '<div class="posts-grid" id="posts-grid"></div>';
     const grid = document.getElementById('posts-grid');
+
     data.forEach(p => {
       const status = p.wp_status || 'publish';
       const statusLabel = STATUS_LABEL[status] || status;
-      const thumb = p.image_url
-        ? `<img class="post-card-thumb" src="${p.image_url}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="post-card-thumb-placeholder" style="display:none">🕐</div>`
-        : `<div class="post-card-thumb-placeholder">🕐</div>`;
-      const card = document.createElement('div');
+      const statusClass = STATUS_CLASS[status] || 'publish';
+      const hasImage = p.image_url && p.image_url.startsWith('http');
+      const thumbInner = hasImage
+        ? `<img class="post-card-thumb" src="${_escHtml(p.image_url)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="post-card-thumb-placeholder" style="display:none">${SVG_FILE}</div>`
+        : `<div class="post-card-thumb-placeholder">${SVG_FILE}</div>`;
+
+      const card = document.createElement('article');
       card.className = 'post-card';
       card.innerHTML = `
-        ${thumb}
+        <div class="post-card-thumb-wrap">
+          ${thumbInner}
+          <span class="post-status-badge ${statusClass}"><span class="draft-status-dot"></span>${statusLabel}</span>
+        </div>
         <div class="post-card-body">
-          <span class="post-status-badge ${status}">${statusLabel}</span>
-          <div class="post-card-meta">${p.date || p.logged_at || ''}&nbsp;·&nbsp;${p.char_count ? p.char_count.toLocaleString() + '字' : ''}&nbsp;·&nbsp;${p.brand || ''}</div>
-          <div class="post-card-title">${p.title || '（タイトル未設定）'}</div>
+          <div class="post-card-meta">
+            <span class="brand-tag">${_escHtml(p.brand || '')}</span>
+            <span>${_escHtml(p.date || p.logged_at || '')}</span>
+            ${p.char_count ? `<span>· ${p.char_count.toLocaleString()}文字</span>` : ''}
+          </div>
+          <div class="post-card-title">${_escHtml(p.title || '（タイトル未設定）')}</div>
           <div class="post-card-actions">
-            ${p.wp_link ? `<a href="${p.wp_link}" target="_blank" rel="noopener">WPで確認 ↗</a>` : ''}
+            ${p.wp_link ? `<a href="${_escHtml(p.wp_link)}" target="_blank" rel="noopener">WPで確認 ↗</a>` : ''}
           </div>
         </div>`;
       grid.appendChild(card);
@@ -2188,26 +2349,34 @@ document.getElementById('nav-saved').addEventListener('click', openDraftsPanel);
 document.getElementById('nav-posted').addEventListener('click', openPostsPanel);
 </script>
 
-<!-- 保存済み一覧パネル -->
+<!-- 保存済み一覧パネル（NAS風フルスクリーン） -->
 <div class="list-panel" id="panel-drafts" role="dialog" aria-modal="true">
   <div class="list-panel-inner">
     <div class="list-panel-header">
-      <h2>☰ 保存済み記事一覧</h2>
+      <div>
+        <h2>保存済み記事一覧</h2>
+        <div class="list-panel-header-sub">作成済み記事の確認・編集・投稿ができます</div>
+      </div>
       <button class="list-panel-close" onclick="closeDraftsPanel()">✕</button>
     </div>
+    <div class="list-panel-count" id="drafts-count"></div>
     <div class="list-panel-body" id="drafts-body">
       <div class="list-panel-empty">読み込み中…</div>
     </div>
   </div>
 </div>
 
-<!-- 投稿済み一覧パネル -->
+<!-- 投稿済み一覧パネル（NAS風フルスクリーン） -->
 <div class="list-panel" id="panel-posts" role="dialog" aria-modal="true">
   <div class="list-panel-inner">
     <div class="list-panel-header">
-      <h2>✓ 投稿済み記事一覧</h2>
+      <div>
+        <h2>投稿済み記事一覧</h2>
+        <div class="list-panel-header-sub">WordPress に投稿した記事の履歴</div>
+      </div>
       <button class="list-panel-close" onclick="closePostsPanel()">✕</button>
     </div>
+    <div class="list-panel-count" id="posts-count"></div>
     <div class="list-panel-body" id="posts-body">
       <div class="list-panel-empty">読み込み中…</div>
     </div>
