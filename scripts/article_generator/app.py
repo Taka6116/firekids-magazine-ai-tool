@@ -1255,7 +1255,14 @@ def markdown_to_wp_html(md: str) -> str:
             tbody = "".join(
                 "<tr>" + "".join(f"<td>{inline(c)}</td>" for c in r) + "</tr>" for r in rows
             )
-            out.append(f"<table><thead><tr>{thead}</tr></thead><tbody>{tbody}</tbody></table>")
+            table_html = (
+                '<!-- wp:table {"hasFixedLayout":true,"className":"is-style-stripes"} -->'
+                '<figure class="wp-block-table is-style-stripes"><table style="border-collapse:collapse;width:100%">'
+                f'<thead><tr>{thead}</tr></thead><tbody>{tbody}</tbody>'
+                '</table></figure>'
+                '<!-- /wp:table -->'
+            )
+            out.append(table_html)
             continue
         # 箇条書き
         if re.match(r"^[-*]\s+", s):
