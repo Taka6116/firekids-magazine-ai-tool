@@ -830,12 +830,50 @@ def propose_structure(brand_key: str, tone: str = "auto", item: dict | None = No
 この方向性を優先して企画してください。ただし事実確認できない内容、価格断定、個別商品URL、FK番号は使わないでください。
 """
 
-    cat_tone_map = {
-        "basic":  "教育的・体系的で、初心者にもわかりやすい解説記事",
-        "column": "個人的視点やエッセイ調で、読み物としての面白さがある記事",
-        "trend":  "市場動向・最新情報・ニュース性のある記事",
+    # カテゴリ別：トーン指示 + 実際の過去タイトル例（ベクトルフィルタに関係なく常に注入）
+    cat_style_examples = {
+        "basic": [
+            "ロレックス サブマリーナーとはどんな時計？初心者が知っておくべき基礎知識",
+            "ヴィンテージ時計の「Cal.」「Ref.」って何？基礎知識を体系的に解説",
+            "オメガ スピードマスターのムーブメントを徹底解説",
+        ],
+        "column": [
+            "FIRE KIDS顧問・野村氏が語る、36年のヴィンテージ時計人生",
+            "「考えたら負け」ヴィンテージ腕時計・菅藤サブの買い逃しが教えてくれたこと",
+            "ロレックスの敵分なんてもう言い？ 再評価が進むヴィンテージチューダー3選",
+        ],
+        "trend": [
+            "「昔は選ばなかった」でも今、大人になって刺さるヴィンテージ腕時計3選",
+            "「考えたら負け」ヴィンテージ腕時計・菅藤サブの買い逃しが教えてくれたこと",
+            "ヴィンテージ腕時計好きが最後に残す1本とは？「菅サブ」に行き着いた理由",
+            "気づいたら値近く？ 2025年に"本当に値上がりした"ヴィンテージ腕時計3選",
+            "ロレックスの敵分なんてもう言い？ 再評価が進むヴィンテージチューダー3選",
+        ],
     }
-    cat_directive = f"この記事は「{art_cat_jp}」カテゴリに掲載されます。{cat_tone_map.get(article_category, cat_tone_map['basic'])}を企画してください。"
+    cat_tone_desc = {
+        "basic":  "教育的・体系的で、初心者にもわかりやすく体系的な解説記事。丁寧で専門性のある文体。",
+        "column": "書き手の個人的体験・視点を前面に出したエッセイ調の読み物。語りかけるような文体。",
+        "trend":  (
+            "読者の感情・体験に寄り添った、エッセイ調の読み物記事。"
+            "「昔は選ばなかった」「考えたら負け」のような引用・体験談・エモーショナルな語り口で始まるタイトル。"
+            "「〇〇3選」「〇〇に行き着いた理由」「〇〇が教えてくれたこと」といった構造のタイトルが多い。"
+            "ニュース的・データ的な表現より、人の気持ちや実体験に基づいた語り口を優先する。"
+        ),
+    }
+
+    cat_examples = cat_style_examples.get(article_category, cat_style_examples["basic"])
+    cat_example_block = (
+        f"【「{art_cat_jp}」カテゴリの実際の記事タイトル例（このトーン・表現スタイルに必ず合わせること）】\n"
+        + "\n".join(f"・{t}" for t in cat_examples)
+        + "\n\n上記タイトルの『語り口・感情的な引き・構文・長さ感』を参考にして、"
+        "同じカテゴリに並んでも違和感のないタイトルを作ってください。\n"
+    )
+
+    cat_directive = (
+        f"この記事は「{art_cat_jp}」カテゴリに掲載されます。\n"
+        f"{cat_tone_desc.get(article_category, cat_tone_desc['basic'])}\n"
+        f"{cat_example_block}"
+    )
 
     prompt = f"""FIRE KIDS Magazine の「{brand_jp}」ブランド記事を1本企画してください。
 {cat_directive}
@@ -844,30 +882,42 @@ def propose_structure(brand_key: str, tone: str = "auto", item: dict | None = No
 {direction_block}
 {style_block}SEO 効果が高く、読者が具体的に求めているテーマを選んでください。
 
-以下の JSON 形式のみで出力してください（前後に説明文を付けない）:
-{{"title": "記事タイトル（｜FIRE KIDS Magazine は付けない・具体的なテーマを含む）",
+以下の JSON 形式のみで出力してください（前後に説明文・コードブロック記号を付けない）:
+{{"title": "記事タイトル（｜FIRE KIDS Magazine は付けない・カテゴリのスタイルに合わせた具体的なタイトル）",
   "tone": "選んだ記事タイプ（guide/verify/comparison/ranking のいずれか）",
   "h2s": ["見出し1", "見出し2", "見出し3", "見出し4", "見出し5", "見出し6"],
   "theme": "記事で扱う内容の詳細を2〜3文で",
-  "keywords": "キーワード1, キーワード2, キーワード3"}}"""
+  "keywords": "キーワード1, キーワード2, キーワード3"}}""
 
-    raw = invoke_claude(prompt, max_tokens=800)
-    m   = re.search(r"\{.*\}", raw, re.DOTALL)
-    if m:
+    def _parse_structure(raw: str) -> dict | None:
+        m = re.search(r"\{.*\}", raw, re.DOTALL)
+        if not m:
+            return None
         try:
             d = json.loads(m.group(0))
             chosen_tone = str(d.get("tone", "")).strip().lower()
             if chosen_tone not in TONE_LABELS:
                 chosen_tone = tone if not is_auto else "guide"
+            title = str(d.get("title", "")).strip()
+            if not title:
+                return None
             return {
-                "title":    str(d.get("title",    "")).strip(),
+                "title":    title,
                 "tone":     chosen_tone,
                 "h2s":      [str(h).strip() for h in d.get("h2s", []) if str(h).strip()],
                 "theme":    str(d.get("theme",    "")).strip(),
                 "keywords": str(d.get("keywords", "")).strip(),
             }
         except Exception:
-            pass
+            return None
+
+    for _attempt in range(2):
+        raw = invoke_claude(prompt, max_tokens=1000)
+        result = _parse_structure(raw)
+        if result:
+            return result
+        log.warning("propose_structure_parse_failed attempt=%s raw_snippet=%s", _attempt, raw[:120])
+
     return {"title": "", "tone": (tone if not is_auto else "guide"),
             "h2s": [], "theme": raw.strip()[:200], "keywords": ""}
 
@@ -1007,9 +1057,25 @@ def build_article_prompt(
 """
 
     cat_tone_map = {
-        "basic":  "この記事は「時計の基礎知識」カテゴリです。教育的・体系的で、時計初心者にもわかりやすく丁寧に解説してください。専門用語には簡潔な補足を添え、読者が体系的に知識を得られる構成にしてください。",
-        "column": "この記事は「コラム」カテゴリです。個人的視点やエッセイ調で、読み物として楽しめる文章にしてください。ライターの主観的な感想や考察を交え、読者の知的好奇心をくすぐる内容にしてください。",
-        "trend":  "この記事は「トレンド」カテゴリです。市場動向や最新情報に焦点を当て、ニュース性と速報感を意識した文章にしてください。データや具体的な事例を用いて、読者が「今」の市場を理解できるようにしてください。",
+        "basic": (
+            "この記事は「時計の基礎知識」カテゴリです。"
+            "教育的・体系的で、時計初心者にもわかりやすく丁寧に解説してください。"
+            "専門用語には簡潔な補足を添え、読者が体系的に知識を得られる構成にしてください。"
+        ),
+        "column": (
+            "この記事は「コラム」カテゴリです。"
+            "書き手の個人的体験・視点を前面に出したエッセイ調の読み物にしてください。"
+            "語りかけるような文体で、読者の共感を引き出す内容にしてください。"
+        ),
+        "trend": (
+            "この記事は「トレンド」カテゴリです。"
+            "読者の感情・体験に寄り添った、エッセイ調の読み物にしてください。"
+            "FIRE KIDS Magazineのトレンド記事は、ニュース的・データ的な記事ではなく、"
+            "「昔は選ばなかった」「考えたら負け」のような個人的な体験談や感情的な語り口が特徴です。"
+            "「〇〇3選」「〇〇に行き着いた理由」「〇〇が教えてくれたこと」といった構成で、"
+            "読者が「わかる、自分もそうだ」と共感できる内容・文体にしてください。"
+            "市場動向のデータを羅列するのではなく、人の気持ちや選択の物語として描いてください。"
+        ),
     }
     category_instruction = cat_tone_map.get(article_category, cat_tone_map["basic"])
 
