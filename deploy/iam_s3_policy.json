@@ -1,0 +1,41 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::firekids-magazine-generator-apne1-prod",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": [
+            "cache/*",
+            "inventory/*",
+            "images/*",
+            "index/*",
+            "drafts/*",
+            "posts_log/*",
+            "uploads/*"
+          ]
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:HeadObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::firekids-magazine-generator-apne1-prod/cache/*",
+        "arn:aws:s3:::firekids-magazine-generator-apne1-prod/inventory/*",
+        "arn:aws:s3:::firekids-magazine-generator-apne1-prod/images/*",
+        "arn:aws:s3:::firekids-magazine-generator-apne1-prod/index/*",
+        "arn:aws:s3:::firekids-magazine-generator-apne1-prod/drafts/*",
+        "arn:aws:s3:::firekids-magazine-generator-apne1-prod/posts_log/*",
+        "arn:aws:s3:::firekids-magazine-generator-apne1-prod/uploads/*"
+      ]
+    }
+  ]
+}

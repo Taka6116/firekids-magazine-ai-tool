@@ -1890,23 +1890,25 @@ def drafts():
                     continue
                 number, slug = m.group(1), m.group(2)
                 key = f"{brand_key}/{number}_{slug}"
-                if key not in entries:
-                    try:
-                        meta = json.loads(f.read_text(encoding="utf-8"))
-                        entries[key] = {
-                            "brand": meta.get("brand", brand_key),
-                            "number": meta.get("number", number),
-                            "slug": meta.get("slug", slug),
-                            "title": meta.get("title", slug.replace("-", " ").title()),
-                            "saved_at": meta.get("saved_at", ""),
-                            "has_txt": False,
-                            "has_html": meta.get("has_html", False),
-                            "char_count": meta.get("char_count", 0),
-                            "image_url": meta.get("image_url") or None,
-                            "excerpt": meta.get("excerpt", ""),
-                        }
-                    except Exception:
-                        pass
+                # メタ JSON は txt/html より優先。既存エントリにも上書きマージする
+                # （走査順により txt が先に処理されメタが無視されるバグの修正）
+                try:
+                    meta = json.loads(f.read_text(encoding="utf-8"))
+                except Exception:
+                    continue
+                e = entries.setdefault(key, {
+                    "brand": brand_key, "number": number, "slug": slug,
+                    "title": "", "saved_at": "", "has_txt": False,
+                    "has_html": False, "char_count": 0,
+                    "image_url": None, "excerpt": "",
+                })
+                e["brand"] = meta.get("brand", e["brand"])
+                e["title"] = meta.get("title") or slug.replace("-", " ").title()
+                e["saved_at"] = meta.get("saved_at") or e["saved_at"]
+                e["has_html"] = e["has_html"] or meta.get("has_html", False)
+                e["char_count"] = meta.get("char_count") or e["char_count"]
+                e["image_url"] = meta.get("image_url") or e["image_url"]
+                e["excerpt"] = meta.get("excerpt") or e["excerpt"]
                 continue
 
             m = re.match(r"^(\d+)_article_(.+)\.(txt|html)$", f.name)
