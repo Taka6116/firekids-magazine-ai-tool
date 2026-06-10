@@ -2887,42 +2887,45 @@ function _xUpdateCharCount() {
 
 /* 記事タイトルからクリックしたくなる X 投稿文を生成する */
 function _buildXText(title, link) {
-  // タイトルを分解してフック・本体・URLの3パート構成にする
-  // 例: 「地味すぎると思っていた。でも40代になってロレックス デイトジャストが一番かっこよく見えた理由」
-  //   → 冒頭に問いかけ or 共感フレーズ、中盤にテンション語、末尾にCTA
+  // タイトルのキーワードでパターン分類
+  const hasQuestion = /[？?]/.test(title);
+  const hasContrast = /でも|だけど|なのに|実は|意外|じつは|気づいたら|知らなかった|思っていた|笑って|刺さる|見えた|折られた/.test(title);
+  const hasTrend    = /トレンド|値上がり|注目|話題|今こそ|今が|選ぶ|選んだ/.test(title);
+  const hasBasic    = /基礎|とは|初心者|入門|知識|理由|なぜ|わかる/.test(title);
+  const hasAge      = /[2-9][0-9]代|年代/.test(title);
+  const hasYear     = /196[0-9]|197[0-9]|198[0-9]|昭和|ヴィンテージ/.test(title);
+  const hasSelection= /[2-9]選|[2-9]本|[2-9]つ/.test(title);
 
-  // ① タイトルに含まれる「疑問・逆説・数字」を拾ってフックに活かす
-  const hasQuestion  = /[？?]/.test(title);
-  const hasContrast  = /でも|だけど|なのに|実は|意外|じつは|気づいたら|知らなかった/.test(title);
-  const hasNumber    = /[0-9０-９一二三四五六七八九十百千万]+[個本件選年代]/.test(title);
-  const hasTrend     = /トレンド|今|2025|2026|値上がり|注目|話題/.test(title);
-  const hasBasic     = /基礎|とは|初心者|入門|知識/.test(title);
-
-  let hook = '';
-  if (hasQuestion) {
-    hook = 'あなたも気になっていませんか？\n\n';
+  // フック文（1〜2行の感情引っ掛かり）
+  let hook;
+  if (hasContrast && hasAge) {
+    hook = '年を重ねると、見え方が変わるものがある。';
   } else if (hasContrast) {
-    hook = '「そうじゃないかも」と思い始めた話。\n\n';
+    hook = '「違う」と思っていた、あの頃の自分へ。';
+  } else if (hasQuestion) {
+    hook = 'あなたはどっち派ですか？';
   } else if (hasTrend) {
-    hook = '今これを知らないと後悔するかも。\n\n';
+    hook = '今、静かに注目されている一本があります。';
+  } else if (hasSelection) {
+    hook = 'これだけ読んでおけばいい。厳選しました。';
+  } else if (hasYear) {
+    hook = '何十年も前の時計が、今なぜ刺さるのか。';
   } else if (hasBasic) {
-    hook = '意外と知らない人が多い話です。\n\n';
-  } else if (hasNumber) {
-    hook = 'この本数だけ読めば十分。\n\n';
+    hook = '知っているようで、意外と知らない話。';
   } else {
-    hook = 'FIRE KIDSが記事にしました。\n\n';
+    hook = '腕時計好きに読んでほしい記事ができました。';
   }
 
-  // ② タイトルを "引用符" で囲んで存在感を出す
-  const quotedTitle = `📝 ${title}`;
+  // 本文ライン（タイトルをそのまま引用符なしで自然に埋め込む）
+  const body = `\n\n📰 ${title}`;
 
-  // ③ CTA
-  const cta = `\n\n▶️ 続きを読む\n${link}`;
+  // CTA
+  const cta = `\n\n👉 ${link}`;
 
-  // ④ ハッシュタグ（brand タグはカードから取れないためここでは汎用）
+  // ハッシュタグ
   const tags = `\n\n#FIREKIDS #ヴィンテージ時計 #腕時計好きと繋がりたい`;
 
-  return hook + quotedTitle + cta + tags;
+  return hook + body + cta + tags;
 }
 
 function _xSelectPost(p, cardEl) {
