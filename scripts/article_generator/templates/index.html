@@ -1356,13 +1356,11 @@ textarea.direction-input {
 <!-- ─── Header ─────────────────────────────────────────── -->
 <header class="top-bar">
   <a class="top-bar-logo" href="/">
-    <div class="top-bar-logo-mark">FK</div>
     <span class="top-bar-logo-text">FIRE KIDS Magazine</span>
   </a>
   <span class="top-bar-breadcrumb">記事生成</span>
   <nav class="top-bar-actions">
     <a href="/">ダッシュボード</a>
-    <a href="../upload/">WP投稿</a>
     <a href="." class="cta">＋ 新規作成</a>
   </nav>
 </header>
@@ -3218,7 +3216,11 @@ async function loadXPosts() {
 document.getElementById('nav-saved').addEventListener('click', openDraftsPanel);
 document.getElementById('nav-posted').addEventListener('click', openPostsPanel);
 document.getElementById('nav-x').addEventListener('click', openXPanel);
-document.getElementById('nav-schedule').addEventListener('click', openSchedulePanel);
+// nav-schedule は panel-schedule HTML より前にあるため DOMContentLoaded で登録
+document.addEventListener('DOMContentLoaded', function() {
+  const btn = document.getElementById('nav-schedule');
+  if (btn) btn.addEventListener('click', openSchedulePanel);
+});
 </script>
 
 <!-- 保存済みプレビューモーダル -->
