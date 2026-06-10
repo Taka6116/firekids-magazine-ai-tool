@@ -1120,6 +1120,72 @@ textarea.direction-input {
 }
 .post-card-body { padding: 14px 16px; display: flex; flex-direction: column; flex: 1; }
 
+/* ── 保存済みプレビューモーダル ─────────────────────── */
+#draft-preview-modal {
+  display: none; position: fixed; inset: 0; z-index: 2500;
+  background: rgba(10,18,35,0.72); overflow-y: auto;
+}
+#draft-preview-modal.show { display: flex; align-items: flex-start; justify-content: center; }
+.dpm-inner {
+  background: #fff; width: 100%; max-width: 780px;
+  margin: 32px 16px 60px; border-radius: 20px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.28); overflow: hidden;
+}
+.dpm-topbar {
+  background: #8e1728; color: rgba(255,255,255,0.75);
+  font-size: 11px; text-align: center; padding: 6px 0; letter-spacing: 0.06em;
+}
+.dpm-header-bar {
+  background: #10213f; display: flex; align-items: center; justify-content: center;
+  padding: 14px 24px; position: relative;
+}
+.dpm-logo { color: #fff; font-family: "Cormorant Garamond", serif; font-size: 20px; letter-spacing: 0.1em; }
+.dpm-logo em { font-style: italic; opacity: 0.9; }
+.dpm-close-btn {
+  position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+  background: rgba(255,255,255,0.12); border: none; border-radius: 8px;
+  color: #fff; font-size: 16px; cursor: pointer; padding: 6px 12px;
+  transition: background .15s;
+}
+.dpm-close-btn:hover { background: rgba(255,255,255,0.22); }
+.dpm-hero {
+  width: 100%; aspect-ratio: 16/9; overflow: hidden; background: linear-gradient(135deg,#2a2a2a,#4a3f38);
+  display: flex; align-items: center; justify-content: center;
+}
+.dpm-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dpm-hero-placeholder { color: rgba(255,255,255,0.25); font-family:"Cormorant Garamond",serif; font-size:22px; letter-spacing:0.1em; }
+.dpm-body { padding: 30px 36px 50px; }
+@media (max-width: 600px) { .dpm-body { padding: 20px 18px 36px; } }
+.dpm-crumbs { font-size: 12px; color: #888; margin-bottom: 16px; }
+.dpm-crumbs span + span::before { content: " › "; color: #bbb; }
+.dpm-title { font-size: 22px; font-weight: 800; line-height: 1.5; margin-bottom: 12px; color: #10213f; }
+.dpm-meta { display: flex; gap: 14px; font-size: 12px; color: #888; margin-bottom: 24px; }
+.dpm-cat { color: #8e1728; }
+.dpm-rte { font-size: 15px; line-height: 2.0; color: #2a2a2a; }
+.dpm-rte h2 { font-size: 18px; font-weight: 700; margin: 32px 0 14px; border-left: 4px solid #8e1728; padding-left: 12px; }
+.dpm-rte h3 { font-size: 15px; font-weight: 700; margin: 24px 0 10px; }
+.dpm-rte p { margin: 0 0 16px; }
+.dpm-rte table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13.5px; }
+.dpm-rte th, .dpm-rte td { border: 1px solid #dde4ef; padding: 8px 12px; }
+.dpm-rte th { background: #10213f; color: #fff; font-weight: 700; }
+.dpm-rte tr:nth-child(even) td { background: #f5f7fb; }
+.dpm-actions {
+  display: flex; gap: 12px; padding: 20px 36px;
+  border-top: 1px solid #f0f2f7; background: #f9fbff;
+}
+.dpm-btn-edit {
+  flex: 1; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 700;
+  border: 1.5px solid #d0d8e8; background: #fff; color: #333; cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.dpm-btn-edit:hover { background: #f0f4fb; border-color: #b0bdce; }
+.dpm-btn-post {
+  flex: 2; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 700;
+  background: var(--accent, #e63d2e); color: #fff; border: none; cursor: pointer;
+  transition: filter .15s;
+}
+.dpm-btn-post:hover { filter: brightness(1.1); }
+
 /* ── X（Twitter）投稿パネル ─────────────────────────── */
 .x-compose-card {
   background: #fff; border: 1px solid rgba(20,44,92,0.11); border-radius: 16px;
@@ -2536,7 +2602,7 @@ function _buildDraftCard(d) {
       </div>
     </div>`;
 
-  card.querySelector('.draft-btn-resume').onclick = () => resumeDraft(d);
+  card.querySelector('.draft-btn-resume').onclick = () => openDraftPreview(d);
   card.querySelector('.btn-edit').onclick = () => resumeDraft(d);
   card.querySelector('.btn-delete').onclick = () => {
     if (confirm(`「${d.title || d.slug}」を削除しますか？`)) deleteDraft(d, card);
@@ -2591,6 +2657,108 @@ async function deleteDraft(d, cardEl) {
   }
 }
 
+/* ── 保存済み記事プレビューモーダル ────────────────────── */
+let _previewDraftRef = null;  // 現在プレビュー中のドラフト
+
+async function openDraftPreview(d) {
+  _previewDraftRef = d;
+  const modal = document.getElementById('draft-preview-modal');
+
+  // タイトル・メタ
+  document.getElementById('dpm-title').textContent       = d.title || d.slug;
+  document.getElementById('dpm-crumb-title').textContent = d.title || d.slug;
+  document.getElementById('dpm-brand').textContent       = d.brand || '';
+  const dateStr = d.saved_at ? d.saved_at.slice(0, 10).replace(/-/g, '.') : '';
+  document.getElementById('dpm-date').textContent  = dateStr;
+  document.getElementById('dpm-chars').textContent = d.char_count ? d.char_count.toLocaleString() + '文字' : '';
+
+  // サムネイル画像
+  const hero = document.getElementById('dpm-hero');
+  const existImg = hero.querySelector('img');
+  if (existImg) existImg.remove();
+  const placeholder = hero.querySelector('.dpm-hero-placeholder');
+  if (d.image_url && (d.image_url.startsWith('http') || d.image_url.startsWith('/'))) {
+    const img = document.createElement('img');
+    img.src = d.image_url;
+    img.alt = d.title || '';
+    if (placeholder) placeholder.style.display = 'none';
+    hero.appendChild(img);
+  } else {
+    if (placeholder) placeholder.style.display = '';
+  }
+
+  // 本文 HTML を取得
+  document.getElementById('dpm-rte').innerHTML = '<p style="color:#aaa;text-align:center;padding:40px 0">読み込み中…</p>';
+  modal.classList.add('show');
+  modal.scrollTop = 0;
+
+  let html = '';
+  if (d.has_html) {
+    try {
+      const resp = await fetch(`draft-content/${d.brand}/${d.number}_article_${d.slug}.html`);
+      if (resp.ok) html = await resp.text();
+    } catch(_) {}
+  }
+  document.getElementById('dpm-rte').innerHTML = html || `<p>（本文データがありません）</p>`;
+}
+
+function closeDraftPreview() {
+  document.getElementById('draft-preview-modal').classList.remove('show');
+}
+
+function closeDraftPreviewAndEdit() {
+  closeDraftPreview();
+  if (_previewDraftRef) resumeDraft(_previewDraftRef);
+}
+
+function closeDraftPreviewAndPost() {
+  closeDraftPreview();
+  closeDraftsPanel();
+  if (_previewDraftRef) {
+    const d = _previewDraftRef;
+    // 生成画面を開いて投稿パネルへ
+    (async () => {
+      let html = '';
+      if (d.has_html) {
+        try {
+          const resp = await fetch(`draft-content/${d.brand}/${d.number}_article_${d.slug}.html`);
+          if (resp.ok) html = await resp.text();
+        } catch(_) {}
+      }
+      openLive(d.brand);
+      revealPreview();
+      resetLiveTyping();
+      document.getElementById('wp-scroll').style.display = '';
+      document.getElementById('wp-rte').innerHTML = html || `<p>（${d.title || d.slug}）</p>`;
+      if (d.title) {
+        document.getElementById('wp-title').textContent = d.title;
+        document.getElementById('wp-crumb-title').textContent = d.title;
+      }
+      if (d.image_url && (d.image_url.startsWith('http') || d.image_url.startsWith('/'))) {
+        setPreviewImage(d.image_url, d.title || '');
+      }
+      currentResult = { title: d.title || d.slug, slug: d.slug, brand_key: d.brand, brand_jp: d.brand, article: html, html };
+      currentDraftRef = { brand: d.brand, number: d.number, slug: d.slug };
+      setStep(3);
+      document.getElementById('live-close').style.display   = '';
+      document.getElementById('live-actions').style.display = '';
+      document.getElementById('go-image').onclick = () => flashHint('画像は再生成時に差し込めます');
+      document.getElementById('import-image').onclick = () => { document.getElementById('image-import-file').click(); };
+      document.getElementById('image-import-file').onchange = (ev) => {
+        const file = ev.target.files && ev.target.files[0];
+        if (file) insertImageFromFile(file);
+      };
+      document.getElementById('go-post').onclick = () => openPostPanel();
+      openPostPanel();
+    })();
+  }
+}
+
+// Esc キーでモーダルを閉じる
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeDraftPreview();
+});
+
 async function resumeDraft(d) {
   closeDraftsPanel();
   let html = '';
@@ -2609,6 +2777,10 @@ async function resumeDraft(d) {
     document.getElementById('wp-title').textContent = d.title;
     document.getElementById('wp-crumb-title').textContent = d.title;
   }
+  // 保存済み画像をプレビューに反映
+  if (d.image_url && (d.image_url.startsWith('http') || d.image_url.startsWith('/'))) {
+    setPreviewImage(d.image_url, d.title || '');
+  }
   currentResult = {
     title: d.title || d.slug,
     slug: d.slug,
@@ -2617,6 +2789,7 @@ async function resumeDraft(d) {
     article: html || '',
     html: html || '',
   };
+  currentDraftRef = { brand: d.brand, number: d.number, slug: d.slug };
   setStep(3);
   document.getElementById('live-close').style.display   = '';
   document.getElementById('live-actions').style.display = '';
@@ -2777,6 +2950,36 @@ document.getElementById('nav-saved').addEventListener('click', openDraftsPanel);
 document.getElementById('nav-posted').addEventListener('click', openPostsPanel);
 document.getElementById('nav-x').addEventListener('click', openXPanel);
 </script>
+
+<!-- 保存済みプレビューモーダル -->
+<div id="draft-preview-modal" role="dialog" aria-modal="true">
+  <div class="dpm-inner">
+    <div class="dpm-topbar">ヴィンテージ時計の魅力を伝える専門メディア</div>
+    <div class="dpm-header-bar">
+      <span class="dpm-logo">FIRE KIDS <em>MAGAZINE</em></span>
+      <button class="dpm-close-btn" onclick="closeDraftPreview()">✕ 閉じる</button>
+    </div>
+    <div class="dpm-hero" id="dpm-hero">
+      <span class="dpm-hero-placeholder">FIRE KIDS Magazine</span>
+    </div>
+    <div class="dpm-body">
+      <div class="dpm-crumbs">
+        <span>トップ</span><span>すべての記事</span><span id="dpm-crumb-title">—</span>
+      </div>
+      <h1 class="dpm-title" id="dpm-title"></h1>
+      <div class="dpm-meta">
+        <span id="dpm-brand" class="brand-tag" style="font-size:10px;"></span>
+        <span id="dpm-date"></span>
+        <span id="dpm-chars"></span>
+      </div>
+      <div class="dpm-rte" id="dpm-rte"></div>
+    </div>
+    <div class="dpm-actions">
+      <button class="dpm-btn-edit" onclick="closeDraftPreviewAndEdit()">✎ 編集・投稿へ</button>
+      <button class="dpm-btn-post" onclick="closeDraftPreviewAndPost()">④ WordPressへ投稿する →</button>
+    </div>
+  </div>
+</div>
 
 <!-- 保存済み一覧パネル（NAS風フルスクリーン） -->
 <div class="list-panel" id="panel-drafts" role="dialog" aria-modal="true">
