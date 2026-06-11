@@ -31,7 +31,34 @@
 
 ## Phase 2: app.py 分割
 
-（作業時に追記）
+`scripts/article_generator/app.py`（2,260行）を計画どおり責務別に分割。関数本体は行単位でそのままコピーし、変更はヘッダー（docstring・import）のみ。
+
+| モジュール | 内容 | 行数 |
+|---|---|---|
+| `app.py` | Flask ルート定義のみ | 762 |
+| `state.py` | 定数（閾値・BRANDS等）・.env読み込み・ロギング・`_brand_records`/`_prioritized_cached_records` | 141 |
+| `auth.py` | `_require_login`（app.py が `app.before_request()` で登録） | 15 |
+| `jobs.py` | `JOBS` / `_JOB_LOCK` / `_cleanup_jobs` | 22 |
+| `bedrock_client.py` | `get_bedrock_client` / `invoke_claude` / `invoke_claude_stream` | 74 |
+| `embeddings.py` | `bedrock_embed` / `cosine` / embed 劣化状態 | 55 |
+| `formatting.py` | `title_to_slug` / `markdown_to_wp_html` | 118 |
+| `wp_scanner.py` | `scan_wordpress_posts` / `ensure_cache_fresh` / `strip_tags` / `extract_h2_sections` / `_SCAN_STATE` | 292 |
+| `overlap.py` | `check_overlap` / `check_ngram_overlap` / `sample_past_titles` | 137 |
+| `article_pipeline.py` | `propose_structure` / `revise_structure` / `build_article_prompt` / `generate_article` / `load_rules_context` | 560 |
+| `storage.py` | `save_article` / `_s3_client_simple` / `_restore_drafts_from_s3` / posts_log 永続化 | 115 |
+
+計画からの軽微な逸脱（理由付き）:
+- `_parse_modified` は計画では wp_scanner 行きだったが、`_prioritized_cached_records`（state）と wp_scanner の両方が使うため **state.py に配置**（循環 import 回避）。
+- `state.py` は計画の「共有状態は state.py 等に切り出す」に基づき、定数 + .env 読み込み + 共有レコードヘルパーを集約。
+- app.py は 762 行（目標 400 行以下に未達）。残りは全てルート関数本体（save_draft / drafts / patch_categories 等が大きい）。ルート本体のさらなる分離は挙動リスクがあるため見送り。
+- モジュールごとの個別コミットではなく、分割全体を 1 コミットとした（行範囲ベースの機械的コピーで一括生成し、分割後に pytest 16件 + ルート一覧照合 + `python app.py` 起動 + 認証付きスモーク（/, /ping, /inventory-items, /drafts, /scan-status, /posts-log 全て200）で検証済みのため）。
+
+互換性の保全:
+- `.env` 読み込み順序は維持（vector_store / inventory import → dotenv → 定数読み込み。state.py の import 時に分割前と同タイミングで実行）。
+- `sys.path.insert` ハックは app.py に維持（`deploy/wsgi.py` の `from article_generator.app import app` 経路を検証済み）。
+- `embed_all.py` が `from app import ArticleVectorStore, EMBED_MODEL_ID, bedrock_embed, extract_h2_sections, strip_tags` するため、app.py に再エクスポートを維持。
+- テストの monkeypatch 対象を `app._prioritized_cached_records` → `overlap._prioritized_cached_records` に変更（実体の移動に伴う調整。挙動は不変）。
+- ルート一覧照合テスト（`tests/test_routes.py`）を追加し Phase 0 記録と完全一致を機械検証。
 
 ## Phase 3: WP系ツールの重複解消
 

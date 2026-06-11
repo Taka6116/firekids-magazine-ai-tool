@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 import app
+import overlap
 
 SNAPSHOTS = json.loads((Path(__file__).parent / "_snapshots.json").read_text(encoding="utf-8"))
 
@@ -95,7 +96,8 @@ def test_check_ngram_overlap_flags_identical_text(monkeypatch):
         {"title": "過去記事A", "url": "https://example.com/a", "body_snippet": body},
         {"title": "過去記事B", "url": "https://example.com/b", "body_snippet": "全く別の内容です。" * 10},
     ]
-    monkeypatch.setattr(app, "_prioritized_cached_records", lambda *a, **k: records)
+    # Phase 2 以降、check_ngram_overlap の実体は overlap モジュールにある
+    monkeypatch.setattr(overlap, "_prioritized_cached_records", lambda *a, **k: records)
 
     flagged = app.check_ngram_overlap(body, "ROLEX")
     assert len(flagged) == 1
@@ -104,5 +106,5 @@ def test_check_ngram_overlap_flags_identical_text(monkeypatch):
 
 
 def test_check_ngram_overlap_empty_input(monkeypatch):
-    monkeypatch.setattr(app, "_prioritized_cached_records", lambda *a, **k: [])
+    monkeypatch.setattr(overlap, "_prioritized_cached_records", lambda *a, **k: [])
     assert app.check_ngram_overlap("", "ROLEX") == []
