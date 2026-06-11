@@ -86,3 +86,26 @@
   - `parseNumberSlug()` を新設（両ページで重複していた `^(\d+)_(.+)$` パースを共通化）
 - 検証: `npm run build` 成功。生成ルート一覧（7 ルート + SSG 15 ブランドパス）・チャンクサイズとも Phase 0 の記録と完全一致。
 - コンポーネントの型は `ReturnType<typeof validateArticle>` → `ValidationResult`、`ReturnType<typeof getArticleContent>` → `ArticleContent | null` に明示化（同一型のエイリアス解決のみ）。
+
+## Phase 5: 最終検証（結果）
+
+- pytest: **16 件全パス**（純粋関数スナップショット 12 + ルート一覧照合・認証フック 4）
+- `npm run build`: **成功**。生成ルート一覧は Phase 0 の初回記録と完全一致。
+- `ruff check --select F401,F841,F821`: **新規エラーゼロ**（scripts/ 全体 + generate_html_batch.py + tests/）
+- `npm run lint`: ESLint 未設定のため実行不可（Phase 0 から変化なし・要確認）
+- 全 Flask アプリのローカル起動確認:
+  - article_generator: `python app.py` 起動 → 認証付きで `/`, `/ping`, `/inventory-items`, `/drafts`, `/scan-status`, `/posts-log` すべて 200
+  - wp_uploader_local: 起動 → `/ping` 200 / `/health` 200（実WP認証 ok・writer 検出）
+  - wp_unpublisher_local: 起動 → `/health` 200（実WP認証 ok）
+  - 本番経路 `deploy/wsgi.py` の composite import（DispatcherMiddleware）も成功
+- S3 ドラフト復元も分割後コードで実動作を確認（`/drafts` 初回アクセス時に 1 件復元）
+
+## 「要確認」事項の一覧（人間レビュー用）
+
+1. **ESLint 未設定**: `npm run lint` が対話プロンプトで停止する。`.eslintrc` 追加は挙動変更ではないが設定追加のためスコープ外とした。
+2. **`src/lib/articles.ts` の TS テスト不在**: pytest では検証不可。vitest 等の導入は「依存を増やさない」制約によりスキップ。
+3. **GAS の新旧併存**: `Code.v2.gs` は v1 と「共存」設計（ヘッダー明記）のため archive 移動は実施せず。
+4. **`generate_seiko_html.py` の `in_faq` 潜在バグ**: FAQ 抽出がセクション終了（`---`）を考慮しないまま稼働。死に変数は削除済み・挙動は不変。
+5. **unpublisher の `auth()`**: Application Password のスペースを除去しない（uploader は除去）。現在のパスワードにスペースが無いため動作している。
+6. **HTML一括生成の重複**: `generate_html_batch.py` と `scripts/generate_seiko_html.py` は出力フォーマットが異なるため統合せず（統合するとバイト互換が壊れる）。
+7. **app.py 行数**: 分割後 762 行（目標 400 行以下に未達）。残りは全てルート関数本体。
