@@ -5,10 +5,17 @@ WordPress 記事 非公開化ローカルツール
 """
 import os
 import sys
+from pathlib import Path
 from urllib.parse import urlparse, unquote
 from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
 import requests
+
+# 共通モジュール wp_common を、ローカル実行（cwd=このフォルダ）と
+# 本番（wsgi がパッケージ読み込み）の両方で import できるよう scripts/ を追加。
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from wp_common.wp_client import fetch_me  # noqa: E402
 
 # .env: wp_uploader_local 側を優先で読む（既存の認証情報を共有）
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -99,7 +106,7 @@ def health():
     if not WP_API_URL or not WP_USERNAME or not WP_APP_PASSWORD:
         return jsonify({'ok': False, 'error': '.envが設定されていません (WP_API_URL/WP_USERNAME/WP_APP_PASSWORD)'}), 500
     try:
-        r = requests.get(f'{WP_API_URL}/wp-json/wp/v2/users/me', auth=auth(), timeout=10)
+        r = fetch_me(WP_API_URL, auth(), timeout=10)
         if r.status_code == 200:
             u = r.json()
             return jsonify({'ok': True, 'site': WP_API_URL, 'user': u.get('name')})

@@ -62,7 +62,17 @@
 
 ## Phase 3: WP系ツールの重複解消
 
-（作業時に追記）
+- `scripts/wp_common/wp_client.py` を新設し、WordPress REST API 共通処理を抽出:
+  - `WP_HEADERS`（XSERVER WAF 対策のブラウザ UA）
+  - `build_auth`（Application Password のスペース除去）
+  - `fetch_me`（/users/me 認証確認。headers/timeout をパラメータ化し各アプリの従来リクエスト形状を維持）
+  - `get_or_create_tag` / `get_category_id_by_name` / `find_user_id_by_keyword` / `upload_media_from_url`（base_url/auth/headers をパラメータ化）
+- `wp_uploader_local/app.py`: 上記を import し、既存関数は同シグネチャのラッパーとして残した（ルート側のコードは無変更）。
+- `wp_unpublisher_local/app.py`: `/health` の users/me 呼び出しを `fetch_me` に置換（timeout=10・ヘッダー無しの従来形状を維持）。
+- 両アプリに `sys.path.insert(0, scripts/)` を追加（ローカル実行と wsgi パッケージ読み込みの両対応。article_generator と同方式）。
+- `.env` の読み込みパス・順序は両アプリとも無変更。
+- 動作確認: 両アプリの全ルート維持を確認。uploader をローカル起動し `/ping`（200, pong:true）`/health`（200, ok:true, writer_user_found:true ← 実WPへの認証・ユーザー検索成功）`/wp-config`（200）を確認。unpublisher も `/health` が ok:true。
+- **要確認（潜在的な非一貫性の記録）**: unpublisher の `auth()` は Application Password のスペースを除去しない（uploader は除去する）。現在の .env のパスワードにスペースが無いため動作している。挙動保存のため統一はしていない。
 
 ## Phase 4: Next.js 整理
 
