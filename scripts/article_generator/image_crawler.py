@@ -260,6 +260,42 @@ def fetch_fk_record(
     return None
 
 
+def fetch_images_for_listing(query: str = "", limit: int = 5, max_pages: int = 3) -> list[dict]:
+    """テーマ記事用: フィルタ条件（query）に一致する商品一覧から画像候補を取得する。
+
+    特定の1本の在庫商品に依存せず、firekids.jp/products/list の実際の絞り込み結果
+    （status[]=1 で在庫ありのみ）を巡回して FK・画像URL・商品名を抽出する。
+    query は "category_tag_id[]=10&decade[]=11" のようなクエリ文字列（URLエンコード済み・UTM抜き）。
+
+    Returns:
+        list[dict] — 最大 limit 件（重複 FK は除去、見つかった順）。
+    """
+    fk_brand_map = _build_fk_brand_map()
+    results: dict[str, dict] = {}
+
+    for page in range(1, max_pages + 1):
+        base = f"{BASE_URL}?status[]=1"
+        if query:
+            base += f"&{query}"
+        url = f"{base}&pageno={page}"
+        try:
+            html = _fetch(url)
+        except Exception as e:
+            log.warning("fetch_images_for_listing_error query=%s page=%d err=%s", query, page, e)
+            break
+
+        for block in _extract_product_blocks(html):
+            parsed = _parse_block(block, fk_brand_map)
+            if parsed and parsed.get("main_image_url"):
+                results.setdefault(parsed["fk_id"], parsed)
+
+        if len(results) >= limit or not _has_next_page(html):
+            break
+        time.sleep(random.uniform(SLEEP_MIN, SLEEP_MAX))
+
+    return list(results.values())[:limit]
+
+
 def _has_next_page(html: str) -> bool:
     # firekids.jp は "次へ" テキストリンクでページネーションを示す
     # 「次へ」または pageno=N+1 へのリンクが存在するかで判定

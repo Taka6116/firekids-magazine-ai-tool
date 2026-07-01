@@ -454,6 +454,76 @@ def clear_image_index_cache() -> None:
     _image_index_cache = None
 
 
+def select_feature_image_for_facets(candidates: list[dict]) -> dict | None:
+    """テーマ記事用: EC 絞り込み結果の候補から、最も情報量の多い1件を決定的に選ぶ。
+
+    在庫 CSV に同一 FK があればそのスペック充実度（_feature_score）で評価し、
+    無ければ商品名の情報量をフォールバック指標にする。同点時は FK 昇順で安定させる。
+    """
+    if not candidates:
+        return None
+    inv_by_fk = {i["fk_id"]: i for i in load_inventory()}
+
+    def rank(c: dict) -> tuple:
+        inv_item = inv_by_fk.get(c.get("fk_id", ""))
+        base_score = _feature_score(inv_item)[0] if inv_item else 0
+        name_len = len(c.get("name", "") or "")
+        try:
+            fk_num = int(re.sub(r"\D", "", c.get("fk_id", "0")) or 0)
+        except ValueError:
+            fk_num = 0
+        return (1 if inv_item else 0, base_score, name_len, -fk_num)
+
+    return max(candidates, key=rank)
+
+
+def fetch_theme_image(
+    brand_key: str = "",
+    styles: list[str] | None = None,
+    genders: list[str] | None = None,
+    decades: list[str] | None = None,
+    model_query: str = "",
+    min_price=None,
+    max_price=None,
+    limit: int = 5,
+) -> dict | None:
+    """テーマ記事（時計を選ばない）用: 選択したファセットに一致する商品を EC 上で検索し、
+    最も情報量の多い1件の画像メタを返す。
+
+    在庫 CSV にはスタイル/性別の軸が無いため、firekids.jp 側の実際の絞り込み結果を使う
+    （fetch_image_for_item と同じ「EC から画像を取得する」手法をテーマ記事向けに拡張したもの）。
+    見つからなければ None（記事生成は画像なしで続行する）。
+    """
+    try:
+        from facets import build_facet_query_string  # type: ignore
+        from image_crawler import fetch_images_for_listing  # type: ignore
+    except ImportError:
+        try:
+            from scripts.article_generator.facets import build_facet_query_string
+            from scripts.article_generator.image_crawler import fetch_images_for_listing
+        except Exception:
+            return None
+
+    query = build_facet_query_string(
+        brand_key=brand_key, styles=styles, genders=genders, decades=decades,
+        model_query=model_query, min_price=min_price, max_price=max_price,
+    )
+    try:
+        candidates = fetch_images_for_listing(query, limit=limit)
+    except Exception:
+        return None
+
+    best = select_feature_image_for_facets(candidates)
+    if not best:
+        return None
+
+    return {
+        "s3_key":     "",
+        "source_url": best.get("main_image_url", ""),
+        "alt":        best.get("name", "") or "",
+    }
+
+
 def fetch_image_for_item(item: dict) -> dict | None:
     """主役商品の画像メタを返す。インデックスに無ければ EC からその FK だけ再取得する。
 

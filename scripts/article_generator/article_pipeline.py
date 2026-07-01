@@ -7,8 +7,9 @@ from bedrock_client import invoke_claude, invoke_claude_stream
 from embeddings import embedding_degraded, reset_embed_state
 from facets import build_facet_cta_url, facet_labels, has_any_facet
 from formatting import markdown_to_wp_html, title_to_slug
-from inventory import (fetch_image_for_item, find_by_fk, format_for_prompt,
-                       inventory_summary, select_feature_item, summarize_item)
+from inventory import (fetch_image_for_item, fetch_theme_image, find_by_fk,
+                       format_for_prompt, inventory_summary, select_feature_item,
+                       summarize_item)
 from overlap import check_ngram_overlap, check_overlap, sample_past_titles
 from state import (ARTICLE_CATEGORIES, BRANDS, MAX_REGEN_RETRIES, ROOT,
                    TONE_CHARS, TONE_LABELS, InventoryMissingError, log)
@@ -529,12 +530,21 @@ def generate_article(brand_key: str, tone: str = "auto", fk_id: str = "",
 
     facet_desc = ""
     cta_override = ""
+    theme_image_meta: dict | None = None
     if facet_mode:
         facet_desc = "・".join(facet_labels(styles, genders, decades, model_query, min_price, max_price))
         cta_override = build_facet_cta_url(
             brand_key=brand_key, styles=styles, genders=genders, decades=decades,
             model_query=model_query, min_price=min_price, max_price=max_price,
         )
+        stage("条件に合う商品の画像を確認しています…", "image_fetch")
+        try:
+            theme_image_meta = fetch_theme_image(
+                brand_key=brand_key, styles=styles, genders=genders, decades=decades,
+                model_query=model_query, min_price=min_price, max_price=max_price,
+            )
+        except Exception:
+            theme_image_meta = None
 
     stage("被らないテーマ・構成を考えています…", "prompt_build")
     direction = (direction or "").strip()[:500]
@@ -581,6 +591,8 @@ def generate_article(brand_key: str, tone: str = "auto", fk_id: str = "",
             image_meta = img
         # プレースホルダーを本文から除去（CDN URL 直貼りは避ける）
         article = article.replace(image_placeholder, "")
+    elif theme_image_meta:
+        image_meta = theme_image_meta
 
     stage("仕上げチェック中…")
     slug         = title_to_slug(title)

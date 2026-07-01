@@ -83,7 +83,7 @@ def facet_labels(
     return labels
 
 
-def build_facet_cta_url(
+def _build_params(
     brand_key: str = "",
     styles: list[str] | None = None,
     genders: list[str] | None = None,
@@ -91,12 +91,8 @@ def build_facet_cta_url(
     model_query: str = "",
     min_price=None,
     max_price=None,
-) -> str:
-    """ファセット条件から firekids.jp の商品一覧URL（UTM付き）を組み立てる。
-
-    brand_key が BRANDS に無い/空（="THEME"等）の場合は category_id を付けず、
-    カテゴリ横断のテーマ記事として扱う。
-    """
+) -> list[str]:
+    """firekids.jp/products/list の検索クエリパラメータ一覧を組み立てる（UTM抜き・共通ロジック）。"""
     params: list[str] = []
 
     cat_id = BRANDS.get(brand_key or "", {}).get("category_id")
@@ -127,5 +123,36 @@ def build_facet_cta_url(
     if hi:
         params.append(f"max_price={hi}")
 
+    return params
+
+
+def build_facet_cta_url(
+    brand_key: str = "",
+    styles: list[str] | None = None,
+    genders: list[str] | None = None,
+    decades: list[str] | None = None,
+    model_query: str = "",
+    min_price=None,
+    max_price=None,
+) -> str:
+    """ファセット条件から firekids.jp の商品一覧URL（UTM付き）を組み立てる。
+
+    brand_key が BRANDS に無い/空（="THEME"等）の場合は category_id を付けず、
+    カテゴリ横断のテーマ記事として扱う。
+    """
+    params = _build_params(brand_key, styles, genders, decades, model_query, min_price, max_price)
     params.append(CTA_UTM_ARTICLE)
     return "https://firekids.jp/products/list?" + "&".join(params)
+
+
+def build_facet_query_string(
+    brand_key: str = "",
+    styles: list[str] | None = None,
+    genders: list[str] | None = None,
+    decades: list[str] | None = None,
+    model_query: str = "",
+    min_price=None,
+    max_price=None,
+) -> str:
+    """テーマ記事の画像候補クロール用の生クエリ文字列（UTMなし）。ファセット未指定なら空文字。"""
+    return "&".join(_build_params(brand_key, styles, genders, decades, model_query, min_price, max_price))

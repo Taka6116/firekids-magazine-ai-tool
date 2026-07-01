@@ -279,6 +279,87 @@ def test_facet_labels_price_only():
     assert facets.facet_labels(styles=["dress"], genders=["womens"]) == ["ドレスウォッチ", "女性"]
 
 
+def test_build_facet_query_string_matches_cta_params_without_utm():
+    import facets
+
+    query = facets.build_facet_query_string(
+        brand_key="OMEGA", styles=["diver"], genders=["mens"], decades=["1970s"],
+        model_query="シーマスター", min_price=100000, max_price=300000,
+    )
+    assert "utm_source" not in query
+    assert query == (
+        "category_id=9&category_tag_id[]=10&watch_gender[]=1&decade[]=8"
+        "&name=%E3%82%B7%E3%83%BC%E3%83%9E%E3%82%B9%E3%82%BF%E3%83%BC"
+        "&min_price=100000&max_price=300000"
+    )
+
+
+def test_build_facet_query_string_empty_when_no_facets():
+    import facets
+
+    assert facets.build_facet_query_string() == ""
+
+
+# ─── テーマ記事用の画像候補選定（inventory.select_feature_image_for_facets） ────
+
+def test_select_feature_image_for_facets_empty_candidates(monkeypatch):
+    import inventory
+
+    assert inventory.select_feature_image_for_facets([]) is None
+
+
+def test_select_feature_image_for_facets_prefers_inventory_matched_richer_item(monkeypatch):
+    import inventory
+
+    monkeypatch.setattr(inventory, "load_inventory", lambda: [
+        {"fk_id": "FK000001", "model": "スピードマスター", "era": "1960",
+         "ref": "145.022", "cal": "861", "list_price": "500000", "notes": "美品",
+         "is_listed": True},
+    ])
+    candidates = [
+        {"fk_id": "FK000002", "name": "セイコー キングセイコー", "main_image_url": "https://cdn.firekids.jp/products/2/a.jpg"},
+        {"fk_id": "FK000001", "name": "オメガ スピードマスター", "main_image_url": "https://cdn.firekids.jp/products/1/b.jpg"},
+    ]
+    best = inventory.select_feature_image_for_facets(candidates)
+    assert best["fk_id"] == "FK000001"
+
+
+def test_select_feature_image_for_facets_falls_back_to_name_length(monkeypatch):
+    import inventory
+
+    monkeypatch.setattr(inventory, "load_inventory", lambda: [])
+    candidates = [
+        {"fk_id": "FK000002", "name": "セイコー", "main_image_url": "https://cdn.firekids.jp/products/2/a.jpg"},
+        {"fk_id": "FK000001", "name": "オメガ スピードマスター プロフェッショナル", "main_image_url": "https://cdn.firekids.jp/products/1/b.jpg"},
+    ]
+    best = inventory.select_feature_image_for_facets(candidates)
+    assert best["fk_id"] == "FK000001"
+
+
+def test_fetch_theme_image_returns_none_when_no_candidates(monkeypatch):
+    import inventory
+    import image_crawler
+
+    monkeypatch.setattr(image_crawler, "fetch_images_for_listing", lambda *a, **k: [])
+    assert inventory.fetch_theme_image(styles=["diver"]) is None
+
+
+def test_fetch_theme_image_maps_best_candidate_to_image_meta(monkeypatch):
+    import inventory
+    import image_crawler
+
+    monkeypatch.setattr(inventory, "load_inventory", lambda: [])
+    monkeypatch.setattr(image_crawler, "fetch_images_for_listing", lambda *a, **k: [
+        {"fk_id": "FK000001", "name": "オメガ シーマスター", "main_image_url": "https://cdn.firekids.jp/products/1/a.jpg"},
+    ])
+    result = inventory.fetch_theme_image(styles=["diver"], decades=["1970s"])
+    assert result == {
+        "s3_key": "",
+        "source_url": "https://cdn.firekids.jp/products/1/a.jpg",
+        "alt": "オメガ シーマスター",
+    }
+
+
 def test_cta_url_without_category_id_still_renders_as_button():
     """category_id を含まないファセット限定CTAでも wp:buttons に変換されること。"""
     facet_url = (
