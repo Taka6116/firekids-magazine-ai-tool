@@ -186,8 +186,18 @@ def _read_s3() -> str | None:
         return None
     try:
         obj = _s3_client().get_object(Bucket=bucket, Key=key)
-        return _decode(obj["Body"].read())
-    except Exception:
+        content = _decode(obj["Body"].read())
+        if content:
+            import logging
+            logging.getLogger(__name__).info(
+                "inventory_s3_loaded bucket=%s key=%s", bucket, key
+            )
+        return content
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(
+            "inventory_s3_read_error bucket=%s key=%s err=%s", bucket, key, e
+        )
         return None
 
 
@@ -436,3 +446,48 @@ def get_image_for_item(item: dict) -> dict | None:
         "source_url": source_url,
         "alt":        alt,
     }
+
+
+def clear_image_index_cache() -> None:
+    """fk_image_index のメモリキャッシュを破棄する（オンデマンド更新後に使用）。"""
+    global _image_index_cache
+    _image_index_cache = None
+
+
+def fetch_image_for_item(item: dict) -> dict | None:
+    """主役商品の画像メタを返す。インデックスに無ければ EC からその FK だけ再取得する。
+
+    別 FK・別商品の画像にはフォールバックしない（記事の主役商品と一致する画像のみ）。
+    """
+    img = get_image_for_item(item)
+    if img:
+        return img
+
+    fk_id = item.get("fk_id", "")
+    if not fk_id:
+        return None
+
+    try:
+        from image_crawler import fetch_fk_record  # type: ignore
+        from image_store import upsert_fk_record  # type: ignore
+    except ImportError:
+        try:
+            from scripts.article_generator.image_crawler import fetch_fk_record
+            from scripts.article_generator.image_store import upsert_fk_record
+        except Exception:
+            return None
+
+    display_name = " ".join(
+        p for p in [item.get("brand_raw", ""), item.get("model", "")] if p
+    )
+    record = fetch_fk_record(
+        fk_id,
+        brand_key=item.get("brand_key", "OTHER"),
+        name=display_name,
+    )
+    if not record or not record.get("main_image_url"):
+        return None
+
+    upsert_fk_record(record)
+    clear_image_index_cache()
+    return get_image_for_item(item)

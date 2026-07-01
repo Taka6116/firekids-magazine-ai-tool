@@ -57,8 +57,8 @@ from inventory import get_in_stock, inventory_summary, reload_from_bytes  # noqa
 
 # .env の読み込み（分割前と同じタイミング・順序）は state モジュールの import 時に行われる。
 # vector_store / inventory は分割前と同様 .env 読み込みより前に import する。
-from state import (ARTICLE_CATEGORIES, BRANDS, EMBED_MODEL_ID, LOOKBACK_DAYS,  # noqa: E402
-                   ROOT, TONES, InventoryMissingError, log)
+from state import (ARTICLE_CATEGORIES, BRANDS, DECADES, EMBED_MODEL_ID, GENDERS,  # noqa: E402
+                   LOOKBACK_DAYS, ROOT, TONES, WATCH_STYLES, InventoryMissingError, log)
 from auth import _require_login  # noqa: E402
 from jobs import JOBS, _JOB_LOCK, _cleanup_jobs  # noqa: E402
 from embeddings import bedrock_embed, cosine  # noqa: F401, E402  （テスト・embed_all.py 互換の再エクスポート）
@@ -77,11 +77,35 @@ app.secret_key = os.getenv("APP_SECRET_KEY", "firekids-default-secret-change-me"
 app.before_request(_require_login)
 
 
+def _preload_inventory() -> None:
+    """起動時にバックグラウンドで在庫データを S3 から先読みする。
+    失敗してもアプリ起動はブロックしない。リトライは最大3回。"""
+    from inventory import load_inventory  # noqa: E402
+    for attempt in range(3):
+        try:
+            items = load_inventory(force=(attempt > 0))
+            if items:
+                log.info("inventory_preloaded count=%d attempt=%d", len(items), attempt + 1)
+                return
+        except Exception as e:
+            log.warning("inventory_preload_error attempt=%d err=%s", attempt + 1, e)
+        if attempt < 2:
+            time.sleep(2 ** attempt)  # 1s, 2s
+    log.warning("inventory_preload_failed all attempts exhausted")
+
+
+# 起動直後にバックグラウンドで在庫をロード（S3 接続遅延を吸収するため非同期）
+threading.Thread(target=_preload_inventory, daemon=True, name="inventory-preload").start()
+
+
 # ─── Flask ルーティング ───────────────────────────────────────────────────────
 
 @app.route("/")
 def index():
-    return render_template("index.html", brands=BRANDS, tones=TONES, article_categories=ARTICLE_CATEGORIES)
+    return render_template(
+        "index.html", brands=BRANDS, tones=TONES, article_categories=ARTICLE_CATEGORIES,
+        watch_styles=WATCH_STYLES, genders=GENDERS, decades=DECADES,
+    )
 
 
 @app.route("/generate", methods=["POST"])
@@ -101,7 +125,18 @@ def generate():
     article_cat = data.get("article_category", "basic")
     if article_cat not in ARTICLE_CATEGORIES:
         article_cat = "basic"
-    mode        = "inventory" if fk_id else "brand"
+
+    # テーマ記事（時計を選ばない）用ファセット。未知のキーは無視する。
+    styles      = [s for s in (data.get("styles") or []) if s in WATCH_STYLES]
+    genders     = [g for g in (data.get("genders") or []) if g in GENDERS]
+    decade_keys = {d["key"] for d in DECADES}
+    decades     = [d for d in (data.get("decades") or []) if d in decade_keys]
+    model_query = str(data.get("model_query", "") or "").strip()[:80]
+    min_price   = data.get("min_price")
+    max_price   = data.get("max_price")
+    facet_mode  = bool(styles or genders or decades or model_query or min_price or max_price)
+
+    mode        = "facet" if facet_mode else ("inventory" if fk_id else "brand")
 
     job_id = str(uuid.uuid4())
     with _JOB_LOCK:
@@ -113,8 +148,10 @@ def generate():
             "stage":      "生成を開始しています…",
             "partial":    "",
         }
-    log.info("job_created job_id=%s brand=%s mode=%s article_cat=%s direction_set=%s",
-             job_id, brand_key, mode, article_cat, bool(direction))
+    log.info("job_created job_id=%s brand=%s mode=%s article_cat=%s direction_set=%s facets=%s",
+             job_id, brand_key, mode, article_cat, bool(direction),
+             {"styles": styles, "genders": genders, "decades": decades,
+              "model_query": bool(model_query), "min_price": min_price, "max_price": max_price})
 
     def _run(jid: str, bk: str, t: str, fk: str, dir_text: str, art_cat: str) -> None:
         def on_stage(msg: str, stage_id: str = "") -> None:
@@ -135,6 +172,8 @@ def generate():
                 bk, t, fk_id=fk, on_stage=on_stage, on_chunk=on_chunk,
                 allow_no_inventory=allow_no_inv, direction=dir_text,
                 article_category=art_cat,
+                styles=styles, genders=genders, decades=decades,
+                model_query=model_query, min_price=min_price, max_price=max_price,
             )
             with _JOB_LOCK:
                 JOBS[jid]["status"] = "done"

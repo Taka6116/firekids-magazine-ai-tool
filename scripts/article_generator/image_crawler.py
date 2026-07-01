@@ -171,6 +171,95 @@ def _parse_block(block: str, fk_brand_map: dict) -> dict | None:
     }
 
 
+def _fk_to_product_id(fk_id: str) -> str:
+    """FK014781 → 14781（EC 商品詳細 URL 用）。変換不能なら空文字。"""
+    if not re.match(r"^FK\d+$", fk_id):
+        return ""
+    try:
+        return str(int(fk_id.replace("FK", "")))
+    except ValueError:
+        return ""
+
+
+def _record_from_detail_html(
+    html: str, fk_id: str, brand_key: str, name: str, product_id: str,
+) -> dict | None:
+    """商品詳細 HTML から FK が一致する場合のみレコードを返す。"""
+    if fk_id not in html:
+        return None
+    img_match = CDN_PATTERN.search(html)
+    if not img_match:
+        return None
+    main_image_url = img_match.group(1)
+    page_name = img_match.group(4) or name
+    return {
+        "fk_id":          fk_id,
+        "product_id":     product_id,
+        "brand_key":      brand_key,
+        "name":           page_name or name,
+        "main_image_url": main_image_url,
+        "crawled_at":     datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+
+
+def _fetch_from_detail_page(fk_id: str, brand_key: str, name: str = "") -> dict | None:
+    """商品詳細ページから指定 FK の画像を取得する（最速ルート）。"""
+    product_id = _fk_to_product_id(fk_id)
+    if not product_id:
+        return None
+    url = f"https://firekids.jp/products/detail/{product_id}"
+    try:
+        html = _fetch(url)
+    except Exception as e:
+        log.debug("detail_fetch_failed fk_id=%s err=%s", fk_id, e)
+        return None
+    return _record_from_detail_html(html, fk_id, brand_key, name, product_id)
+
+
+def fetch_fk_record(
+    fk_id: str,
+    brand_key: str = "OTHER",
+    name: str = "",
+    max_pages: int = 50,
+) -> dict | None:
+    """EC から指定 FK 1 件分の画像メタだけを取得する（主役商品限定・他 FK は使わない）。
+
+    1. 商品詳細ページ（product_id 推定）
+    2. 在庫一覧ページ巡回（見つかった時点で終了）
+    """
+    if not re.match(r"^FK\d+$", fk_id):
+        return None
+
+    rec = _fetch_from_detail_page(fk_id, brand_key, name)
+    if rec and rec.get("main_image_url"):
+        log.info("fetch_fk_detail_ok fk_id=%s", fk_id)
+        return rec
+
+    fk_brand_map = _build_fk_brand_map()
+    fk_brand_map.setdefault(fk_id, brand_key)
+
+    for page in range(1, max_pages + 1):
+        url = f"{BASE_URL}?status[]=1&pageno={page}"
+        try:
+            html = _fetch(url)
+        except Exception as e:
+            log.warning("fetch_fk_list_error fk_id=%s page=%d err=%s", fk_id, page, e)
+            break
+
+        for block in _extract_product_blocks(html):
+            parsed = _parse_block(block, fk_brand_map)
+            if parsed and parsed["fk_id"] == fk_id and parsed.get("main_image_url"):
+                log.info("fetch_fk_list_ok fk_id=%s page=%d", fk_id, page)
+                return parsed
+
+        if not _has_next_page(html):
+            break
+        time.sleep(random.uniform(SLEEP_MIN, SLEEP_MAX))
+
+    log.info("fetch_fk_not_found fk_id=%s", fk_id)
+    return None
+
+
 def _has_next_page(html: str) -> bool:
     # firekids.jp は "次へ" テキストリンクでページネーションを示す
     # 「次へ」または pageno=N+1 へのリンクが存在するかで判定

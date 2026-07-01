@@ -133,6 +133,65 @@ def _inventory_fk_set() -> set[str]:
         return set()
 
 
+def upsert_fk_record(record: dict) -> dict | None:
+    """1 FK 分の画像を S3 / インデックスに反映する。他 FK の in_stock には触れない。
+
+    記事生成時のオンデマンド取得用。主役商品の FK のみ更新する。
+    """
+    fk_id = record.get("fk_id", "")
+    if not fk_id:
+        return None
+
+    brand_key = record.get("brand_key", "OTHER")
+    source_url = record.get("main_image_url", "")
+    name = record.get("name", "")
+    if not source_url:
+        return None
+
+    bucket = _bucket()
+    index = load_index()
+    s3_key = _s3_key_for(brand_key, fk_id)
+
+    if bucket and _image_exists(bucket, s3_key, source_url, index, fk_id):
+        entry = {
+            **index.get(fk_id, {}),
+            "fk_id":      fk_id,
+            "brand_key":  brand_key,
+            "s3_main":    s3_key,
+            "s3_images":  [s3_key],
+            "source_url": source_url,
+            "name":       name or index.get(fk_id, {}).get("name", ""),
+            "in_stock":   True,
+            "updated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        }
+        index[fk_id] = entry
+        _save_index(index)
+        return entry
+
+    try:
+        img_data = _download_image(source_url)
+        if bucket:
+            _upload_image(bucket, s3_key, img_data)
+            log.info("upsert_fk_saved fk_id=%s s3_key=%s", fk_id, s3_key)
+    except Exception as e:
+        log.warning("upsert_fk_save_failed fk_id=%s err=%s", fk_id, e)
+        s3_key = index.get(fk_id, {}).get("s3_main", "")
+
+    entry = {
+        "fk_id":      fk_id,
+        "brand_key":  brand_key,
+        "s3_main":    s3_key,
+        "s3_images":  [s3_key] if s3_key else [],
+        "source_url": source_url,
+        "name":       name,
+        "in_stock":   True,
+        "updated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+    index[fk_id] = entry
+    _save_index(index)
+    return entry
+
+
 # ─── メイン同期処理 ──────────────────────────────────────────────────────
 def sync_to_s3(records: list[dict]) -> dict:
     """クロール結果を S3 に同期し、更新済みインデックスを返す。

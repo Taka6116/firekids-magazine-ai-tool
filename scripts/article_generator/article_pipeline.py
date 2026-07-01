@@ -5,8 +5,9 @@ import re
 
 from bedrock_client import invoke_claude, invoke_claude_stream
 from embeddings import embedding_degraded, reset_embed_state
+from facets import build_facet_cta_url, facet_labels, has_any_facet
 from formatting import markdown_to_wp_html, title_to_slug
-from inventory import (find_by_fk, format_for_prompt, get_image_for_item,
+from inventory import (fetch_image_for_item, find_by_fk, format_for_prompt,
                        inventory_summary, select_feature_item, summarize_item)
 from overlap import check_ngram_overlap, check_overlap, sample_past_titles
 from state import (ARTICLE_CATEGORIES, BRANDS, MAX_REGEN_RETRIES, ROOT,
@@ -49,7 +50,8 @@ def load_rules_context() -> tuple[str, str, str]:
 # ─── Stage 1: 構成案の生成 ───────────────────────────────────────────────────
 
 def propose_structure(brand_key: str, tone: str = "auto", item: dict | None = None,
-                      direction: str = "", article_category: str = "basic") -> dict:
+                      direction: str = "", article_category: str = "basic",
+                      facet_desc: str = "") -> dict:
     """タイトル・H2 構成案・テーマ・キーワードを小型コール（最大 800 トークン）で生成する。
 
     tone:
@@ -57,6 +59,8 @@ def propose_structure(brand_key: str, tone: str = "auto", item: dict | None = No
         （ガイド/検証/比較/ランキング等）を自動選定する。ユーザーはブランドを選ぶだけ。
       - それ以外      : 指定トーンで企画させる（従来動作）。
     item が渡された場合はその在庫商品に特化した構成を提案させる。
+    facet_desc が渡された場合（テーマ記事モード）は、特定の1本を主役にせず、
+    指定条件（カテゴリ/年代/性別/予算/モデル系統など）を横断的に扱う構成を提案させる。
     被り判定はここでは行わない（check_overlap で行う）。
 
     戻り値: {"title", "h2s", "theme", "keywords"}
@@ -96,6 +100,15 @@ def propose_structure(brand_key: str, tone: str = "auto", item: dict | None = No
 商品を直接売り込む表現は避け、知識・歴史・選び方の文脈で自然に登場させてください。"""
     else:
         item_block = ""
+
+    facet_block = ""
+    if facet_desc:
+        facet_block = f"""【この記事の軸（テーマ条件）】
+{facet_desc}
+
+この記事は特定の1本のモデルを主役にせず、上記の条件に当てはまる時計を横断的に紹介する「テーマ記事」です。
+複数のブランド・モデルを比較・紹介する構成にしてください（在庫データに基づく個別商品の紹介は不要です）。
+"""
 
     direction_block = ""
     if direction:
@@ -154,6 +167,7 @@ def propose_structure(brand_key: str, tone: str = "auto", item: dict | None = No
 {cat_directive}
 {tone_directive}
 {item_block}
+{facet_block}
 {direction_block}
 {style_block}SEO 効果が高く、読者が具体的に求めているテーマを選んでください。
 
@@ -198,7 +212,8 @@ def propose_structure(brand_key: str, tone: str = "auto", item: dict | None = No
 
 
 def revise_structure(brand_key: str, tone: str, previous: dict, flagged: list,
-                     direction: str = "", article_category: str = "basic") -> dict:
+                     direction: str = "", article_category: str = "basic",
+                     facet_desc: str = "") -> dict:
     """被りが検出された構成案を類似記事情報を与えて再構成させる。
 
     flagged: check_overlap() の flagged リスト
@@ -216,6 +231,7 @@ def revise_structure(brand_key: str, tone: str, previous: dict, flagged: list,
             )
     conflict_text = "\n".join(lines) if lines else "（詳細なし）"
     direction_block = f"\n【維持したい方向性】\n{direction}\n" if direction else ""
+    facet_block = f"\n【維持したいテーマ条件】\n{facet_desc}\n（特定の1本を主役にせず、この条件を横断的に扱うこと）\n" if facet_desc else ""
 
     prompt = f"""FIRE KIDS Magazine の「{brand_jp}」ブランド記事（{tone_jp}）の企画を修正してください。
 
@@ -225,7 +241,7 @@ H2 構成: {json.dumps(previous.get('h2s', []), ensure_ascii=False)}
 
 【被りが検出された既存記事との比較】
 {conflict_text}
-{direction_block}
+{direction_block}{facet_block}
 
 上記の章立て・切り口と重複しない新しい企画案を出してください。
 同じブランドでも全く別の角度（対象年代・モデル系統・読者層・技術視点など）を選んでください。
@@ -264,6 +280,8 @@ def build_article_prompt(
     item: dict | None = None,
     direction: str = "",
     article_category: str = "basic",
+    facet_desc: str = "",
+    cta_override: str = "",
 ) -> tuple[str, str]:
     brand      = BRANDS.get(brand_key, BRANDS["OTHER"])
     brand_jp   = brand["jp"]
@@ -272,12 +290,23 @@ def build_article_prompt(
     art_cat_jp = ARTICLE_CATEGORIES.get(article_category, {}).get("jp", "時計の基礎知識")
     _, caliber_summary, correction_summary = load_rules_context()
 
-    cta_base = (
+    cta_base = cta_override or (
         f"https://firekids.jp/products/list?category_id={cat_id}"
         "&utm_source=firekids_magazine&utm_medium=seo&utm_campaign=organic"
         if cat_id else
         "https://firekids.jp/?utm_source=firekids_magazine&utm_medium=seo&utm_campaign=organic"
     )
+
+    facet_block = ""
+    if facet_desc:
+        facet_block = f"""━━━━━ テーマ条件（特定の1本を主役にしない） ━━━━━
+この記事の軸: {facet_desc}
+- 上記条件に当てはまる時計を横断的に紹介する記事であり、在庫の特定商品を主役にしない
+- 複数のブランド・モデル・年代を比較・紹介する構成にする
+- 予算（金額）が条件に含まれる場合も、個別商品の相場価格・販売価格は断定的に記載しない。あくまで読者の目安として扱う
+- caliber_db.json / correction_log.json で裏付けられない仕様・年代・事実は記載しない
+
+"""
 
     inventory_block = ""
     image_placeholder = ""
@@ -291,10 +320,11 @@ def build_article_prompt(
 - 価格・仕入れ値は一切記載しない
 - 商品の特性・時代背景・選び方の文脈で登場させる（押し売り感を出さない）
 - CTA には必ず {cta_base} をリンク先URLとして使用すること（リンクテキストにURLを表示しない）
+- CTA は必ず独立した1行として記述し、文中にリンクを埋め込まないこと
 
 """
         # 画像プレースホルダー（LLM に URL を渡さず後処理で置換する）
-        img = get_image_for_item(item)
+        img = fetch_image_for_item(item)
         if img:
             image_placeholder = f"__IMAGE_PLACEHOLDER_{item['fk_id']}__"
             inventory_block += (
@@ -322,12 +352,13 @@ def build_article_prompt(
 
 """
 
+    purchase_topic = facet_desc if facet_desc else brand_jp
     purchase_block = f"""━━━━━ 購買意欲を高める方針 ━━━━━
-- 読者が「{brand_jp} を実際に探してみたい・手に入れたい」と感じる読後感を目指す。
+- 読者が「{purchase_topic} を実際に探してみたい・手に入れたい」と感じる読後感を目指す。
 - 資産価値・状態の見極め・長く使う満足感など、所有/購入の魅力を具体的に描く。
 - 過去記事の口調・見出し設計は「参考」にとどめ、本文の構成・切り口・具体例は被らせない。
 - 煽り・誇張・断定は避け、信頼できる専門メディアとして購買の背中を押す。
-- CTA はブランドカテゴリページ（{cta_base}）に誘導し、個別商品ページには誘導しない。リンクテキストは自然な日本語にし、URLをそのまま表示してはならない。
+- CTA は条件に対応する一覧ページ（{cta_base}）に誘導し、個別商品ページには誘導しない。リンクテキストは自然な日本語にし、URLをそのまま表示してはならない。CTA は必ず独立した1行（前後に空行）として記述し、文中にリンクを埋め込まないこと。
 
 """
 
@@ -369,7 +400,7 @@ def build_article_prompt(
 キーワード: {keywords}
 生成日: {datetime.date.today().strftime("%Y.%m.%d")}
 
-{purchase_block}{inventory_block}{direction_block}{avoid_block}
+{purchase_block}{facet_block}{inventory_block}{direction_block}{avoid_block}
 ━━━━━ データソース情報 ━━━━━
 {caliber_summary}
 {correction_summary}
@@ -403,9 +434,16 @@ def build_article_prompt(
 7. ## よくある質問（Q/A 形式 3〜5問）
 8. ## まとめ
 9. CTA（中間と末尾の2箇所）:
-   → Markdown リンク形式で記述すること: [魅力的な誘導文言（URLそのものは書かない）]({cta_base})
-   → リンクテキストには「在庫を確認する」「厳選されたヴィンテージ○○の在庫をFIRE KIDSで確認する」等の自然な日本語を使うこと
-   → リンクテキストにURLを表示してはいけない
+   - 必ず独立した1行として記述すること（前後に空行を入れる）。文中にリンクを埋め込まない
+   - 直前の段落は句点で終える。CTA 行の後に文章を続けない
+   - 形式: 単独行のみ [CTA文言]({cta_base})
+   - リンクテキストには「在庫を確認する」「厳選されたヴィンテージ○○の在庫をFIRE KIDSで確認する」等の自然な日本語を使うこと
+   - リンクテキストにURLを表示してはいけない
+   - 悪い例: 「〜を探す方は、FIRE KIDSの[こちら]({cta_base})をご覧ください。」
+   - 良い例:
+     「〜に興味を持った方もいるかもしれません。」
+
+     [オリエントのヴィンテージ時計をFIRE KIDSで探す]({cta_base})
 
 ━━━━━ 文体ルール ━━━━━
 - 丁寧語・専門性あり・堅すぎない
@@ -422,13 +460,23 @@ def build_article_prompt(
 
 def generate_article(brand_key: str, tone: str = "auto", fk_id: str = "",
                      on_stage=None, on_chunk=None, allow_no_inventory: bool = False,
-                     direction: str = "", article_category: str = "basic") -> dict:
+                     direction: str = "", article_category: str = "basic",
+                     styles: list[str] | None = None, genders: list[str] | None = None,
+                     decades: list[str] | None = None, model_query: str = "",
+                     min_price=None, max_price=None) -> dict:
     """3 ステージ生成フロー + 後処理 n-gram チェック。
 
     在庫連携:
       - fk_id 指定時: 在庫 CSV から商品情報を取得（ブランド上書き）
       - fk_id 未指定（ブランドのみ）時: select_feature_item() で記事軸を自動選定
         在庫が無く allow_no_inventory=False なら InventoryMissingError を送出
+
+    テーマ記事（時計を選ばない）モード:
+      - styles/genders/decades/model_query/min_price/max_price のいずれかが指定された場合、
+        自動的に「テーマ記事モード」になり、特定の1本の在庫商品を主役にしない。
+      - brand_key が空 or BRANDS に無い場合は "THEME"（FIRE KIDS Magazine 扱い）にフォールバックする。
+      - CTA リンクは facets.build_facet_cta_url() で firekids.jp/products/list の
+        該当フィルタ付きURLを組み立てる（ブランド一覧ページ固定ではない）。
 
     on_stage(msg, stage_id): 進行状況（UI 表示 + ログ）
     on_chunk(text): 本文生成中のテキスト断片（リアルタイムプレビュー）
@@ -449,13 +497,20 @@ def generate_article(brand_key: str, tone: str = "auto", fk_id: str = "",
 
     reset_embed_state()
 
+    facet_mode = has_any_facet(styles, genders, decades, model_query, min_price, max_price)
+    if not brand_key or brand_key not in BRANDS:
+        brand_key = "THEME" if facet_mode else brand_key
+
     stage("過去記事を照合しています…", "cache_check")
     cache_had_data = get_store().meta().get("count", 0) > 0
     ensure_cache_fresh()
 
     # ── アイテム決定 ───────────────────────────────────────────────
+    # テーマ記事モードでは特定の1本を主役にしないため、在庫連携を一切行わない。
     item: dict | None = None
-    if fk_id:
+    if facet_mode:
+        pass
+    elif fk_id:
         item = find_by_fk(fk_id)
         if item:
             brand_key = item["brand_key"]  # ブランドを在庫データから上書き
@@ -468,9 +523,23 @@ def generate_article(brand_key: str, tone: str = "auto", fk_id: str = "",
             if inventory_summary().get("loaded"):
                 raise InventoryMissingError(brand_key)
 
+    if item:
+        stage("主役商品の画像を確認しています…", "image_fetch")
+        fetch_image_for_item(item)
+
+    facet_desc = ""
+    cta_override = ""
+    if facet_mode:
+        facet_desc = "・".join(facet_labels(styles, genders, decades, model_query, min_price, max_price))
+        cta_override = build_facet_cta_url(
+            brand_key=brand_key, styles=styles, genders=genders, decades=decades,
+            model_query=model_query, min_price=min_price, max_price=max_price,
+        )
+
     stage("被らないテーマ・構成を考えています…", "prompt_build")
     direction = (direction or "").strip()[:500]
-    structure  = propose_structure(brand_key, tone, item=item, direction=direction, article_category=article_category)
+    structure  = propose_structure(brand_key, tone, item=item, direction=direction,
+                                   article_category=article_category, facet_desc=facet_desc)
     effective_tone = structure.get("tone") or (tone if tone and tone != "auto" else "guide")
     overlap    = {"ok": True, "flagged": []}
 
@@ -483,7 +552,9 @@ def generate_article(brand_key: str, tone: str = "auto", fk_id: str = "",
             stage("構成を調整しています…")
             log.info("structure_revise brand=%s attempt=%s flagged=%s",
                      brand_key, attempt + 1, len(overlap.get("flagged", [])))
-            structure = revise_structure(brand_key, effective_tone, structure, overlap["flagged"], direction=direction, article_category=article_category)
+            structure = revise_structure(brand_key, effective_tone, structure, overlap["flagged"],
+                                        direction=direction, article_category=article_category,
+                                        facet_desc=facet_desc)
 
     title    = structure.get("title")    or f"{BRANDS[brand_key]['jp']} 特集記事"
     h2s      = structure.get("h2s",      [])
@@ -493,6 +564,7 @@ def generate_article(brand_key: str, tone: str = "auto", fk_id: str = "",
     prompt, image_placeholder = build_article_prompt(
         brand_key, effective_tone, title, theme, keywords, overlap.get("flagged", []),
         item=item, direction=direction, article_category=article_category,
+        facet_desc=facet_desc, cta_override=cta_override,
     )
     stage("本文を執筆しています…", "bedrock_call")
     if on_chunk:
@@ -504,7 +576,7 @@ def generate_article(brand_key: str, tone: str = "auto", fk_id: str = "",
     # プレースホルダーは記事本文から除去し、メタ情報として返す
     image_meta: dict | None = None
     if image_placeholder and item:
-        img = get_image_for_item(item)
+        img = fetch_image_for_item(item)
         if img:
             image_meta = img
         # プレースホルダーを本文から除去（CDN URL 直貼りは避ける）
@@ -555,6 +627,9 @@ def generate_article(brand_key: str, tone: str = "auto", fk_id: str = "",
         "article_category": article_category,
         "article_category_wp_id": ARTICLE_CATEGORIES.get(article_category, {}).get("wp_id"),
         "article_category_jp": ARTICLE_CATEGORIES.get(article_category, {}).get("jp", ""),
+        "facet_mode":   facet_mode,
+        "facet_desc":   facet_desc,
+        "cta_url":      cta_override,
         "item":         item,
         "image_meta":   image_meta,  # WordPress 連携用（s3_key, source_url, alt）
     }

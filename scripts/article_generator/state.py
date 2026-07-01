@@ -71,6 +71,43 @@ ARTICLE_CATEGORIES = {
     "trend":  {"jp": "トレンド",       "wp_id": 4},
 }
 
+# ─── テーマ軸（時計を選ばない記事）用ファセット定義 ──────────────────────────
+# firekids.jp/products/list の検索フォーム（category_tag_id[] / watch_gender[] / decade[]）
+# のパラメータと1:1で対応させる。値は同ページのHTMLから確認済み。
+WATCH_STYLES = {
+    "chronograph": {"jp": "クロノグラフ",       "tag_id": 8},
+    "pilot":       {"jp": "パイロット",         "tag_id": 9},
+    "diver":       {"jp": "ダイバーズ",         "tag_id": 10},
+    "military":    {"jp": "ミリタリーウォッチ", "tag_id": 13},
+    "domestic":    {"jp": "国産時計",           "tag_id": 14},
+    "dress":       {"jp": "ドレスウォッチ",     "tag_id": 15},
+    "sports":      {"jp": "スポーツウォッチ",   "tag_id": 16},
+    "business":    {"jp": "ビジネスウォッチ",   "tag_id": 17},
+    "casual":      {"jp": "カジュアルウォッチ", "tag_id": 18},
+}
+
+GENDERS = {
+    "mens":   {"jp": "男性",         "gender_id": 1},
+    "womens": {"jp": "女性",         "gender_id": 2},
+    "unisex": {"jp": "ユニセックス", "gender_id": 3},
+}
+
+# 表示順は新しい年代→古い年代（UI上で選びやすい順）
+DECADES = [
+    {"key": "2000s", "jp": "2000年代", "decade_id": 11},
+    {"key": "1990s", "jp": "1990年代", "decade_id": 10},
+    {"key": "1980s", "jp": "1980年代", "decade_id": 9},
+    {"key": "1970s", "jp": "1970年代", "decade_id": 8},
+    {"key": "1960s", "jp": "1960年代", "decade_id": 7},
+    {"key": "1950s", "jp": "1950年代", "decade_id": 6},
+    {"key": "1940s", "jp": "1940年代", "decade_id": 5},
+    {"key": "1930s", "jp": "1930年代", "decade_id": 4},
+    {"key": "1920s", "jp": "1920年代", "decade_id": 3},
+    {"key": "1910s", "jp": "1910年代", "decade_id": 2},
+    {"key": "1900s", "jp": "1900年代", "decade_id": 1},
+]
+DECADE_MAP = {d["key"]: d for d in DECADES}
+
 TONES = ["guide", "verify", "comparison", "ranking"]
 
 TONE_LABELS = {

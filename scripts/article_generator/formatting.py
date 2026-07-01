@@ -2,6 +2,65 @@
 import re
 
 
+_MD_LINK_RE = re.compile(r"\[(.+?)\]\((https?://[^\s)]+)\)")
+
+
+def _is_cta_url(url: str) -> bool:
+    return (
+        "firekids.jp/products/list?" in url
+        or "firekids.jp/?utm_source=firekids_magazine" in url
+    )
+
+
+def _escape_html(text: str) -> str:
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def _cta_buttons_block(label: str, url: str) -> str:
+    label_esc = _escape_html(label)
+    url_esc = url.replace("&", "&amp;").replace('"', "&quot;")
+    return (
+        '<!-- wp:buttons {"layout":{"type":"flex","justifyContent":"center"}} -->\n'
+        '<div class="wp-block-buttons">\n'
+        '<!-- wp:button -->\n'
+        f'<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{url_esc}">{label_esc}</a></div>\n'
+        '<!-- /wp:button -->\n'
+        '</div>\n'
+        '<!-- /wp:buttons -->'
+    )
+
+
+def _process_paragraph_text(text: str, inline_fn) -> list[str]:
+    text = text.strip()
+    if not text:
+        return []
+
+    m = _MD_LINK_RE.fullmatch(text)
+    if m and _is_cta_url(m.group(2)):
+        return [_cta_buttons_block(m.group(1), m.group(2))]
+
+    cta_matches = [
+        (m.start(), m.end(), m.group(1), m.group(2))
+        for m in _MD_LINK_RE.finditer(text)
+        if _is_cta_url(m.group(2))
+    ]
+    if not cta_matches:
+        return [f"<p>{inline_fn(text)}</p>"]
+
+    out: list[str] = []
+    pos = 0
+    for start, end, label, url in cta_matches:
+        before = text[pos:start].strip()
+        if before:
+            out.append(f"<p>{inline_fn(before)}</p>")
+        out.append(_cta_buttons_block(label, url))
+        pos = end
+    after = text[pos:].strip()
+    if after:
+        out.append(f"<p>{inline_fn(after)}</p>")
+    return out
+
+
 # ─── ユーティリティ ───────────────────────────────────────────────────────────
 
 def title_to_slug(title: str) -> str:
@@ -64,6 +123,11 @@ def markdown_to_wp_html(md: str) -> str:
             out.append("<hr />")
             i += 1
             continue
+        m_cta = re.match(r"^\[(.+?)\]\((https?://[^\s)]+)\)$", s)
+        if m_cta and _is_cta_url(m_cta.group(2)):
+            out.append(_cta_buttons_block(m_cta.group(1), m_cta.group(2)))
+            i += 1
+            continue
         m = re.match(r"^(#{2,4})\s+(.*)$", s)
         if m:
             level = len(m.group(1))
@@ -113,6 +177,6 @@ def markdown_to_wp_html(md: str) -> str:
         while i < n and lines[i].strip() != "" and not re.match(r"^(#{2,4}\s|[-*]\s|\d+\.\s|\||-{3,}$)", lines[i].strip()):
             para.append(lines[i].strip())
             i += 1
-        out.append(f"<p>{inline(' '.join(para))}</p>")
+        out.extend(_process_paragraph_text(" ".join(para), inline))
 
     return "\n".join(out)
