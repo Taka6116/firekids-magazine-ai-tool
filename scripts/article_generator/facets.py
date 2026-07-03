@@ -14,6 +14,7 @@ firekids.jp/products/list の検索フォームと同じパラメータに変換
 """
 from __future__ import annotations
 
+import re
 from urllib.parse import quote
 
 from state import BRANDS, DECADE_MAP, GENDERS, WATCH_STYLES
@@ -194,3 +195,41 @@ def detect_mentioned_brands(text: str) -> list[str]:
             stats.append((key, count, text.find(jp)))
     stats.sort(key=lambda t: (-t[1], t[2]))
     return [s[0] for s in stats]
+
+
+_REF_RE = re.compile(r"Ref\.?\s*([A-Za-z0-9][A-Za-z0-9./\-]{2,12})", re.IGNORECASE)
+
+
+def extract_brand_model_query(text: str, brand_key: str) -> str:
+    """本文中の該当ブランドの言及箇所から Ref. 番号を抽出し、画像検索の
+    モデル名フリーテキスト（name= パラメータ）に使える文字列を返す。
+
+    テーマ記事はブランド単位で画像を合わせても、本文で言及していない
+    別モデル（例: 本文はサブマリーナーの話なのに画像はデイトナ）が付く
+    ことがあるため、本文中の Ref. 番号まで一致させて精度を上げるのに使う。
+    見つからなければ空文字（呼び出し側はブランドのみで検索を続行する）。
+
+    複数ブランドが言及されている記事では、そのブランドの初出位置から
+    次に別の取扱ブランドが言及される位置までを「そのブランドのセクション」
+    とみなし、範囲内の Ref. 番号のみを対象にする（他ブランドの型番を
+    誤って拾わないため）。
+    """
+    if not text or brand_key not in BRANDS:
+        return ""
+    jp = BRANDS[brand_key].get("jp", "")
+    if not jp:
+        return ""
+    start = text.find(jp)
+    if start < 0:
+        return ""
+
+    other_positions = [
+        idx for key, meta in BRANDS.items()
+        if key not in ("THEME", "OTHER", brand_key) and meta.get("jp")
+        for idx in [text.find(meta["jp"], start + len(jp))]
+        if idx >= 0
+    ]
+    end = min(other_positions) if other_positions else len(text)
+
+    m = _REF_RE.search(text[start:end])
+    return m.group(1) if m else ""

@@ -6,8 +6,9 @@ import re
 from bedrock_client import (invoke_claude, invoke_claude_messages,
                             invoke_claude_messages_stream)
 from embeddings import embedding_degraded, reset_embed_state
-from facets import (build_facet_cta_url, detect_mentioned_brands, facet_labels,
-                    has_any_facet, sellable_brands_jp)
+from facets import (build_facet_cta_url, detect_mentioned_brands,
+                    extract_brand_model_query, facet_labels, has_any_facet,
+                    sellable_brands_jp)
 from formatting import markdown_to_wp_html, title_to_slug
 from inventory import (fetch_image_for_item, fetch_theme_image, find_by_fk,
                        format_for_prompt, inventory_summary, select_feature_item,
@@ -640,30 +641,37 @@ def generate_article(brand_key: str, tone: str = "auto", fk_id: str = "",
         # プレースホルダーを本文から除去（CDN URL 直貼りは避ける）
         article = article.replace(image_placeholder, "")
     elif facet_mode:
-        # 本文が確定した後に画像を選ぶことで、本文で実際に言及されたブランドの
-        # 商品画像を優先する（条件だけで選ぶと本文と無関係なブランドの写真が付く事故が起きるため）。
-        stage("記事に登場するブランドの画像を確認しています…", "image_fetch")
-        image_meta = None
+        # 本文が確定した後に画像を選ぶことで、本文で実際に言及されたブランド・モデルの
+        # 商品画像を優先する（条件だけで選ぶと本文と無関係な写真が付く事故が起きるため）。
+        stage("記事に登場するブランド・モデルの画像を確認しています…", "image_fetch")
         # 遅延防止のため、言及頻度上位3ブランドまでに絞って画像を探す
-        for candidate_brand in (detect_mentioned_brands(article)[:3] or [brand_key]):
+        mentioned = detect_mentioned_brands(article)[:3]
+
+        attempts: list[tuple[str, str]] = []
+        if mentioned:
+            if not model_query:
+                # 最有力候補（最頻出ブランド）は、本文中の Ref. 番号まで一致させて
+                # 「ブランドは合っているが本文で触れていないモデル」の事故を防ぐ
+                ref_query = extract_brand_model_query(article, mentioned[0])
+                if ref_query:
+                    attempts.append((mentioned[0], ref_query))
+            attempts.extend((b, model_query) for b in mentioned)
+        else:
+            attempts.append((brand_key, model_query))
+        # 言及ブランドで見つからない場合の最終フォールバック（条件のみで検索）
+        attempts.append((brand_key, model_query))
+
+        image_meta = None
+        for candidate_brand, candidate_model_query in attempts:
             try:
                 image_meta = fetch_theme_image(
                     brand_key=candidate_brand, styles=styles, genders=genders, decades=decades,
-                    model_query=model_query, min_price=min_price, max_price=max_price,
+                    model_query=candidate_model_query, min_price=min_price, max_price=max_price,
                 )
             except Exception:
                 image_meta = None
             if image_meta:
                 break
-        if not image_meta:
-            # 言及ブランドでは見つからない場合、条件のみでフォールバック検索する
-            try:
-                image_meta = fetch_theme_image(
-                    brand_key=brand_key, styles=styles, genders=genders, decades=decades,
-                    model_query=model_query, min_price=min_price, max_price=max_price,
-                )
-            except Exception:
-                image_meta = None
 
     stage("仕上げチェック中…")
     slug         = title_to_slug(title)

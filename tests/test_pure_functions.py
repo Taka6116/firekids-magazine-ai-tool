@@ -339,6 +339,35 @@ def test_detect_mentioned_brands_ignores_unsellable_and_empty_text():
     assert facets.detect_mentioned_brands("パテック・フィリップの歴史について") == []
 
 
+_REF_SAMPLE_TEXT = (
+    "ロレックス：90年代SubとExplorerが示す「移行期」の面白さ\n"
+    "サブマリーナー（Ref. 16610）はロングセラーとなっていた。搭載キャリバーはCal.3135。\n"
+    "エクスプローラーI（Ref. 114270）は2001年に登場した。\n"
+    "オメガ：シーマスターの「ボンドウォッチ時代」が残したもの\n"
+    "シーマスター プロフェッショナル（通称シーマスター300m、Ref. 2531.80など）に搭載。\n"
+)
+
+
+def test_extract_brand_model_query_picks_first_ref_in_brand_section():
+    import facets
+
+    assert facets.extract_brand_model_query(_REF_SAMPLE_TEXT, "ROLEX") == "16610"
+
+
+def test_extract_brand_model_query_does_not_leak_into_other_brand_section():
+    import facets
+
+    assert facets.extract_brand_model_query(_REF_SAMPLE_TEXT, "OMEGA") == "2531.80"
+
+
+def test_extract_brand_model_query_empty_when_brand_not_mentioned_or_no_ref():
+    import facets
+
+    assert facets.extract_brand_model_query(_REF_SAMPLE_TEXT, "SEIKO") == ""
+    assert facets.extract_brand_model_query("Ref. 16610だけの文章", "ROLEX") == ""
+    assert facets.extract_brand_model_query("", "ROLEX") == ""
+
+
 # ─── テーマ記事用の画像候補選定（inventory.select_feature_image_for_facets） ────
 
 def test_select_feature_image_for_facets_empty_candidates(monkeypatch):
