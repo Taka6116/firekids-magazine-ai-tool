@@ -2185,7 +2185,9 @@ function resetLiveTyping() {
   resetHeroImage();
 }
 
-const CTA_URL_PATTERN = /firekids\.jp\/(?:products\/list\?category_id=|\?utm_source=firekids_magazine)/;
+// テーマ記事（商品未指定）の CTA は category_id 以外のパラメータ（category_tag_id[]/decade[]等）
+// が先頭に来ることがあるため、products/list? 以降は任意のクエリでマッチさせる。
+const CTA_URL_PATTERN = /firekids\.jp\/(?:products\/list\?|\?utm_source=firekids_magazine)/;
 
 function isCtaUrl(href) {
   return href && CTA_URL_PATTERN.test(href);
