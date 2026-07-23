@@ -722,6 +722,59 @@ def posts_log():
     return jsonify(_load_posts_log())
 
 
+@app.route("/dashboard-posts")
+def dashboard_posts():
+    """管理ダッシュボード用に、このアプリから WordPress へ送った記事を返す。
+
+    before_request の _require_login が X-Dashboard-Token を検証するため、
+    ブラウザーのログインセッションや内部ログ全体は外部へ公開しない。
+    WordPress 認証が使える場合は draft/future/publish を含む実データで補完する。
+    """
+    log_entries = [
+        entry for entry in _load_posts_log()
+        if str(entry.get("wp_id", "")).isdigit()
+    ]
+    by_id = {int(entry["wp_id"]): entry for entry in log_entries}
+    wp_posts = {}
+
+    base_url = os.getenv("WP_BASE_URL", "https://m.firekids.jp").rstrip("/")
+    wp_user = os.getenv("WP_USER", "")
+    wp_password = os.getenv("WP_APP_PASSWORD", "")
+    if by_id and wp_user and wp_password:
+        try:
+            response = requests.get(
+                f"{base_url}/wp-json/wp/v2/posts",
+                params={
+                    "include": ",".join(str(wp_id) for wp_id in by_id),
+                    "per_page": min(len(by_id), 100),
+                    "status": "any",
+                    "_fields": "id,date,link,title,categories,tags,status",
+                },
+                auth=(wp_user, wp_password),
+                timeout=30,
+            )
+            response.raise_for_status()
+            wp_posts = {int(post["id"]): post for post in response.json()}
+        except Exception as exc:
+            log.warning("dashboard_posts_wp_lookup_failed err=%s", exc)
+
+    posts = []
+    for wp_id, entry in by_id.items():
+        wp_post = wp_posts.get(wp_id, {})
+        posts.append({
+            "id": wp_id,
+            "date": wp_post.get("date") or entry.get("date", ""),
+            "link": wp_post.get("link") or entry.get("wp_link", ""),
+            "title": wp_post.get("title") or {"rendered": entry.get("title", "")},
+            "categories": wp_post.get("categories", []),
+            "tags": wp_post.get("tags", []),
+            "status": wp_post.get("status") or entry.get("wp_status", "draft"),
+            "brand": entry.get("brand", ""),
+        })
+    posts.sort(key=lambda post: str(post.get("date", "")), reverse=True)
+    return jsonify({"posts": posts})
+
+
 @app.route("/image-proxy")
 def image_proxy():
     """S3から画像バイナリを取得して返す。

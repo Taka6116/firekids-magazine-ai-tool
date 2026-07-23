@@ -18,6 +18,7 @@ EXPECTED_ROUTES = {
     ("/update-draft-image", frozenset({"POST"})),
     ("/log-post", frozenset({"POST"})),
     ("/posts-log", frozenset({"GET"})),
+    ("/dashboard-posts", frozenset({"GET"})),
     ("/image-proxy", frozenset({"GET"})),
     ("/draft-content/<brand>/<filename>", frozenset({"GET"})),
     ("/ping", frozenset({"GET"})),
@@ -51,3 +52,49 @@ def test_unauthenticated_browser_request_redirects_to_login():
     resp = client.get("/", headers={"Accept": "text/html"})
     assert resp.status_code == 302
     assert resp.headers["Location"].endswith("/login")
+
+
+def test_dashboard_posts_requires_shared_token(monkeypatch):
+    monkeypatch.setenv("DASHBOARD_API_TOKEN", "test-dashboard-token")
+    client = app.app.test_client()
+
+    unauthorized = client.get("/dashboard-posts", headers={"Accept": "application/json"})
+    assert unauthorized.status_code == 401
+    assert unauthorized.get_json()["error"] == "unauthorized"
+
+
+def test_dashboard_posts_returns_sanitized_posts(monkeypatch):
+    monkeypatch.setenv("DASHBOARD_API_TOKEN", "test-dashboard-token")
+    monkeypatch.delenv("WP_USER", raising=False)
+    monkeypatch.delenv("WP_APP_PASSWORD", raising=False)
+    monkeypatch.setattr(app, "_load_posts_log", lambda: [
+        {
+            "wp_id": 30,
+            "title": "ロレックスの記事",
+            "wp_link": "https://m.firekids.jp/30/",
+            "wp_status": "draft",
+            "date": "2026.07.20",
+            "brand": "ROLEX",
+        },
+        {"wp_id": "invalid"},
+        {"title": "IDなし"},
+    ])
+    client = app.app.test_client()
+
+    response = client.get(
+        "/dashboard-posts",
+        headers={"X-Dashboard-Token": "test-dashboard-token"},
+    )
+    assert response.status_code == 200
+    assert response.get_json() == {
+        "posts": [{
+            "brand": "ROLEX",
+            "categories": [],
+            "date": "2026.07.20",
+            "id": 30,
+            "link": "https://m.firekids.jp/30/",
+            "status": "draft",
+            "tags": [],
+            "title": {"rendered": "ロレックスの記事"},
+        }],
+    }
