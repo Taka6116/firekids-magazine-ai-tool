@@ -258,6 +258,7 @@ def post_one(title, content, tags_input, brand, featured_image_url, category_nam
             'date': post.get('date', ''),
             'featured_media_id': featured_media_id,
             'category_id': category_ids[0] if category_ids else None,
+            'tag_ids': tag_ids,
             'brand': brand,
         }
     try:

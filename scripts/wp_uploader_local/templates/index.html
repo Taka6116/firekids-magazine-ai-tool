@@ -512,6 +512,8 @@ function renderResults(data) {
             image_url:  pending.image_url || '',
             char_count: pending.char_count || 0,
             date:       pending.date || '',
+            categories: r.category_id ? [r.category_id] : [],
+            tags:       r.tag_ids || [],
           }),
         }).catch(() => {});
         sessionStorage.removeItem('fk_pending_post');

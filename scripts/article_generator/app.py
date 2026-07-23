@@ -707,6 +707,8 @@ def log_post():
         "char_count": int(data.get("char_count", 0)),
         "logged_at":  datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
         "date":       data.get("date", datetime.date.today().strftime("%Y.%-m.%-d") if hasattr(datetime.date.today(), "strftime") else ""),
+        "categories": data.get("categories", []),
+        "tags":       data.get("tags", []),
     }
     log = _load_posts_log()
     # 同一 wp_id があれば上書き
@@ -766,8 +768,8 @@ def dashboard_posts():
             "date": wp_post.get("date") or entry.get("date", ""),
             "link": wp_post.get("link") or entry.get("wp_link", ""),
             "title": wp_post.get("title") or {"rendered": entry.get("title", "")},
-            "categories": wp_post.get("categories", []),
-            "tags": wp_post.get("tags", []),
+            "categories": wp_post.get("categories") or entry.get("categories", []),
+            "tags": wp_post.get("tags") or entry.get("tags", []),
             "status": wp_post.get("status") or entry.get("wp_status", "draft"),
             "brand": entry.get("brand", ""),
         })
