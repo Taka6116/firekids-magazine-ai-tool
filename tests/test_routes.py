@@ -19,6 +19,7 @@ EXPECTED_ROUTES = {
     ("/log-post", frozenset({"POST"})),
     ("/posts-log", frozenset({"GET"})),
     ("/dashboard-posts", frozenset({"GET"})),
+    ("/dashboard-analytics", frozenset({"GET"})),
     ("/image-proxy", frozenset({"GET"})),
     ("/draft-content/<brand>/<filename>", frozenset({"GET"})),
     ("/ping", frozenset({"GET"})),

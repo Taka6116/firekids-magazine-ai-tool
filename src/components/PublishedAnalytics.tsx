@@ -51,16 +51,23 @@ function countValues(values: string[][]): CountDatum[] {
 function buildMonthly(posts: PublishedPost[]): CountDatum[] {
   if (posts.length === 0) return [];
   const validDates = posts
-    .map((post) => new Date(post.date))
-    .filter((date) => !Number.isNaN(date.getTime()));
+    .map((post) => post.date.slice(0, 7))
+    .filter((key) => /^\d{4}-\d{2}$/.test(key));
   if (validDates.length === 0) return [];
 
-  const latest = new Date(Math.max(...validDates.map((date) => date.getTime())));
+  // タイムゾーン非依存で最新月を求める（YYYY-MM は辞書順＝時系列順）
+  const latestKey = validDates.reduce((max, key) => (key > max ? key : max), validDates[0]);
+  const latestYear = Number(latestKey.slice(0, 4));
+  const latestMonth = Number(latestKey.slice(5, 7)); // 1-12
+
   const months: Array<{ key: string; name: string; count: number }> = [];
   for (let offset = 11; offset >= 0; offset -= 1) {
-    const date = new Date(latest.getFullYear(), latest.getMonth() - offset, 1);
-    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-    months.push({ key, name: `${date.getMonth() + 1}月`, count: 0 });
+    // 月インデックスを 0 基準で計算し、Date を介さず桁上げ／桁下げする
+    const monthIndex = latestYear * 12 + (latestMonth - 1) - offset;
+    const year = Math.floor(monthIndex / 12);
+    const month = (monthIndex % 12 + 12) % 12 + 1; // 1-12
+    const key = `${year}-${String(month).padStart(2, "0")}`;
+    months.push({ key, name: `${month}月`, count: 0 });
   }
   const byKey = new Map(months.map((item) => [item.key, item]));
   posts.forEach((post) => {
@@ -97,6 +104,23 @@ const tooltipStyle = {
   boxShadow: "0 8px 24px rgba(15,23,42,.10)",
   fontSize: 12,
 };
+
+// SSR（UTC）とクライアント（JST）で表示がずれてハイドレーションエラーにならないよう、
+// 日時は常に Asia/Tokyo 固定で整形する。
+const jstDateTime = new Intl.DateTimeFormat("ja-JP", {
+  timeZone: "Asia/Tokyo",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+function formatDateOnly(value: string): string {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return value;
+  return `${Number(match[1])}/${Number(match[2])}/${Number(match[3])}`;
+}
 
 export default function PublishedAnalytics({
   posts,
@@ -150,7 +174,7 @@ export default function PublishedAnalytics({
           </p>
         </div>
         <p className="text-xs text-[var(--text-muted)]">
-          データ取得 {new Date(fetchedAt).toLocaleString("ja-JP")}
+          データ取得 {jstDateTime.format(new Date(fetchedAt))}
         </p>
       </div>
 
@@ -193,7 +217,7 @@ export default function PublishedAnalytics({
         </span>
         {latestDate && (
           <span className="text-xs text-[var(--text-muted)]">
-            最新 {new Date(latestDate).toLocaleDateString("ja-JP")}
+            最新 {formatDateOnly(latestDate)}
           </span>
         )}
       </div>

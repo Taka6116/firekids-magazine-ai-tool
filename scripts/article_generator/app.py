@@ -777,6 +777,153 @@ def dashboard_posts():
     return jsonify({"posts": posts})
 
 
+def _wp_term_map(base_url: str, auth: tuple, endpoint: str) -> dict:
+    """categories / tags の id→name マップを取得する。"""
+    result: dict[int, str] = {}
+    page = 1
+    while page <= 10:
+        resp = requests.get(
+            f"{base_url}/wp-json/wp/v2/{endpoint}",
+            params={"per_page": 100, "page": page, "_fields": "id,name"},
+            auth=auth,
+            timeout=30,
+        )
+        if resp.status_code == 400:
+            break  # 存在しないページ番号
+        resp.raise_for_status()
+        rows = resp.json()
+        if not rows:
+            break
+        for row in rows:
+            result[int(row["id"])] = row.get("name", "")
+        total_pages = int(resp.headers.get("X-WP-TotalPages", "1") or "1")
+        if page >= total_pages:
+            break
+        page += 1
+    return result
+
+
+@app.route("/dashboard-analytics")
+def dashboard_analytics():
+    """ダッシュボードの投稿分析用に、全公開記事＋アプリ投稿を正規化して返す。
+
+    Vercel（米国データセンター IP）からは m.firekids.jp が 403 を返すため、
+    WordPress へ到達できる App Runner 側でまとめて取得・正規化する。
+    _require_login が X-Dashboard-Token を検証する。
+    """
+    base_url = os.getenv("WP_BASE_URL", "https://m.firekids.jp").rstrip("/")
+    wp_user = os.getenv("WP_USER", "")
+    wp_password = os.getenv("WP_APP_PASSWORD", "")
+    auth = (wp_user, wp_password) if wp_user and wp_password else None
+
+    errors: list[str] = []
+    cat_map: dict[int, str] = {}
+    tag_map: dict[int, str] = {}
+    merged: dict[int, dict] = {}
+
+    try:
+        cat_map = _wp_term_map(base_url, auth, "categories")
+        tag_map = _wp_term_map(base_url, auth, "tags")
+
+        page = 1
+        while page <= 30:
+            resp = requests.get(
+                f"{base_url}/wp-json/wp/v2/posts",
+                params={
+                    "per_page": 100,
+                    "page": page,
+                    "status": "publish",
+                    "_fields": "id,date,link,title,categories,tags,status",
+                },
+                auth=auth,
+                timeout=30,
+            )
+            if resp.status_code == 400:
+                break
+            resp.raise_for_status()
+            rows = resp.json()
+            if not rows:
+                break
+            for post in rows:
+                merged[int(post["id"])] = {
+                    "id": int(post["id"]),
+                    "date": post.get("date", ""),
+                    "link": post.get("link", ""),
+                    "title": (post.get("title") or {}).get("rendered", ""),
+                    "category_ids": post.get("categories", []),
+                    "tag_ids": post.get("tags", []),
+                    "status": post.get("status", "publish"),
+                    "origin": "existing",
+                    "brand": "",
+                }
+            total_pages = int(resp.headers.get("X-WP-TotalPages", "1") or "1")
+            if page >= total_pages:
+                break
+            page += 1
+    except Exception as exc:
+        log.warning("dashboard_analytics_wp_list_failed err=%s", exc)
+        errors.append(f"wp_list: {exc}")
+
+    # アプリ投稿（draft / future を含む）を重ね合わせる
+    app_entries = [e for e in _load_posts_log() if str(e.get("wp_id", "")).isdigit()]
+    app_by_id = {int(e["wp_id"]): e for e in app_entries}
+    app_wp = {}
+    if app_by_id and auth:
+        try:
+            resp = requests.get(
+                f"{base_url}/wp-json/wp/v2/posts",
+                params={
+                    "include": ",".join(str(i) for i in app_by_id),
+                    "per_page": min(len(app_by_id), 100),
+                    "status": "any",
+                    "_fields": "id,date,link,title,categories,tags,status",
+                },
+                auth=auth,
+                timeout=30,
+            )
+            resp.raise_for_status()
+            app_wp = {int(p["id"]): p for p in resp.json()}
+        except Exception as exc:
+            log.warning("dashboard_analytics_app_lookup_failed err=%s", exc)
+
+    for wp_id, entry in app_by_id.items():
+        wp_post = app_wp.get(wp_id, {})
+        existing = merged.get(wp_id, {})
+        merged[wp_id] = {
+            "id": wp_id,
+            "date": wp_post.get("date") or existing.get("date") or entry.get("date", ""),
+            "link": wp_post.get("link") or existing.get("link") or entry.get("wp_link", ""),
+            "title": (wp_post.get("title") or {}).get("rendered")
+                     or existing.get("title") or entry.get("title", ""),
+            "category_ids": wp_post.get("categories") or existing.get("category_ids") or entry.get("categories", []),
+            "tag_ids": wp_post.get("tags") or existing.get("tag_ids") or entry.get("tags", []),
+            "status": wp_post.get("status") or existing.get("status") or entry.get("wp_status", "draft"),
+            "origin": "app",
+            "brand": entry.get("brand", ""),
+        }
+
+    posts = []
+    for post in merged.values():
+        posts.append({
+            "id": post["id"],
+            "date": post["date"],
+            "link": post["link"],
+            "title": post["title"],
+            "categories": [cat_map.get(cid, "") for cid in post["category_ids"] if cat_map.get(cid)],
+            "tags": [tag_map.get(tid, "") for tid in post["tag_ids"] if tag_map.get(tid)],
+            "status": post["status"],
+            "origin": post["origin"],
+            "brand": post["brand"],
+        })
+    posts.sort(key=lambda p: str(p.get("date", "")), reverse=True)
+
+    return jsonify({
+        "posts": posts,
+        "errors": errors,
+        "app_lookup_ok": bool(app_wp) or not app_by_id,
+    })
+
+
 @app.route("/image-proxy")
 def image_proxy():
     """S3から画像バイナリを取得して返す。

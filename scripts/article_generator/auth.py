@@ -11,7 +11,7 @@ from flask import jsonify, redirect, request, session
 def _require_login():
     if request.endpoint in ("health", "static"):
         return
-    if request.endpoint == "dashboard_posts":
+    if request.endpoint in ("dashboard_posts", "dashboard_analytics"):
         expected = os.getenv("DASHBOARD_API_TOKEN", "")
         supplied = request.headers.get("X-Dashboard-Token", "")
         if expected and supplied and hmac.compare_digest(expected, supplied):

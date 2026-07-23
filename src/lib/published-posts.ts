@@ -1,9 +1,5 @@
 import "server-only";
 
-const WP_API_BASE =
-  process.env.WP_PUBLIC_API_BASE ??
-  "https://m.firekids.jp/wp-json/wp/v2";
-
 const GENERATOR_BASE = (
   process.env.GENERATOR_API_BASE ??
   process.env.NEXT_PUBLIC_GENERATOR_URL ??
@@ -11,27 +7,6 @@ const GENERATOR_BASE = (
 ).replace(/\/+$/, "");
 
 const REVALIDATE_SECONDS = 900;
-
-type WPRendered = { rendered: string };
-
-interface WPPost {
-  id: number;
-  date: string;
-  link: string;
-  title: WPRendered;
-  categories: number[];
-  tags: number[];
-  status?: "publish" | "draft" | "future";
-}
-
-interface AppWPPost extends WPPost {
-  brand?: string;
-}
-
-interface WPTerm {
-  id: number;
-  name: string;
-}
 
 export type PostOrigin = "app" | "existing";
 
@@ -151,46 +126,35 @@ export function classifyModels(title: string): string[] {
     .map(({ label }) => label);
 }
 
-async function fetchJson<T>(url: string): Promise<{ data: T; headers: Headers }> {
-  const response = await fetch(url, {
-    next: { revalidate: REVALIDATE_SECONDS },
-    headers: { Accept: "application/json" },
-  });
-  if (!response.ok) {
-    throw new Error(`${response.status} ${response.statusText}`);
-  }
-  return { data: await response.json() as T, headers: response.headers };
+interface AnalyticsPost {
+  id: number;
+  date: string;
+  link: string;
+  title: string;
+  categories: string[];
+  tags: string[];
+  status: "publish" | "draft" | "future";
+  origin: PostOrigin;
+  brand: string;
 }
 
-async function fetchTerms(endpoint: "categories" | "tags"): Promise<Map<number, string>> {
-  const url = `${WP_API_BASE}/${endpoint}?per_page=100&_fields=id,name`;
-  const { data } = await fetchJson<WPTerm[]>(url);
-  return new Map(data.map((term) => [term.id, decodeHtml(term.name)]));
+interface AnalyticsResponse {
+  posts?: AnalyticsPost[];
+  errors?: string[];
+  app_lookup_ok?: boolean;
 }
 
-async function fetchAllWordPressPosts(): Promise<WPPost[]> {
-  const fields = "id,date,link,title,categories,tags";
-  const firstUrl = `${WP_API_BASE}/posts?per_page=100&page=1&_fields=${fields}`;
-  const first = await fetchJson<WPPost[]>(firstUrl);
-  const totalPages = Math.max(1, Number(first.headers.get("X-WP-TotalPages") ?? "1"));
-  if (totalPages === 1) return first.data;
-
-  const remaining = await Promise.all(
-    Array.from({ length: totalPages - 1 }, (_, index) => {
-      const page = index + 2;
-      return fetchJson<WPPost[]>(`${WP_API_BASE}/posts?per_page=100&page=${page}&_fields=${fields}`)
-        .then((result) => result.data);
-    }),
-  );
-  return first.data.concat(...remaining);
-}
-
-async function fetchAppPosts(): Promise<AppWPPost[]> {
+/**
+ * 投稿分析データは App Runner 経由で取得する。
+ * Vercel（米国データセンター IP）から m.firekids.jp を直接叩くと 403 になるため、
+ * WordPress へ到達できる App Runner で全記事を正規化してもらう。
+ */
+async function fetchAnalyticsPosts(): Promise<AnalyticsResponse> {
   const token = process.env.DASHBOARD_API_TOKEN;
   if (!token) {
     throw new Error("DASHBOARD_API_TOKEN が未設定です");
   }
-  const response = await fetch(`${GENERATOR_BASE}/dashboard-posts`, {
+  const response = await fetch(`${GENERATOR_BASE}/dashboard-analytics`, {
     next: { revalidate: REVALIDATE_SECONDS },
     headers: {
       Accept: "application/json",
@@ -200,57 +164,44 @@ async function fetchAppPosts(): Promise<AppWPPost[]> {
   if (!response.ok) {
     throw new Error(`${response.status} ${response.statusText}`);
   }
-  const body = await response.json() as { posts?: AppWPPost[] };
-  return (body.posts ?? []).filter((post) => Number.isInteger(post.id));
+  return await response.json() as AnalyticsResponse;
 }
 
 export async function getPublishedPosts(): Promise<PublishedPostsResult> {
   const errors: string[] = [];
   try {
-    const [wpPosts, categoryMap, tagMap, appResult] = await Promise.all([
-      fetchAllWordPressPosts(),
-      fetchTerms("categories"),
-      fetchTerms("tags"),
-      fetchAppPosts()
-        .then((posts) => ({ posts, available: true }))
-        .catch((error: unknown) => {
-          errors.push(`アプリ投稿の判定データを取得できませんでした: ${error instanceof Error ? error.message : String(error)}`);
-          return { posts: [] as AppWPPost[], available: false };
-        }),
-    ]);
+    const body = await fetchAnalyticsPosts();
+    const source = (body.posts ?? []).filter((post) => Number.isInteger(post.id));
+    if (body.errors && body.errors.length > 0) {
+      errors.push("WordPress記事の一部を取得できませんでした。");
+    }
 
-    const appIds = new Set(appResult.posts.map((post) => post.id));
-    const combined = new Map<number, AppWPPost | WPPost>(
-      wpPosts.map((post) => [post.id, post]),
-    );
-    appResult.posts.forEach((post) => combined.set(post.id, post));
-
-    const posts = [...combined.values()].map((post): PublishedPost => {
-      const title = decodeHtml(post.title.rendered);
-      const tags = post.tags.map((id) => tagMap.get(id)).filter((name): name is string => Boolean(name));
-      if ("brand" in post && post.brand) tags.push(post.brand);
+    const posts = source.map((post): PublishedPost => {
+      const title = decodeHtml(post.title);
+      const tags = (post.tags ?? []).map((tag) => decodeHtml(tag)).filter(Boolean);
+      if (post.brand) tags.push(post.brand);
       const models = classifyModels(title);
       return {
         id: post.id,
         title,
         link: post.link,
-        date: post.date.replace(/\./g, "-"),
-        categories: post.categories.map((id) => categoryMap.get(id) ?? `カテゴリー ${id}`),
+        date: (post.date ?? "").replace(/\./g, "-"),
+        categories: (post.categories ?? []).map((name) => decodeHtml(name)).filter(Boolean),
         brands: classifyBrands(title, tags),
         models: models.length > 0 ? models : ["その他"],
-        origin: appIds.has(post.id) ? "app" : "existing",
+        origin: post.origin === "app" ? "app" : "existing",
         status: post.status ?? "publish",
       };
     }).sort((a, b) => b.date.localeCompare(a.date));
 
     return {
       posts,
-      appClassificationAvailable: appResult.available,
+      appClassificationAvailable: body.app_lookup_ok !== false,
       errors,
       fetchedAt: new Date().toISOString(),
     };
   } catch (error) {
-    errors.push(`WordPress公開記事を取得できませんでした: ${error instanceof Error ? error.message : String(error)}`);
+    errors.push(`投稿データを取得できませんでした: ${error instanceof Error ? error.message : String(error)}`);
     return {
       posts: [],
       appClassificationAvailable: false,
